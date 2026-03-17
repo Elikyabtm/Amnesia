@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { CORRECT_PASSWORD, type FileItem } from "./game-data";
+import { CORRECT_PASSWORD, TRASH_PIN, CONFIDENTIAL_PIN, type FileItem } from "./game-data";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
 
@@ -31,8 +31,16 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  icon: "mail" | "calendar" | "system";
+  icon: "mail" | "calendar" | "system" | "security" | "antivirus";
   timestamp: Date;
+}
+
+export interface LockedItem {
+  id: string;
+  name: string;
+  pin: string;
+  hint: string;
+  unlocked: boolean;
 }
 
 interface GameContextType {
@@ -44,6 +52,7 @@ interface GameContextType {
   clues: ClueItem[];
   notifications: Notification[];
   passwordAttempts: number;
+  lockedItems: LockedItem[];
   startGame: () => void;
   enterDesktop: () => void;
   finishBooting: () => void;
@@ -59,6 +68,8 @@ interface GameContextType {
   addClue: (clue: Omit<ClueItem, "id" | "discoveredAt">) => void;
   addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void;
   dismissNotification: (id: string) => void;
+  tryUnlockItem: (itemId: string, pin: string) => boolean;
+  isItemLocked: (itemId: string) => boolean;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -74,6 +85,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const [clueCounter, setClueCounter] = useState(0);
+  const [lockedItems, setLockedItems] = useState<LockedItem[]>([
+    {
+      id: "trash",
+      name: "Corbeille",
+      pin: TRASH_PIN,
+      hint: "Année du mariage, mais à l'envers...",
+      unlocked: false,
+    },
+    {
+      id: "confidential",
+      name: "Dossier Confidentiel",
+      pin: CONFIDENTIAL_PIN,
+      hint: "L'année où j'ai été élu maire",
+      unlocked: false,
+    },
+  ]);
 
   const startGame = useCallback(() => {
     setGamePhase("intro");
@@ -143,6 +170,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const dismissNotification = useCallback((id: string) => {
     setNotifications((current) => current.filter((n) => n.id !== id));
   }, []);
+
+  const tryUnlockItem = useCallback((itemId: string, pin: string): boolean => {
+    const item = lockedItems.find((i) => i.id === itemId);
+    if (!item) return false;
+    
+    if (pin === item.pin) {
+      setLockedItems((current) =>
+        current.map((i) => (i.id === itemId ? { ...i, unlocked: true } : i))
+      );
+      return true;
+    }
+    return false;
+  }, [lockedItems]);
+
+  const isItemLocked = useCallback((itemId: string): boolean => {
+    const item = lockedItems.find((i) => i.id === itemId);
+    return item ? !item.unlocked : false;
+  }, [lockedItems]);
 
   const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string) => {
     const id = `window-${windowCounter}`;
@@ -260,6 +305,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         clues,
         notifications,
         passwordAttempts,
+        lockedItems,
         startGame,
         enterDesktop,
         finishBooting,
@@ -275,6 +321,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         addClue,
         addNotification,
         dismissNotification,
+        tryUnlockItem,
+        isItemLocked,
       }}
     >
       {children}

@@ -1,7 +1,14 @@
 // Game Data - Le Maire Bernard Dupuis
-// Mot de passe à deviner : 183214Avril1967
+// Mot de passe à deviner : BSM1832#14041967!
+// Format: [Initiales ville] + [Année fondation] + # + [Date naissance JJMMAAAA] + !
 
-export const CORRECT_PASSWORD = "183214Avril1967";
+export const CORRECT_PASSWORD = "BSM1832#14041967!";
+
+// Code PIN pour accéder à la corbeille (date de mariage inversée)
+export const TRASH_PIN = "3991"; // 1993 inversé
+
+// Code pour le dossier confidentiel (année élection maire)
+export const CONFIDENTIAL_PIN = "2015";
 
 export interface FileItem {
   id: string;
@@ -47,6 +54,40 @@ Signature : B. Dupuis`
 "Je suis né ici, comme mon père avant moi. Mon cœur bat pour cette ville depuis le 14 avril 1967, jour de ma naissance.
 
 Cette ville est mon héritage et mon avenir."`
+  },
+  {
+    id: "doc4",
+    name: "Notes_Reunion_Securite.txt",
+    type: "file",
+    content: `RÉUNION SÉCURITÉ INFORMATIQUE - 28/01/2025
+
+Présents : B. Dupuis, Service IT
+
+Recommandations pour les mots de passe :
+- Minimum 8 caractères
+- Mélanger majuscules et minuscules
+- Inclure des chiffres et symboles
+
+EXEMPLE DE FORMAT SUGGÉRÉ :
+Prénom + Année + Symbole
+Ex: Bernard1967!
+
+Note: Le maire a choisi un format différent, plus personnel.`
+  },
+  {
+    id: "doc5",
+    name: "Historique_Connexions.txt",
+    type: "file",
+    content: `JOURNAL DES CONNEXIONS - Février 2025
+
+03/02 - 08:15 - Connexion réussie (nouveau MDP)
+03/02 - 08:12 - Échec connexion (ancien MDP: Bourg1832)
+03/02 - 08:10 - Échec connexion (BDupuis1967)
+02/02 - 18:30 - Déconnexion
+02/02 - 09:00 - Connexion réussie
+
+Note système: L'utilisateur a changé son mot de passe le 03/02/2025.
+Nouveau format détecté: Alphanumérique + Symboles`
   }
 ];
 
@@ -99,8 +140,26 @@ Garder en tête pour un futur discours d'adieu ?`
 
 "Bourg1832"
 
-Trop simple. Changé pour quelque chose de plus personnel.
-Nouveau format : [fondation ville] + [date naissance]`
+Trop simple, trop évident.
+Le nouveau suit un format plus sécurisé :
+- Initiales + année importante + séparateur + date clé + ponctuation
+
+Note: j'ai choisi le dièse (#) comme séparateur car j'adore la musique.
+Le point d'exclamation final, c'est ma petite touche de fierté !`
+  },
+  {
+    id: "trash3",
+    name: "Brouillon_format_MDP.txt",
+    type: "file",
+    content: `Réflexions sur la sécurité...
+
+Un bon mot de passe doit combiner :
+- Des lettres (mes initiales de lieu préféré ?)
+- Des chiffres (dates importantes)
+- Des symboles (# et !)
+
+Format retenu : ABC1234#12345678!
+Où ABC = lieu, 1234 = fondation, 12345678 = naissance en JJMMAAAA`
   }
 ];
 
@@ -166,6 +225,54 @@ RAPPEL : Votre anniversaire de mariage est dans 2 semaines.
 32 ans ensemble !
 
 N'oubliez pas de réserver au restaurant Le Phare.`
+  },
+  {
+    id: "mail5",
+    name: "Service IT - Votre nouveau mot de passe",
+    type: "mail",
+    content: `De : Service Informatique Mairie
+Objet : Confirmation changement de mot de passe
+Date : 3 février 2025
+
+Monsieur le Maire,
+
+Votre mot de passe a été modifié avec succès.
+
+Pour rappel, voici les bonnes pratiques :
+- Ne jamais partager son mot de passe
+- Éviter les dates de naissance seules
+- Combiner lettres, chiffres et symboles
+
+Si vous n'êtes pas à l'origine de ce changement, contactez-nous immédiatement.
+
+Note: Nous avons détecté que votre nouveau mot de passe contient un symbole musical (#). 
+Excellente idée pour la mémorisation !
+
+Cordialement,
+Le Service IT`
+  },
+  {
+    id: "mail6",
+    name: "Pierre (frère) - Souvenir d'enfance",
+    type: "mail",
+    content: `De : Pierre Dupuis
+Objet : Tu te souviens ?
+Date : 5 février 2025
+
+Bernard,
+
+Je suis tombé sur une vieille photo de nous devant la mairie, en 1975.
+Tu avais 8 ans, moi 12. Papa venait d'être élu conseiller.
+
+Tu te souviens de notre code secret pour la cabane ?
+C'était ton année de naissance à l'envers : 7691 !
+On se croyait tellement malins...
+
+Bon courage pour l'inauguration.
+
+Pierre
+
+PS: Marie m'a dit que vous fêtez bientôt vos 32 ans de mariage. Déjà !`
   }
 ];
 
@@ -193,14 +300,52 @@ export const notes: FileItem[] = [
   },
   {
     id: "note3",
-    name: "Aide_memoire_MDP.txt",
+    name: "Enigme_perso.txt",
     type: "file",
-    content: `AIDE-MÉMOIRE
+    content: `Petit pense-bête cryptique...
 
-Format du nouveau mot de passe :
-[Fondation de la ville] + [Ma date de naissance complète]
+Trois lettres pour ma terre natale,
+Quatre chiffres pour son commencement,
+Un symbole de musique entre les deux mondes,
+Huit chiffres pour le jour où tout a commencé pour moi,
+Et le point final qui crie victoire.
 
-Ainsi je n'oublierai jamais d'où je viens.`
+Mon coeur bat pour BSM depuis toujours.`
+  },
+  {
+    id: "note4",
+    name: "Anciens_MDP_rejetes.txt",
+    type: "file",
+    content: `LISTE DES MOTS DE PASSE REJETÉS :
+
+- Bourg1832 (trop simple)
+- Bernard14041967 (trop évident)
+- Maire2015BSM (pas assez personnel)
+- 14Avril67! (manque le lieu)
+- BSM@1967! (mauvais format de date)
+- BourgSurMer1832 (trop long)
+
+Le bon format doit inclure :
+1. Abréviation du lieu (3 lettres)
+2. Année de fondation
+3. Séparateur musical
+4. Date complète (8 chiffres)
+5. Ponctuation finale`
+  },
+  {
+    id: "note5",
+    name: "Codes_divers.txt",
+    type: "file",
+    content: `CODES À RETENIR :
+
+- Code alarme maison : 1967 (mon année)
+- Code garage mairie : 2015 (élection)
+- Code wifi maison : BourgSurMer33
+- Code carte bancaire : XXXX (ne pas noter !)
+- Digicode bureau : 1832
+
+ATTENTION : Ne pas confondre avec le code de la corbeille !
+Celui-là c'est Marie qui l'a choisi... notre année spéciale, mais à l'envers.`
   }
 ];
 
@@ -380,12 +525,16 @@ Cordialement."`
     from: "Moi-meme",
     transcript: `[Memo vocal personnel]
 
-"Note a moi-meme : penser a changer le mot de passe de l'ordinateur.
-L'ancien etait trop simple, juste le nom de la ville et la date de fondation.
+"Note a moi-meme : le nouveau mot de passe est en place.
+J'ai suivi les conseils du service informatique : lettres, chiffres, symboles.
 
-Le nouveau doit etre plus personnel... quelque chose qui me rappelle d'ou je viens.
-La fondation de la ville, ma date de naissance... oui, ca c'est bien.
-Comme ca je n'oublierai jamais mes racines."`
+Les trois lettres de ma ville d'abord... BSM, comme sur les plaques d'immatriculation d'antan.
+Puis l'année où tout a commencé pour Bourg-sur-Mer.
+Le dièse, parce que j'aime la musique.
+Ma date de naissance complète, jour mois année, tout collé.
+Et le point d'exclamation final, parce que je suis fier de mes origines !
+
+Ah, et j'ai mis un code sur la corbeille aussi. L'année de notre mariage, mais à l'envers. Marie va adorer cette idée romantique..."`
   }
 ];
 

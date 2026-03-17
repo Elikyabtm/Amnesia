@@ -16,6 +16,7 @@ import { PasswordApp } from "./apps/password-app";
 import { BrowserApp } from "./apps/browser-app";
 import { CluesApp } from "./apps/clues-app";
 import { AudioApp } from "./apps/audio-app";
+import { RandomEvents } from "./random-events";
 
 export function Desktop() {
   const { windows } = useGame();
@@ -47,6 +48,9 @@ export function Desktop() {
 
         {/* Notifications */}
         <NotificationCenter />
+
+        {/* Random Events */}
+        <RandomEvents />
 
         {/* Taskbar */}
         <Taskbar />
