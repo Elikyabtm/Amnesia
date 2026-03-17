@@ -159,7 +159,7 @@ export function Taskbar() {
               <div>
                 <p className="text-white font-medium">Bernard Dupuis</p>
                 <p className="text-white/50 text-xs">
-                  {accountLevel === "admin" ? "Administrateur" : accountLevel === "guest" ? "Invite" : "Non connecte"}
+                  {accountLevel === "admin" ? "Administrateur" : accountLevel === "guest" ? "Invité" : "Non connecté"}
                 </p>
               </div>
             </div>
@@ -186,11 +186,11 @@ export function Taskbar() {
           <div className="p-2 border-t border-white/10 flex justify-between">
             <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm">
               <Settings className="w-4 h-4" />
-              Parametres
+              Paramètres
             </button>
             <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm">
               <Power className="w-4 h-4" />
-              Arreter
+              Arrêter
             </button>
           </div>
         </div>
@@ -225,7 +225,7 @@ export function Taskbar() {
             {searchQuery.trim() === "" ? (
               <p className="text-white/40 text-sm text-center py-4">Tapez pour rechercher...</p>
             ) : searchResults.length === 0 ? (
-              <p className="text-white/40 text-sm text-center py-4">Aucun resultat pour &quot;{searchQuery}&quot;</p>
+              <p className="text-white/40 text-sm text-center py-4">Aucun résultat pour &quot;{searchQuery}&quot;</p>
             ) : (
               <div className="space-y-1">
                 {searchResults.map((item) => (

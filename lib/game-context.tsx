@@ -168,8 +168,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       // Unlock some basic files but not the secret ones
       setNotifications((current) => [{
         id: `notif-${Date.now()}`,
-        title: "Compte Invite",
-        message: "Acces limite. Certains fichiers restent verrouilles.",
+        title: "Compte Invité",
+        message: "Accès limité. Certains fichiers restent verrouillés.",
         icon: "security",
         timestamp: new Date(),
       }, ...current]);
@@ -253,8 +253,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
         setNotifications((current) => [{
           id: `notif-${Date.now()}`,
-          title: "Alerte Securite",
-          message: "Activite suspecte detectee. Ralentissez vos recherches.",
+          title: "Alerte Sécurité",
+          message: "Activité suspecte détectée. Ralentissez vos recherches.",
           icon: "security",
           timestamp: new Date(),
         }, ...current]);

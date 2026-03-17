@@ -397,17 +397,17 @@ export const browserHistory: BrowserPage[] = [
     visitedAt: "10 février 2025",
     content: `HISTOIRE DE BOURG-SUR-MER
 
-Fondee en 1832, Bourg-sur-Mer est une commune cotiere du littoral francais.
+Fondée en 1832, Bourg-sur-Mer est une commune côtière du littoral français.
 
-DATES CLES :
+DATES CLÉS :
 - 1832 : Fondation officielle de la commune
 - 1856 : Construction du premier phare
-- 1902 : Inauguration du port de peche
-- 1967 : Ouverture du Musee Maritime
-- 2015 : Election de Bernard Dupuis comme maire
+- 1902 : Inauguration du port de pêche
+- 1967 : Ouverture du Musée Maritime
+- 2015 : Élection de Bernard Dupuis comme maire
 
 PATRIMOINE :
-La ville est connue pour son patrimoine maritime exceptionnel et sa statue de Leon Blum, inauguree en 2020.
+La ville est connue pour son patrimoine maritime exceptionnel et sa statue de Léon Blum, inaugurée en 2020.
 
 Population : 12 450 habitants
 Maire actuel : Bernard Dupuis (depuis 2015)`
@@ -415,50 +415,50 @@ Maire actuel : Bernard Dupuis (depuis 2015)`
   {
     id: "web2",
     url: "www.bourg-sur-mer.fr/mairie/equipe",
-    title: "L'equipe municipale - Mairie de Bourg-sur-Mer",
+    title: "L'équipe municipale - Mairie de Bourg-sur-Mer",
     visitedAt: "8 février 2025",
-    content: `L'EQUIPE MUNICIPALE
+    content: `L'ÉQUIPE MUNICIPALE
 
 MAIRE : Bernard Dupuis
-Ne le 14 avril 1967 a Bourg-sur-Mer
-Elu maire en 2015, reelu en 2020
+Né le 14 avril 1967 à Bourg-sur-Mer
+Élu maire en 2015, réélu en 2020
 
-"Je suis ne dans cette ville, j'y ai grandi, et j'ai l'honneur de la servir aujourd'hui."
+"Je suis né dans cette ville, j'y ai grandi, et j'ai l'honneur de la servir aujourd'hui."
 
 PARCOURS :
-- 1989 : Diplome de Sciences Politiques
+- 1989 : Diplôme de Sciences Politiques
 - 1993 : Conseiller municipal
 - 2008 : Premier adjoint
-- 2015 : Elu maire
+- 2015 : Élu maire
 
-PRIORITES DU MANDAT :
-- Preservation du patrimoine maritime
-- Developpement du tourisme culturel
+PRIORITÉS DU MANDAT :
+- Préservation du patrimoine maritime
+- Développement du tourisme culturel
 - Soutien aux associations locales`
   },
   {
     id: "web3",
     url: "www.musee-maritime-bourg.fr",
-    title: "Musee Maritime de Bourg-sur-Mer",
+    title: "Musée Maritime de Bourg-sur-Mer",
     visitedAt: "5 février 2025",
-    content: `MUSEE MARITIME DE BOURG-SUR-MER
+    content: `MUSÉE MARITIME DE BOURG-SUR-MER
 
-Exposition actuelle : "Memoires de la Mer - 1832-2025"
+Exposition actuelle : "Mémoires de la Mer - 1832-2025"
 Du 3 mars au 30 juin 2025
 
 Cette exposition retrace l'histoire maritime de notre ville depuis sa fondation en 1832.
 
 HORAIRES :
 Mardi - Dimanche : 10h - 18h
-Ferme le lundi
+Fermé le lundi
 
 TARIFS :
 Adultes : 8€
-Etudiants : 5€
+Étudiants : 5€
 Gratuit pour les moins de 12 ans
 
 INAUGURATION OFFICIELLE :
-Le 3 mars 2025 a 18h en presence de M. le Maire Bernard Dupuis`
+Le 3 mars 2025 à 18h en présence de M. le Maire Bernard Dupuis`
   },
   {
     id: "web4",
@@ -469,13 +469,13 @@ Le 3 mars 2025 a 18h en presence de M. le Maire Bernard Dupuis`
 
 Profession : Maire
 Adresse : Mairie de Bourg-sur-Mer
-12 Place de la Republique
+12 Place de la République
 33120 Bourg-sur-Mer
 
-Telephone : 05 XX XX XX XX
+Téléphone : 05 XX XX XX XX
 Email : maire@bourg-sur-mer.fr
 
-Informations complementaires :
+Informations complémentaires :
 Date de naissance : 14/04/1967
 Lieu de naissance : Bourg-sur-Mer`
   }
@@ -496,34 +496,34 @@ export const voiceMessages: VoiceMessage[] = [
     id: "voice1",
     name: "message_marie_12_02.mp3",
     audioSrc: "/audio/marie.mp3",
-    date: "12 fevrier 2025",
-    from: "Marie (epouse)",
+    date: "12 février 2025",
+    from: "Marie (épouse)",
     transcript: `[Message vocal de Marie]
 
-"Bernard, c'est moi. N'oublie pas ton rendez-vous chez le cardiologue demain a 14h. 
-Je sais que tu travailles beaucoup en ce moment avec l'inauguration qui approche, mais ta sante est importante.
+"Bernard, c'est moi. N'oublie pas ton rendez-vous chez le cardiologue demain à 14h. 
+Je sais que tu travailles beaucoup en ce moment avec l'inauguration qui approche, mais ta santé est importante.
 
-Ah, et j'ai reserve au restaurant Le Phare pour notre anniversaire de mariage le 15 avril. 
-32 ans deja... Le temps passe si vite depuis 1993.
+Ah, et j'ai réservé au restaurant Le Phare pour notre anniversaire de mariage le 15 avril. 
+32 ans déjà... Le temps passe si vite depuis 1993.
 
-Je t'aime. A ce soir."`
+Je t'aime. À ce soir."`
   },
   {
     id: "voice2",
     name: "message_prefet_18_02.mp3",
     audioSrc: "/audio/prefet.mp3",
-    date: "18 fevrier 2025",
-    from: "Cabinet du Prefet",
-    transcript: `[Message vocal du Cabinet du Prefet]
+    date: "18 février 2025",
+    from: "Cabinet du Préfet",
+    transcript: `[Message vocal du Cabinet du Préfet]
 
-"Monsieur le Maire, ici le cabinet du Prefet.
-Je vous confirme la presence de Monsieur le Prefet a l'inauguration du square Leon Blum le 21 fevrier.
+"Monsieur le Maire, ici le cabinet du Préfet.
+Je vous confirme la présence de Monsieur le Préfet à l'inauguration du square Léon Blum le 21 février.
 
-Le protocole prevoit votre discours a 15h, suivi de la coupe du ruban.
-N'oubliez pas votre echarpe tricolore cette fois-ci... 
+Le protocole prévoit votre discours à 15h, suivi de la coupe du ruban.
+N'oubliez pas votre écharpe tricolore cette fois-ci... 
 
-Le Prefet m'a egalement demande de vous transmettre ses felicitations anticipees pour votre anniversaire le mois prochain. 
-58 ans, c'est un bel age pour un maire aussi dynamique.
+Le Préfet m'a également demandé de vous transmettre ses félicitations anticipées pour votre anniversaire le mois prochain. 
+58 ans, c'est un bel âge pour un maire aussi dynamique.
 
 Cordialement."`
   },
@@ -531,11 +531,11 @@ Cordialement."`
     id: "voice3",
     name: "memo_personnel_03_02.mp3",
     audioSrc: "/audio/moimeme.mp3",
-    date: "3 fevrier 2025",
-    from: "Moi-meme",
-    transcript: `[Memo vocal personnel]
+    date: "3 février 2025",
+    from: "Moi-même",
+    transcript: `[Mémo vocal personnel]
 
-"Note a moi-meme : le nouveau mot de passe est en place.
+"Note à moi-même : le nouveau mot de passe est en place.
 J'ai suivi les conseils du service informatique : lettres, chiffres, symboles.
 
 Les trois lettres de ma ville d'abord... BSM, comme sur les plaques d'immatriculation d'antan.
@@ -575,7 +575,7 @@ export const fileMetadata: Record<string, FileMetadata> = {
     size: "156 Ko",
     created: "5 janvier 2025, 11:00",
     modified: "10 février 2025, 16:45",
-    author: "Service Comptabilite - Mairie",
+    author: "Service Comptabilité - Mairie",
     location: "C:\\Users\\BDupuis\\Documents"
   },
   "doc3": {
@@ -584,7 +584,7 @@ export const fileMetadata: Record<string, FileMetadata> = {
     size: "1.8 Ko",
     created: "14 avril 2024, 08:00",
     modified: "14 avril 2024, 10:30",
-    author: "Bernard Dupuis - Ne le 14/04/1967",
+    author: "Bernard Dupuis - Né le 14/04/1967",
     location: "C:\\Users\\BDupuis\\Documents"
   },
   "note3": {
@@ -609,16 +609,16 @@ PROJET IMMOBILIER "LES JARDINS DE LA MER"
 
 Entre :
 - M. Bernard Dupuis, Maire de Bourg-sur-Mer
-- SCI Les Mouettes (Gerant: Philippe Maurin)
+- SCI Les Mouettes (Gérant: Philippe Maurin)
 
-CLAUSES SPECIALES :
-- Terrain communal vendu a 40% en dessous du prix du marche
-- En echange: Appartement T4 vue mer (lot 12B) au nom de Mme Marie Dupuis
-- Commission de "facilitation" : 85 000 EUR versee sur compte suisse
+CLAUSES SPÉCIALES :
+- Terrain communal vendu à 40% en dessous du prix du marché
+- En échange: Appartement T4 vue mer (lot 12B) au nom de Mme Marie Dupuis
+- Commission de "facilitation" : 85 000 EUR versée sur compte suisse
 
-ATTENTION : Document a detruire apres signature.
+ATTENTION : Document à détruire après signature.
 
-Signe le 14 mars 2019`
+Signé le 14 mars 2019`
   },
   {
     id: "secret2",
@@ -627,17 +627,17 @@ Signe le 14 mars 2019`
     content: `De : Bernard Dupuis <bdupuis@bourg-sur-mer.fr>
 A : redaction@le-phare-info.fr
 Date : 22 janvier 2025
-Objet : Votre "enquete"
+Objet : Votre "enquête"
 
 Monsieur Garnier,
 
-Je vous conseille fortement d'abandonner votre soi-disant enquete sur le projet des Jardins de la Mer.
+Je vous conseille fortement d'abandonner votre soi-disant enquête sur le projet des Jardins de la Mer.
 
-Votre journal depend des subventions municipales. Il serait dommage qu'elles soient... reexaminees.
+Votre journal dépend des subventions municipales. Il serait dommage qu'elles soient... réexaminées.
 
-Je connais aussi votre situation familiale. Votre femme travaille a la bibliotheque municipale, n'est-ce pas ?
+Je connais aussi votre situation familiale. Votre femme travaille à la bibliothèque municipale, n'est-ce pas ?
 
-Reflechissez bien.
+Réfléchissez bien.
 
 B. Dupuis`
   },
@@ -645,8 +645,8 @@ B. Dupuis`
     id: "secret3",
     name: "Comptes_Offshore.xlsx",
     type: "file",
-    content: `RELEVE - COMPTE PRIVE SUISSE
-Banque Helvetia - Geneve
+    content: `RELEVÉ - COMPTE PRIVÉ SUISSE
+Banque Helvetia - Genève
 Titulaire : B.D. Consulting SA
 
 MOUVEMENTS 2019-2024 :
@@ -654,53 +654,53 @@ MOUVEMENTS 2019-2024 :
 03/2019 : +85 000 EUR (Virement SCI Les Mouettes)
 06/2019 : +45 000 EUR (Consultation urbanisme)
 11/2020 : +120 000 EUR (Projet marina - commission)
-03/2022 : +67 000 EUR (Contrat dechets)
-09/2023 : +93 000 EUR (Attribution marche voirie)
+03/2022 : +67 000 EUR (Contrat déchets)
+09/2023 : +93 000 EUR (Attribution marché voirie)
 
 SOLDE ACTUEL : 847 230 EUR
 
-Note : Transferts mensuels de 5000 EUR vers compte francais
-       (declares comme "revenus de conseil")`
+Note : Transferts mensuels de 5000 EUR vers compte français
+       (déclarés comme "revenus de conseil")`
   },
   {
     id: "secret4",
     name: "Photo_Compromettante.jpg",
     type: "image",
     imageSrc: "/images/photo_compromettante.jpg",
-    content: `[PHOTO - Monaco, 15 aout 2022]
+    content: `[PHOTO - Monaco, 15 août 2022]
 
-Bernard Dupuis sur un yacht luxueux avec Philippe Maurin (promoteur immobilier) et Jean-Marc Vidal (prefet de l'epoque).
+Bernard Dupuis sur un yacht luxueux avec Philippe Maurin (promoteur immobilier) et Jean-Marc Vidal (préfet de l'époque).
 
-Champagne, cigares. A l'arriere-plan : mallette ouverte contenant des liasses de billets.
+Champagne, cigares. À l'arrière-plan : mallette ouverte contenant des liasses de billets.
 
-Metadonnees : iPhone 13 Pro - Localisation Monaco
-Photographe : Inconnu (photo volee ?)`
+Métadonnées : iPhone 13 Pro - Localisation Monaco
+Photographe : Inconnu (photo volée ?)`
   },
   {
     id: "secret5",
     name: "Testament_Secret.txt",
     type: "file",
-    content: `INSTRUCTIONS EN CAS DE DECES OU D'ARRESTATION
+    content: `INSTRUCTIONS EN CAS DE DÉCÈS OU D'ARRESTATION
 
 Marie,
 
-Si tu lis ceci, c'est que les choses ont mal tourne.
+Si tu lis ceci, c'est que les choses ont mal tourné.
 
-Le coffre a la banque (code 1832-1967) contient :
+Le coffre à la banque (code 1832-1967) contient :
 - 200 000 EUR en liquide
 - Les vrais documents du projet Jardins de la Mer
-- Une cle USB avec toutes les preuves contre Maurin et Vidal
+- Une clé USB avec toutes les preuves contre Maurin et Vidal
 
 IMPORTANT : Ces preuves sont mon assurance-vie. Si je tombe, ils tombent avec moi.
 
-Le mot de passe du coffre-fort numerique est le meme que celui de cet ordinateur, mais SANS le diese et avec "@" a la place.
+Le mot de passe du coffre-fort numérique est le même que celui de cet ordinateur, mais SANS le dièse et avec "@" à la place.
 
-Pardonne-moi pour tout ca. J'ai voulu assurer notre avenir, mais je me suis perdu en chemin.
+Pardonne-moi pour tout ça. J'ai voulu assurer notre avenir, mais je me suis perdu en chemin.
 
 Je t'aime.
 Bernard
 
-PS: Le vrai responsable de la mort de papa en 1982... c'etait un accident, mais Maurin a couvert l'affaire. C'est comme ca que tout a commence.`
+PS: Le vrai responsable de la mort de papa en 1982... c'était un accident, mais Maurin a couvert l'affaire. C'est comme ça que tout a commencé.`
   }
 ];
 
@@ -708,48 +708,48 @@ PS: Le vrai responsable de la mort de papa en 1982... c'etait un accident, mais 
 export const secretMails: FileItem[] = [
   {
     id: "secretmail1",
-    name: "[URGENT] Journaliste - Dernieres preuves",
+    name: "[URGENT] Journaliste - Dernières preuves",
     type: "mail",
     content: `De : Antoine Garnier <a.garnier@le-phare-info.fr>
 Objet : Je sais tout
-Date : 15 fevrier 2025
+Date : 15 février 2025
 
 Monsieur le Maire,
 
-Vos menaces ne m'arreteront pas.
+Vos menaces ne m'arrêteront pas.
 
-J'ai obtenu les releves de votre compte suisse. J'ai les photos de Monaco.
-J'ai meme retrouve le dossier sur la mort de votre pere en 1982.
+J'ai obtenu les relevés de votre compte suisse. J'ai les photos de Monaco.
+J'ai même retrouvé le dossier sur la mort de votre père en 1982.
 
-Publication prevue le 25 fevrier.
+Publication prévue le 25 février.
 
-Vous avez une semaine pour demissionner ou je publie tout.
+Vous avez une semaine pour démissionner ou je publie tout.
 
 A. Garnier`
   },
   {
     id: "secretmail2",
-    name: "Philippe M. - Probleme urgent",
+    name: "Philippe M. - Problème urgent",
     type: "mail",
     content: `De : Philippe Maurin <pm@sci-lesmouettes.fr>
 Objet : URGENT - Le journaliste
-Date : 16 fevrier 2025
+Date : 16 février 2025
 
 Bernard,
 
-Ce Garnier devient un vrai probleme.
+Ce Garnier devient un vrai problème.
 
-J'ai contacte nos amis. Ils proposent une "solution definitive" pour 50k.
+J'ai contacté nos amis. Ils proposent une "solution définitive" pour 50k.
 
 Dis-moi si tu veux qu'on avance.
 
 Philippe
 
-PS: Detruit ce message immediatement.`
+PS: Détruis ce message immédiatement.`
   }
 ];
 
-// Dossier confidentiel (accessible apres PIN)
+// Dossier confidentiel (accessible après PIN)
 export const confidentialFolder: FileItem = {
   id: "confidential",
   name: "Dossier Confidentiel",
