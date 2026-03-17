@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Shield, AlertTriangle, X, Loader2, RefreshCw, Wifi, WifiOff, Battery, BatteryWarning } from "lucide-react";
 import { useGame } from "@/lib/game-context";
-import { useSound } from "@/hooks/use-sound";
 
 type EventType = "antivirus" | "freeze" | "update" | "wifi" | "battery";
 
@@ -19,8 +18,7 @@ export function RandomEvents() {
   const [currentEvent, setCurrentEvent] = useState<RandomEvent | null>(null);
   const [scanProgress, setScanProgress] = useState(0);
   const [freezeCountdown, setFreezeCountdown] = useState(0);
-  const { gamePhase, addNotification, closeWindow, windows } = useGame();
-  const { playSound } = useSound();
+  const { gamePhase } = useGame();
 
   const triggerEvent = useCallback(() => {
     // Removed freeze - only subtle notifications now
@@ -36,13 +34,12 @@ export function RandomEvents() {
     };
 
     setCurrentEvent({ type: randomEvent, duration: durations[randomEvent] });
-    playSound("notification");
 
-    // Handle specific event logic - no more window closing
+    // Handle specific event logic
     if (randomEvent === "antivirus") {
       setScanProgress(0);
     }
-  }, [playSound]);
+  }, []);
 
   // Schedule random events
   useEffect(() => {
