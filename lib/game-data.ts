@@ -1,14 +1,24 @@
 // Game Data - Le Maire Bernard Dupuis
-// Mot de passe à deviner : BSM1832#14041967!
-// Format: [Initiales ville] + [Année fondation] + # + [Date naissance JJMMAAAA] + !
+// 
+// NIVEAU 1 - Compte Invité: "Bourg1832" (ancien mot de passe simple)
+// NIVEAU 2 - Compte Admin: "BSM1832#14041967!"
+// Format Admin: [Initiales ville] + [Année fondation] + # + [Date naissance JJMMAAAA] + !
 
-export const CORRECT_PASSWORD = "BSM1832#14041967!";
+export const GUEST_PASSWORD = "Bourg1832";
+export const ADMIN_PASSWORD = "BSM1832#14041967!";
 
 // Code PIN pour accéder à la corbeille (date de mariage inversée)
 export const TRASH_PIN = "3991"; // 1993 inversé
 
 // Code pour le dossier confidentiel (année élection maire)
 export const CONFIDENTIAL_PIN = "2015";
+
+// Seuils de suspicion
+export const SUSPICION_THRESHOLDS = {
+  WARNING: 50,      // Alerte de sécurité
+  DANGER: 75,       // Écran de surveillance
+  LOCKOUT: 100,     // Blocage temporaire
+};
 
 export interface FileItem {
   id: string;
@@ -588,6 +598,168 @@ export const fileMetadata: Record<string, FileMetadata> = {
   }
 };
 
+// Fichiers secrets - accessibles uniquement en mode admin
+export const secretDocuments: FileItem[] = [
+  {
+    id: "secret1",
+    name: "Contrat_Promoteur_CONFIDENTIEL.pdf",
+    type: "file",
+    content: `CONTRAT CONFIDENTIEL
+PROJET IMMOBILIER "LES JARDINS DE LA MER"
+
+Entre :
+- M. Bernard Dupuis, Maire de Bourg-sur-Mer
+- SCI Les Mouettes (Gerant: Philippe Maurin)
+
+CLAUSES SPECIALES :
+- Terrain communal vendu a 40% en dessous du prix du marche
+- En echange: Appartement T4 vue mer (lot 12B) au nom de Mme Marie Dupuis
+- Commission de "facilitation" : 85 000 EUR versee sur compte suisse
+
+ATTENTION : Document a detruire apres signature.
+
+Signe le 14 mars 2019`
+  },
+  {
+    id: "secret2",
+    name: "Mail_Menaces_Journaliste.txt",
+    type: "file",
+    content: `De : Bernard Dupuis <bdupuis@bourg-sur-mer.fr>
+A : redaction@le-phare-info.fr
+Date : 22 janvier 2025
+Objet : Votre "enquete"
+
+Monsieur Garnier,
+
+Je vous conseille fortement d'abandonner votre soi-disant enquete sur le projet des Jardins de la Mer.
+
+Votre journal depend des subventions municipales. Il serait dommage qu'elles soient... reexaminees.
+
+Je connais aussi votre situation familiale. Votre femme travaille a la bibliotheque municipale, n'est-ce pas ?
+
+Reflechissez bien.
+
+B. Dupuis`
+  },
+  {
+    id: "secret3",
+    name: "Comptes_Offshore.xlsx",
+    type: "file",
+    content: `RELEVE - COMPTE PRIVE SUISSE
+Banque Helvetia - Geneve
+Titulaire : B.D. Consulting SA
+
+MOUVEMENTS 2019-2024 :
+
+03/2019 : +85 000 EUR (Virement SCI Les Mouettes)
+06/2019 : +45 000 EUR (Consultation urbanisme)
+11/2020 : +120 000 EUR (Projet marina - commission)
+03/2022 : +67 000 EUR (Contrat dechets)
+09/2023 : +93 000 EUR (Attribution marche voirie)
+
+SOLDE ACTUEL : 847 230 EUR
+
+Note : Transferts mensuels de 5000 EUR vers compte francais
+       (declares comme "revenus de conseil")`
+  },
+  {
+    id: "secret4",
+    name: "Photo_Compromettante.jpg",
+    type: "image",
+    imageSrc: "/images/photo_compromettante.jpg",
+    content: `[PHOTO - Monaco, 15 aout 2022]
+
+Bernard Dupuis sur un yacht luxueux avec Philippe Maurin (promoteur immobilier) et Jean-Marc Vidal (prefet de l'epoque).
+
+Champagne, cigares. A l'arriere-plan : mallette ouverte contenant des liasses de billets.
+
+Metadonnees : iPhone 13 Pro - Localisation Monaco
+Photographe : Inconnu (photo volee ?)`
+  },
+  {
+    id: "secret5",
+    name: "Testament_Secret.txt",
+    type: "file",
+    content: `INSTRUCTIONS EN CAS DE DECES OU D'ARRESTATION
+
+Marie,
+
+Si tu lis ceci, c'est que les choses ont mal tourne.
+
+Le coffre a la banque (code 1832-1967) contient :
+- 200 000 EUR en liquide
+- Les vrais documents du projet Jardins de la Mer
+- Une cle USB avec toutes les preuves contre Maurin et Vidal
+
+IMPORTANT : Ces preuves sont mon assurance-vie. Si je tombe, ils tombent avec moi.
+
+Le mot de passe du coffre-fort numerique est le meme que celui de cet ordinateur, mais SANS le diese et avec "@" a la place.
+
+Pardonne-moi pour tout ca. J'ai voulu assurer notre avenir, mais je me suis perdu en chemin.
+
+Je t'aime.
+Bernard
+
+PS: Le vrai responsable de la mort de papa en 1982... c'etait un accident, mais Maurin a couvert l'affaire. C'est comme ca que tout a commence.`
+  }
+];
+
+// Emails secrets visibles uniquement en mode admin
+export const secretMails: FileItem[] = [
+  {
+    id: "secretmail1",
+    name: "[URGENT] Journaliste - Dernieres preuves",
+    type: "mail",
+    content: `De : Antoine Garnier <a.garnier@le-phare-info.fr>
+Objet : Je sais tout
+Date : 15 fevrier 2025
+
+Monsieur le Maire,
+
+Vos menaces ne m'arreteront pas.
+
+J'ai obtenu les releves de votre compte suisse. J'ai les photos de Monaco.
+J'ai meme retrouve le dossier sur la mort de votre pere en 1982.
+
+Publication prevue le 25 fevrier.
+
+Vous avez une semaine pour demissionner ou je publie tout.
+
+A. Garnier`
+  },
+  {
+    id: "secretmail2",
+    name: "Philippe M. - Probleme urgent",
+    type: "mail",
+    content: `De : Philippe Maurin <pm@sci-lesmouettes.fr>
+Objet : URGENT - Le journaliste
+Date : 16 fevrier 2025
+
+Bernard,
+
+Ce Garnier devient un vrai probleme.
+
+J'ai contacte nos amis. Ils proposent une "solution definitive" pour 50k.
+
+Dis-moi si tu veux qu'on avance.
+
+Philippe
+
+PS: Detruit ce message immediatement.`
+  }
+];
+
+// Dossier confidentiel (accessible apres PIN)
+export const confidentialFolder: FileItem = {
+  id: "confidential",
+  name: "Dossier Confidentiel",
+  type: "folder",
+  children: secretDocuments
+};
+
+// Combine mails with secrets for admin mode
+export const allMails = [...mails, ...secretMails];
+
 export const fileSystem: FileItem[] = [
   {
     id: "documents",
@@ -612,5 +784,6 @@ export const fileSystem: FileItem[] = [
     name: "Mémos vocaux",
     type: "folder",
     children: audioMemos
-  }
+  },
+  confidentialFolder
 ];

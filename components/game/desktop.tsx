@@ -17,9 +17,11 @@ import { BrowserApp } from "./apps/browser-app";
 import { CluesApp } from "./apps/clues-app";
 import { AudioApp } from "./apps/audio-app";
 import { RandomEvents } from "./random-events";
+import { SuspicionBar } from "./suspicion-bar";
+import { WinScreen } from "./win-screen";
 
 export function Desktop() {
-  const { windows } = useGame();
+  const { windows, gamePhase } = useGame();
 
   return (
     <ContextMenuProvider>
@@ -51,6 +53,12 @@ export function Desktop() {
 
         {/* Random Events */}
         <RandomEvents />
+
+        {/* Suspicion Bar */}
+        <SuspicionBar />
+
+        {/* Win Screen */}
+        {gamePhase === "won" && <WinScreen />}
 
         {/* Taskbar */}
         <Taskbar />

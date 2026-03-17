@@ -25,7 +25,7 @@ interface FileExplorerProps {
 export function FileExplorer({ window: win }: FileExplorerProps) {
   const [currentFolder, setCurrentFolder] = useState<FileItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const { openWindow, addClue } = useGame();
+  const { openWindow, addClue, addSuspicion, discoverSecret, accountLevel, isItemLocked } = useGame();
   const { playSound } = useSound();
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
 
@@ -77,7 +77,23 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         source: item.name,
       });
     }
-  }, [addClue]);
+
+    // Detect secret files and add suspicion
+    const secretKeywords = ["CONFIDENTIEL", "offshore", "corruption", "menaces", "compromettante", "secret"];
+    const isSecretFile = secretKeywords.some(keyword => 
+      item.name.toLowerCase().includes(keyword.toLowerCase()) || 
+      content.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (isSecretFile) {
+      addSuspicion({
+        type: "sensitive_file",
+        amount: 15,
+        message: `Acces au fichier sensible: ${item.name}`,
+      });
+      discoverSecret(item.name);
+    }
+  }, [addClue, addSuspicion, discoverSecret]);
 
   const getIcon = (item: FileItem) => {
     switch (item.type) {
@@ -104,6 +120,19 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       playSound("open");
       
       if (item.type === "folder") {
+        // Check if folder is locked
+        if (item.id === "confidential" && isItemLocked("confidential")) {
+          openWindow("trash", "Dossier Verrouille", item);
+          return;
+        }
+        // Check if guest trying to access confidential
+        if (item.id === "confidential" && accountLevel === "guest") {
+          addSuspicion({
+            type: "sensitive_file",
+            amount: 10,
+            message: "Tentative d'acces au dossier confidentiel",
+          });
+        }
         setCurrentFolder(item);
         setSelectedItem(null);
       } else if (item.type === "image") {

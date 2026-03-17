@@ -12,7 +12,7 @@ import {
   MoreHorizontal,
   ChevronDown
 } from "lucide-react";
-import { mails, type FileItem } from "@/lib/game-data";
+import { mails, allMails, secretMails, type FileItem } from "@/lib/game-data";
 import { type WindowState, useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 
@@ -23,7 +23,10 @@ interface MailAppProps {
 export function MailApp({ window: win }: MailAppProps) {
   const [selectedMail, setSelectedMail] = useState<FileItem | null>(null);
   const { playSound } = useSound();
-  const { addClue } = useGame();
+  const { addClue, accountLevel, addSuspicion, discoverSecret } = useGame();
+  
+  // Show secret mails only in admin mode
+  const visibleMails = accountLevel === "admin" ? allMails : mails;
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
 
   const detectClues = useCallback((mail: FileItem) => {
@@ -64,7 +67,18 @@ export function MailApp({ window: win }: MailAppProps) {
         source: `Email: ${mail.name}`,
       });
     }
-  }, [addClue]);
+
+    // Check if this is a secret mail
+    const isSecretMail = secretMails.some(sm => sm.id === mail.id);
+    if (isSecretMail) {
+      addSuspicion({
+        type: "sensitive_file",
+        amount: 20,
+        message: `Email sensible consulte: ${mail.name}`,
+      });
+      discoverSecret(mail.name);
+    }
+  }, [addClue, addSuspicion, discoverSecret]);
 
   const handleMailClick = useCallback((mail: FileItem) => {
     playSound("click");
@@ -100,7 +114,7 @@ export function MailApp({ window: win }: MailAppProps) {
           <button className="w-full flex items-center gap-3 px-3 py-2 text-white bg-white/10 rounded transition-colors">
             <Inbox className="w-4 h-4" />
             <span className="flex-1 text-left text-sm">Boîte de réception</span>
-            <span className="text-xs bg-[#0078d4] px-1.5 py-0.5 rounded">{mails.length}</span>
+            <span className="text-xs bg-[#0078d4] px-1.5 py-0.5 rounded">{visibleMails.length}</span>
           </button>
           <button className="w-full flex items-center gap-3 px-3 py-2 text-white/70 hover:bg-white/5 rounded transition-colors">
             <Star className="w-4 h-4" />
@@ -155,7 +169,7 @@ export function MailApp({ window: win }: MailAppProps) {
 
         {/* Mail list */}
         <div className="flex-1 overflow-auto">
-          {mails.map((mail) => (
+          {visibleMails.map((mail) => (
             <button
               key={mail.id}
               onClick={() => handleMailClick(mail)}
