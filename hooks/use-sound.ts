@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 type SoundType = "click" | "error" | "success" | "open" | "close" | "startup" | "notification";
 
@@ -17,6 +17,8 @@ const soundPatterns: Record<SoundType, { freq: number[]; duration: number[]; typ
 
 export function useSound() {
   const audioContextRef = useRef<AudioContext | null>(null);
+  const [volume, setVolume] = useState(0.5);
+  const [isMuted, setIsMuted] = useState(false);
 
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
@@ -26,6 +28,8 @@ export function useSound() {
   }, []);
 
   const playSound = useCallback((type: SoundType) => {
+    if (isMuted || volume === 0) return;
+    
     try {
       const ctx = getAudioContext();
       const pattern = soundPatterns[type];
@@ -38,7 +42,8 @@ export function useSound() {
         oscillator.type = pattern.type;
         oscillator.frequency.setValueAtTime(freq, startTime);
 
-        gainNode.gain.setValueAtTime(0.1, startTime);
+        const adjustedVolume = volume * 0.2; // Scale down for comfort
+        gainNode.gain.setValueAtTime(adjustedVolume, startTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + pattern.duration[i] / 1000);
 
         oscillator.connect(gainNode);
@@ -52,7 +57,11 @@ export function useSound() {
     } catch {
       // Audio not supported
     }
-  }, [getAudioContext]);
+  }, [getAudioContext, isMuted, volume]);
 
-  return { playSound };
+  const toggleMute = useCallback(() => {
+    setIsMuted((m) => !m);
+  }, []);
+
+  return { playSound, volume, setVolume, isMuted, setIsMuted, toggleMute };
 }
