@@ -12,8 +12,8 @@ interface RandomEvent {
   duration: number;
 }
 
-const EVENT_INTERVAL_MIN = 30000; // 30 seconds
-const EVENT_INTERVAL_MAX = 60000; // 60 seconds
+const EVENT_INTERVAL_MIN = 90000; // 1.5 minutes
+const EVENT_INTERVAL_MAX = 180000; // 3 minutes
 
 export function RandomEvents() {
   const [currentEvent, setCurrentEvent] = useState<RandomEvent | null>(null);
@@ -23,39 +23,26 @@ export function RandomEvents() {
   const { playSound } = useSound();
 
   const triggerEvent = useCallback(() => {
-    const events: EventType[] = ["antivirus", "freeze", "update", "wifi", "battery"];
+    // Removed freeze - only subtle notifications now
+    const events: EventType[] = ["antivirus", "update", "wifi", "battery"];
     const randomEvent = events[Math.floor(Math.random() * events.length)];
     
     const durations: Record<EventType, number> = {
-      antivirus: 8000,
-      freeze: 5000,
-      update: 6000,
+      antivirus: 6000,
+      freeze: 0, // Not used anymore
+      update: 5000,
       wifi: 4000,
-      battery: 5000,
+      battery: 4000,
     };
 
     setCurrentEvent({ type: randomEvent, duration: durations[randomEvent] });
     playSound("notification");
 
-    // Handle specific event logic
+    // Handle specific event logic - no more window closing
     if (randomEvent === "antivirus") {
       setScanProgress(0);
-      // Close a random window sometimes
-      if (Math.random() > 0.6 && windows.length > 0) {
-        const randomWindow = windows[Math.floor(Math.random() * windows.length)];
-        setTimeout(() => {
-          closeWindow(randomWindow.id);
-          addNotification({
-            title: "SecureShield Pro",
-            message: `Application "${randomWindow.title}" fermée pour analyse de sécurité`,
-            icon: "antivirus",
-          });
-        }, 3000);
-      }
-    } else if (randomEvent === "freeze") {
-      setFreezeCountdown(5);
     }
-  }, [windows, closeWindow, addNotification, playSound]);
+  }, [playSound]);
 
   // Schedule random events
   useEffect(() => {
@@ -69,10 +56,10 @@ export function RandomEvents() {
       }, delay);
     };
 
-    // Start with a delay
+    // Start with a longer delay (45 seconds)
     const initialTimeout = setTimeout(() => {
       triggerEvent();
-    }, 15000);
+    }, 45000);
 
     const recurringTimeout = scheduleNextEvent();
 
@@ -124,25 +111,6 @@ export function RandomEvents() {
   };
 
   if (!currentEvent) return null;
-
-  // Freeze overlay
-  if (currentEvent.type === "freeze") {
-    return (
-      <div className="fixed inset-0 z-[5000] bg-black/60 backdrop-blur-sm flex items-center justify-center">
-        <div className="bg-[#1a1a2e] border border-blue-500/30 rounded-lg p-8 max-w-md text-center animate-fade-in">
-          <Loader2 className="w-16 h-16 text-blue-400 animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-white mb-2">Système en pause</h2>
-          <p className="text-white/60 mb-4">
-            Windows effectue des opérations de maintenance...
-          </p>
-          <div className="text-4xl font-bold text-blue-400 mb-2">
-            {freezeCountdown}
-          </div>
-          <p className="text-xs text-white/40">Veuillez patienter</p>
-        </div>
-      </div>
-    );
-  }
 
   // Antivirus popup
   if (currentEvent.type === "antivirus") {
