@@ -166,11 +166,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (password === GUEST_PASSWORD && accountLevel === "locked") {
       setAccountLevel("guest");
       // Unlock some basic files but not the secret ones
-      addNotification({
+      setNotifications((current) => [{
+        id: `notif-${Date.now()}`,
         title: "Compte Invite",
         message: "Acces limite. Certains fichiers restent verrouilles.",
         icon: "security",
-      });
+        timestamp: new Date(),
+      }, ...current]);
       return "guest";
     }
     
@@ -189,7 +191,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
     
     return "wrong";
-  }, [accountLevel, suspicionLevel, addNotification]);
+  }, [accountLevel, suspicionLevel]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
     setClues((current) => {
@@ -249,11 +251,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       
       // Trigger warnings at thresholds
       if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
-        addNotification({
+        setNotifications((current) => [{
+          id: `notif-${Date.now()}`,
           title: "Alerte Securite",
           message: "Activite suspecte detectee. Ralentissez vos recherches.",
           icon: "security",
-        });
+          timestamp: new Date(),
+        }, ...current]);
       }
       
       if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
@@ -268,7 +272,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
     
     setLastActionTime(now);
-  }, [lastActionTime, addNotification]);
+  }, [lastActionTime]);
 
   const discoverSecret = useCallback((secretId: string) => {
     setSecretsDiscovered((current) => {
