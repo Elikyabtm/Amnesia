@@ -46,12 +46,12 @@ export function PasswordApp() {
         </div>
         <div>
           <h2 className="text-lg font-semibold">
-            {accountLevel === "guest" ? "Compte Invite Actif" : "Verification d'identite"}
+            {accountLevel === "guest" ? "Compte Invité Actif" : "Vérification d'identité"}
           </h2>
           <p className="text-white/80 text-sm">
             {accountLevel === "guest" 
-              ? "Acces limite - Entrez le mot de passe administrateur pour un acces complet"
-              : "Entrez votre mot de passe pour confirmer votre identite"}
+              ? "Accès limité - Entrez le mot de passe administrateur pour un accès complet"
+              : "Entrez votre mot de passe pour confirmer votre identité"}
           </p>
         </div>
       </div>
@@ -68,14 +68,14 @@ export function PasswordApp() {
             <>
               <Shield className="w-5 h-5 text-amber-600" />
               <span className="text-sm text-amber-800">
-                Mode Invite : Certains fichiers et dossiers sont verrouilles
+                Mode Invité : Certains fichiers et dossiers sont verrouillés
               </span>
             </>
           ) : (
             <>
               <Crown className="w-5 h-5 text-emerald-600" />
               <span className="text-sm text-emerald-800">
-                Mode Administrateur : Acces complet
+                Mode Administrateur : Accès complet
               </span>
             </>
           )}
@@ -91,9 +91,9 @@ export function PasswordApp() {
               <div className="flex items-center gap-3">
                 <User className="w-8 h-8 text-amber-600" />
                 <div>
-                  <h3 className="font-medium text-amber-900">Connexion Invite reussie !</h3>
+                  <h3 className="font-medium text-amber-900">Connexion Invité réussie !</h3>
                   <p className="text-sm text-amber-700">
-                    Vous avez maintenant un acces limite. Pour un acces complet, 
+                    Vous avez maintenant un accès limité. Pour un accès complet, 
                     trouvez le mot de passe administrateur.
                   </p>
                 </div>
@@ -111,7 +111,7 @@ export function PasswordApp() {
                 <p className="text-sm text-gray-500">
                   {accountLevel === "guest" 
                     ? "Le mot de passe admin est plus complexe..."
-                    : "Utilisez les indices trouves dans vos fichiers"}
+                    : "Utilisez les indices trouvés dans vos fichiers"}
                 </p>
               </div>
             </div>
@@ -147,7 +147,7 @@ export function PasswordApp() {
                 </div>
                 {loginError && (
                   <p className="text-red-500 text-sm mt-2 animate-fade-in">
-                    Mot de passe incorrect. Continuez a chercher des indices !
+                    Mot de passe incorrect. Continuez à chercher des indices !
                   </p>
                 )}
               </div>
@@ -161,7 +161,7 @@ export function PasswordApp() {
                     : "bg-[#0078d4] hover:bg-[#006cbd]"
                 )}
               >
-                {accountLevel === "guest" ? "Passer en mode Admin" : "Verifier le mot de passe"}
+                {accountLevel === "guest" ? "Passer en mode Admin" : "Vérifier le mot de passe"}
               </button>
             </form>
           </div>
@@ -177,7 +177,7 @@ export function PasswordApp() {
               "font-medium mb-2",
               accountLevel === "guest" ? "text-red-800" : "text-amber-800"
             )}>
-              {accountLevel === "guest" ? "Indices pour le mode Admin :" : "Indices a chercher :"}
+              {accountLevel === "guest" ? "Indices pour le mode Admin :" : "Indices à chercher :"}
             </h4>
             <ul className={cn(
               "text-sm space-y-1",
@@ -187,14 +187,14 @@ export function PasswordApp() {
                 <>
                   <li>- Le format est plus complexe que l&apos;ancien</li>
                   <li>- Cherchez dans la corbeille des indices</li>
-                  <li>- Les memos vocaux peuvent contenir des informations</li>
+                  <li>- Les mémos vocaux peuvent contenir des informations</li>
                   <li>- Initiales + dates + symboles...</li>
                 </>
               ) : (
                 <>
                   <li>- Consultez vos emails et documents</li>
                   <li>- Regardez les photos et leurs descriptions</li>
-                  <li>- L&apos;ancien mot de passe etait simple : Bourg + date</li>
+                  <li>- L&apos;ancien mot de passe était simple : Bourg + date</li>
                   <li>- N&apos;oubliez pas la corbeille...</li>
                 </>
               )}

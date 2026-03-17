@@ -45,14 +45,14 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
     if (content.includes("1832") && (content.includes("Bourg") || content.includes("fondation"))) {
       addClue({
         category: "place",
-        text: "Bourg-sur-Mer fondee en 1832",
+        text: "Bourg-sur-Mer fondée en 1832",
         source: item.name,
       });
     }
     if (content.includes("Maire") || content.includes("maire")) {
       addClue({
         category: "identity",
-        text: "Vous etes le Maire de Bourg-sur-Mer",
+        text: "Vous êtes le Maire de Bourg-sur-Mer",
         source: item.name,
       });
     }
@@ -66,7 +66,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
     if (content.includes("Bourg1832")) {
       addClue({
         category: "password",
-        text: "L'ancien mot de passe etait 'Bourg1832' - trop simple",
+        text: "L'ancien mot de passe était 'Bourg1832' - trop simple",
         source: item.name,
       });
     }
@@ -89,7 +89,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       addSuspicion({
         type: "sensitive_file",
         amount: 15,
-        message: `Acces au fichier sensible: ${item.name}`,
+        message: `Accès au fichier sensible: ${item.name}`,
       });
       discoverSecret(item.name);
     }
@@ -122,7 +122,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       if (item.type === "folder") {
         // Check if folder is locked
         if (item.id === "confidential" && isItemLocked("confidential")) {
-          openWindow("trash", "Dossier Verrouille", item);
+          openWindow("trash", "Dossier Verrouillé", item);
           return;
         }
         // Check if guest trying to access confidential
@@ -130,7 +130,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
           addSuspicion({
             type: "sensitive_file",
             amount: 10,
-            message: "Tentative d'acces au dossier confidentiel",
+            message: "Tentative d'accès au dossier confidentiel",
           });
         }
         setCurrentFolder(item);

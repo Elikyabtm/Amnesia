@@ -24,10 +24,10 @@ export function SuspicionBar() {
   };
 
   const getLabel = () => {
-    if (isLockedOut) return "SYSTEME BLOQUE";
+    if (isLockedOut) return "SYSTÈME BLOQUÉ";
     if (suspicionLevel >= SUSPICION_THRESHOLDS.DANGER) return "CRITIQUE";
     if (suspicionLevel >= SUSPICION_THRESHOLDS.WARNING) return "ALERTE";
-    return "SECURISE";
+    return "SÉCURISÉ";
   };
 
   return (
@@ -71,9 +71,9 @@ export function SuspicionBar() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9998] flex items-center justify-center">
           <div className="bg-slate-900 border border-red-500/30 rounded-lg p-8 max-w-md text-center animate-fade-in">
             <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">Systeme Bloque</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Système Bloqué</h2>
             <p className="text-white/60 mb-4">
-              Activite suspecte detectee. Le systeme est temporairement bloque.
+              Activité suspecte détectée. Le système est temporairement bloqué.
             </p>
             <p className="text-red-400 text-sm">
               Veuillez patienter 10 secondes...

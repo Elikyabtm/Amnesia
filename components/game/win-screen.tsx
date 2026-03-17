@@ -33,8 +33,8 @@ export function WinScreen() {
   const endings = {
     innocent: {
       title: "Fin : L'Innocent",
-      subtitle: "Vous avez trouve le mot de passe sans fouiller trop loin.",
-      description: "Vous avez retrouve votre identite sans decouvrir les secrets sombres du maire. Parfois, l'ignorance est une benediction...",
+      subtitle: "Vous avez trouvé le mot de passe sans fouiller trop loin.",
+      description: "Vous avez retrouvé votre identité sans découvrir les secrets sombres du maire. Parfois, l'ignorance est une bénédiction...",
       icon: Trophy,
       color: "text-emerald-400",
       bgColor: "bg-emerald-500/10",
@@ -42,8 +42,8 @@ export function WinScreen() {
     },
     curious: {
       title: "Fin : Le Curieux",
-      subtitle: "Vous avez commence a gratter la surface...",
-      description: "Vous avez decouvert quelques irregularites, mais pas assez pour comprendre l'ampleur de la corruption. Le maire continue ses activites... pour l'instant.",
+      subtitle: "Vous avez commencé à gratter la surface...",
+      description: "Vous avez découvert quelques irrégularités, mais pas assez pour comprendre l'ampleur de la corruption. Le maire continue ses activités... pour l'instant.",
       icon: Eye,
       color: "text-amber-400",
       bgColor: "bg-amber-500/10",
@@ -51,8 +51,8 @@ export function WinScreen() {
     },
     detective: {
       title: "Fin : Le Detective",
-      subtitle: "Vous avez tout decouvert.",
-      description: "Corruption, menaces, comptes offshore... Vous connaissez maintenant la verite sur Bernard Dupuis. La question est : qu'allez-vous faire de ces informations ?",
+      subtitle: "Vous avez tout découvert.",
+      description: "Corruption, menaces, comptes offshore... Vous connaissez maintenant la vérité sur Bernard Dupuis. La question est : qu'allez-vous faire de ces informations ?",
       icon: FileWarning,
       color: "text-red-400",
       bgColor: "bg-red-500/10",
@@ -60,8 +60,8 @@ export function WinScreen() {
     },
     accomplice: {
       title: "Fin : Le Complice",
-      subtitle: "Vous en savez juste assez pour etre dangereux.",
-      description: "Vous avez vu des choses que vous n'auriez pas du voir, mais pas assez pour agir. Felicitations, vous etes maintenant implique dans le secret...",
+      subtitle: "Vous en savez juste assez pour être dangereux.",
+      description: "Vous avez vu des choses que vous n'auriez pas dû voir, mais pas assez pour agir. Félicitations, vous êtes maintenant impliqué dans le secret...",
       icon: AlertTriangle,
       color: "text-orange-400",
       bgColor: "bg-orange-500/10",
@@ -117,7 +117,7 @@ export function WinScreen() {
             </div>
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
               <div className="text-2xl font-bold text-white">{secretsDiscovered.length}</div>
-              <div className="text-xs text-white/50 mt-1">Secrets trouves</div>
+              <div className="text-xs text-white/50 mt-1">Secrets trouvés</div>
             </div>
             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
               <div className="text-2xl font-bold text-white">{suspicionLevel}%</div>
@@ -129,7 +129,7 @@ export function WinScreen() {
         {/* Secrets discovered */}
         {showDetails && secretsDiscovered.length > 0 && (
           <div className="mb-8 animate-fade-in">
-            <h3 className="text-sm font-medium text-white/40 mb-3">Secrets decouverts :</h3>
+            <h3 className="text-sm font-medium text-white/40 mb-3">Secrets découverts :</h3>
             <div className="flex flex-wrap justify-center gap-2">
               {secretsDiscovered.map((secret) => (
                 <span
@@ -157,7 +157,7 @@ export function WinScreen() {
         {/* Hint for other endings */}
         {showDetails && ending !== "detective" && (
           <p className="mt-6 text-xs text-white/30 animate-fade-in">
-            Indice : Il y a d&apos;autres fins a decouvrir. Explorez le dossier confidentiel...
+            Indice : Il y a d&apos;autres fins à découvrir. Explorez le dossier confidentiel...
           </p>
         )}
       </div>
