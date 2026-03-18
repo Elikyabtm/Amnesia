@@ -15,11 +15,13 @@ export const allScenarios: Scenario[] = [
   detectiveVictorHale,
 ];
 
-// Scénarios débloqués par défaut
+// Tous les scénarios sont débloqués dès le début
 export const defaultUnlockedScenarios = [
   "maire-bernard-dupuis",
   "streamer-shadowplay",
   "chef-marco-silva",
+  "developpeur-lucas-chen",
+  "detective-victor-hale",
 ];
 
 // Fonction pour obtenir un scénario par ID

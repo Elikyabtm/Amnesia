@@ -1,6 +1,10 @@
-// Amnesia - Jeu d'exploration d'identite
+// Amnesia - Jeu d'exploration d'identite v2
 import { AmnesiaGame } from "@/components/game/amnesia-game";
 
 export default function Home() {
-  return <AmnesiaGame />;
+  return (
+    <main className="min-h-screen">
+      <AmnesiaGame />
+    </main>
+  );
 }
