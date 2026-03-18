@@ -1,11 +1,9 @@
 "use client";
 
-// Game Context - Gestion de l'etat global du jeu
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
 import type { Scenario } from "./scenarios/types";
 
-// Default passwords for backward compatibility
 const DEFAULT_GUEST_PASSWORD = "Bourg1832";
 const DEFAULT_ADMIN_PASSWORD = "BSM1832#14041967!";
 const DEFAULT_TRASH_PIN = "3991";
@@ -102,13 +100,9 @@ interface GameProviderProps {
 }
 
 export function GameProvider({ children, scenario }: GameProviderProps) {
-  // Use scenario passwords if provided, otherwise use defaults
   const guestPassword = scenario?.passwords?.guest || DEFAULT_GUEST_PASSWORD;
   const adminPassword = scenario?.passwords?.admin || DEFAULT_ADMIN_PASSWORD;
-  const trashPin = scenario?.pins?.trash || DEFAULT_TRASH_PIN;
-  const trashHint = scenario?.pins?.trashHint || "Année du mariage, mais à l'envers...";
-  const confidentialPin = scenario?.pins?.confidential || DEFAULT_CONFIDENTIAL_PIN;
-  const confidentialHint = scenario?.pins?.confidentialHint || "L'année où j'ai été élu maire";
+
   const [gamePhase, setGamePhase] = useState<"title" | "intro" | "booting" | "exploring" | "won">("title");
   const [loginError, setLoginError] = useState(false);
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -123,15 +117,15 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
     {
       id: "trash",
       name: "Corbeille",
-      pin: trashPin,
-      hint: trashHint,
+      pin: scenario?.pins?.trash || DEFAULT_TRASH_PIN,
+      hint: scenario?.pins?.trashHint || "Année du mariage, mais à l'envers...",
       unlocked: false,
     },
     {
       id: "confidential",
       name: "Dossier Confidentiel",
-      pin: confidentialPin,
-      hint: confidentialHint,
+      pin: scenario?.pins?.confidential || DEFAULT_CONFIDENTIAL_PIN,
+      hint: scenario?.pins?.confidentialHint || "L'année où j'ai été élu maire",
       unlocked: false,
     },
   ]);
@@ -151,7 +145,6 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
 
   const finishBooting = useCallback(() => {
     setGamePhase("exploring");
-    // Add initial notifications after a delay
     setTimeout(() => {
       setNotifications([
         {
@@ -175,17 +168,14 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
   const tryPassword = useCallback((password: string): "wrong" | "guest" | "admin" => {
     setPasswordAttempts((a) => a + 1);
     
-    // Check admin password first
     if (password === adminPassword) {
       setAccountLevel("admin");
       setGamePhase("won");
       return "admin";
     }
     
-    // Check guest password (only if not already guest or admin)
     if (password === guestPassword && accountLevel === "locked") {
       setAccountLevel("guest");
-      // Unlock some basic files but not the secret ones
       setNotifications((current) => [{
         id: `notif-${Date.now()}`,
         title: "Compte Invité",
@@ -196,26 +186,23 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       return "guest";
     }
     
-    // Wrong password - add suspicion
     setSuspicionLevel((s) => Math.min(100, s + 10));
     setLoginError(true);
     setTimeout(() => setLoginError(false), 500);
     
-    // Check for lockout
     if (suspicionLevel + 10 >= SUSPICION_THRESHOLDS.LOCKOUT) {
       setIsLockedOut(true);
       setTimeout(() => {
         setIsLockedOut(false);
         setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
-      }, 10000); // 10 second lockout
+      }, 10000);
     }
     
     return "wrong";
-  }, [accountLevel, suspicionLevel]);
+  }, [accountLevel, suspicionLevel, adminPassword, guestPassword]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
     setClues((current) => {
-      // Don't add duplicate clues
       if (current.some((c) => c.text === clue.text)) return current;
       const newClue: ClueItem = {
         ...clue,
@@ -261,15 +248,12 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
   const addSuspicion = useCallback((event: SuspicionEvent) => {
     const now = Date.now();
     const timeSinceLastAction = now - lastActionTime;
-    
-    // Rapid actions (less than 2 seconds) increase suspicion more
     const multiplier = timeSinceLastAction < 2000 ? 1.5 : 1;
     const amount = Math.round(event.amount * multiplier);
     
     setSuspicionLevel((s) => {
       const newLevel = Math.min(100, s + amount);
       
-      // Trigger warnings at thresholds
       if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
         setNotifications((current) => [{
           id: `notif-${Date.now()}`,
@@ -312,7 +296,7 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       notepad: "Bloc-notes",
       calendar: "Calendrier",
       trash: "Corbeille",
-      password: "Deverrouiller",
+      password: "Déverrouiller",
       browser: "Navigateur",
       clues: "Carnet d'indices",
       audio: "Lecteur audio",
@@ -354,7 +338,6 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       w.map((win) => {
         if (win.id !== id) return win;
         if (win.isMaximized) {
-          // Restore to previous size
           return {
             ...win,
             isMaximized: false,
@@ -362,7 +345,6 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
             size: win.prevSize || { width: 800, height: 550 },
           };
         } else {
-          // Maximize
           return {
             ...win,
             isMaximized: true,
