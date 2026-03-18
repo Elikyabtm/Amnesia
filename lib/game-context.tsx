@@ -9,7 +9,7 @@ const DEFAULT_ADMIN_PASSWORD = "BSM1832#14041967!";
 const DEFAULT_TRASH_PIN = "3991";
 const DEFAULT_CONFIDENTIAL_PIN = "2015";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
+export type AppType = "files" | "mail" | "photos" | "browser" | "notes" | "password" | "audio" | "clues" | "trash" | "calendar";
 
 export interface WindowState {
   id: string;
@@ -20,14 +20,12 @@ export interface WindowState {
   zIndex: number;
   position: { x: number; y: number };
   size: { width: number; height: number };
-  prevPosition?: { x: number; y: number };
-  prevSize?: { width: number; height: number };
   content?: FileItem | string;
 }
 
 export interface ClueItem {
   id: string;
-  category: "identity" | "date" | "place" | "password";
+  category: "identity" | "date" | "place" | "password" | "secret";
   text: string;
   source: string;
   discoveredAt: Date;
@@ -94,6 +92,14 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | null>(null);
 
+export function useGame() {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error("useGame must be used within a GameProvider");
+  }
+  return context;
+}
+
 interface GameProviderProps {
   children: ReactNode;
   scenario?: Scenario;
@@ -148,62 +154,140 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
     setTimeout(() => {
       setNotifications([
         {
-          id: "notif-1",
-          title: "Nouveaux messages",
-          message: "Vous avez 4 emails non lus",
-          icon: "mail",
-          timestamp: new Date(),
-        },
-        {
-          id: "notif-2", 
-          title: "Rappel",
-          message: "Anniversaire dans 2 mois",
-          icon: "calendar",
+          id: "welcome",
+          title: "Bienvenue",
+          message: "Explorez vos fichiers pour retrouver votre identité.",
+          icon: "system",
           timestamp: new Date(),
         },
       ]);
     }, 2000);
   }, []);
 
-  const tryPassword = useCallback((password: string): "wrong" | "guest" | "admin" => {
-    setPasswordAttempts((a) => a + 1);
-    
-    if (password === adminPassword) {
-      setAccountLevel("admin");
-      setGamePhase("won");
-      return "admin";
-    }
-    
-    if (password === guestPassword && accountLevel === "locked") {
-      setAccountLevel("guest");
-      setNotifications((current) => [{
-        id: `notif-${Date.now()}`,
-        title: "Compte Invité",
-        message: "Accès limité. Certains fichiers restent verrouillés.",
-        icon: "security",
-        timestamp: new Date(),
-      }, ...current]);
-      return "guest";
-    }
-    
-    setSuspicionLevel((s) => Math.min(100, s + 10));
-    setLoginError(true);
-    setTimeout(() => setLoginError(false), 500);
-    
-    if (suspicionLevel + 10 >= SUSPICION_THRESHOLDS.LOCKOUT) {
-      setIsLockedOut(true);
-      setTimeout(() => {
-        setIsLockedOut(false);
-        setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
-      }, 10000);
-    }
-    
-    return "wrong";
-  }, [accountLevel, suspicionLevel, adminPassword, guestPassword]);
+  const tryPassword = useCallback(
+    (password: string): "wrong" | "guest" | "admin" => {
+      setPasswordAttempts((a) => a + 1);
+
+      if (password === adminPassword) {
+        setAccountLevel("admin");
+        setGamePhase("won");
+        return "admin";
+      }
+
+      if (password === guestPassword && accountLevel === "locked") {
+        setAccountLevel("guest");
+        setNotifications((current) => [
+          {
+            id: `notif-${Date.now()}`,
+            title: "Compte Invité",
+            message: "Accès limité. Certains fichiers restent verrouillés.",
+            icon: "security",
+            timestamp: new Date(),
+          },
+          ...current,
+        ]);
+        return "guest";
+      }
+
+      setSuspicionLevel((s) => Math.min(100, s + 10));
+      setLoginError(true);
+      setTimeout(() => setLoginError(false), 500);
+
+      if (suspicionLevel + 10 >= SUSPICION_THRESHOLDS.LOCKOUT) {
+        setIsLockedOut(true);
+        setTimeout(() => {
+          setIsLockedOut(false);
+          setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
+        }, 10000);
+      }
+
+      return "wrong";
+    },
+    [accountLevel, suspicionLevel, guestPassword, adminPassword]
+  );
+
+  const openWindow = useCallback(
+    (app: AppType, title?: string, content?: FileItem | string) => {
+      const defaultTitles: Record<AppType, string> = {
+        files: "Explorateur de fichiers",
+        mail: "Messagerie",
+        photos: "Photos",
+        browser: "Navigateur",
+        notes: "Notes",
+        password: "Déverrouiller",
+        audio: "Mémos vocaux",
+        clues: "Carnet d'indices",
+        trash: "Corbeille",
+        calendar: "Calendrier",
+      };
+
+      const newWindow: WindowState = {
+        id: `window-${windowCounter}`,
+        app,
+        title: title || defaultTitles[app],
+        isMinimized: false,
+        isMaximized: false,
+        zIndex: maxZIndex + 1,
+        position: { x: 100 + windowCounter * 30, y: 80 + windowCounter * 30 },
+        size: { width: 800, height: 600 },
+        content,
+      };
+
+      setWindows((current) => [...current, newWindow]);
+      setActiveWindowId(newWindow.id);
+      setMaxZIndex((z) => z + 1);
+      setWindowCounter((c) => c + 1);
+    },
+    [windowCounter, maxZIndex]
+  );
+
+  const closeWindow = useCallback((id: string) => {
+    setWindows((current) => current.filter((w) => w.id !== id));
+  }, []);
+
+  const minimizeWindow = useCallback((id: string) => {
+    setWindows((current) => current.map((w) => (w.id === id ? { ...w, isMinimized: true } : w)));
+  }, []);
+
+  const maximizeWindow = useCallback((id: string) => {
+    setWindows((current) => current.map((w) => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w)));
+  }, []);
+
+  const focusWindow = useCallback(
+    (id: string) => {
+      setWindows((current) =>
+        current.map((w) => (w.id === id ? { ...w, zIndex: maxZIndex + 1, isMinimized: false } : w))
+      );
+      setActiveWindowId(id);
+      setMaxZIndex((z) => z + 1);
+    },
+    [maxZIndex]
+  );
+
+  const updateWindowPosition = useCallback((id: string, position: { x: number; y: number }) => {
+    setWindows((current) => current.map((w) => (w.id === id ? { ...w, position } : w)));
+  }, []);
+
+  const updateWindowSize = useCallback((id: string, size: { width: number; height: number }) => {
+    setWindows((current) => current.map((w) => (w.id === id ? { ...w, size } : w)));
+  }, []);
+
+  const restoreWindow = useCallback(
+    (id: string) => {
+      setWindows((current) =>
+        current.map((w) => (w.id === id ? { ...w, isMinimized: false, zIndex: maxZIndex + 1 } : w))
+      );
+      setActiveWindowId(id);
+      setMaxZIndex((z) => z + 1);
+    },
+    [maxZIndex]
+  );
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
     setClues((current) => {
-      if (current.some((c) => c.text === clue.text)) return current;
+      const exists = current.some((c) => c.text === clue.text);
+      if (exists) return current;
+
       const newClue: ClueItem = {
         ...clue,
         id: `clue-${clueCounter}`,
@@ -215,177 +299,84 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
   }, [clueCounter]);
 
   const addNotification = useCallback((notification: Omit<Notification, "id" | "timestamp">) => {
-    const newNotif: Notification = {
+    const newNotification: Notification = {
       ...notification,
       id: `notif-${Date.now()}`,
       timestamp: new Date(),
     };
-    setNotifications((current) => [newNotif, ...current]);
+    setNotifications((current) => [newNotification, ...current]);
   }, []);
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications((current) => current.filter((n) => n.id !== id));
   }, []);
 
-  const tryUnlockItem = useCallback((itemId: string, pin: string): boolean => {
-    const item = lockedItems.find((i) => i.id === itemId);
-    if (!item) return false;
-    
-    if (pin === item.pin) {
-      setLockedItems((current) =>
-        current.map((i) => (i.id === itemId ? { ...i, unlocked: true } : i))
-      );
-      return true;
-    }
-    return false;
-  }, [lockedItems]);
+  const tryUnlockItem = useCallback(
+    (itemId: string, pin: string): boolean => {
+      const item = lockedItems.find((i) => i.id === itemId);
+      if (!item) return false;
 
-  const isItemLocked = useCallback((itemId: string): boolean => {
-    const item = lockedItems.find((i) => i.id === itemId);
-    return item ? !item.unlocked : false;
-  }, [lockedItems]);
+      if (pin === item.pin) {
+        setLockedItems((current) => current.map((i) => (i.id === itemId ? { ...i, unlocked: true } : i)));
+        return true;
+      }
+      return false;
+    },
+    [lockedItems]
+  );
 
-  const addSuspicion = useCallback((event: SuspicionEvent) => {
-    const now = Date.now();
-    const timeSinceLastAction = now - lastActionTime;
-    const multiplier = timeSinceLastAction < 2000 ? 1.5 : 1;
-    const amount = Math.round(event.amount * multiplier);
-    
-    setSuspicionLevel((s) => {
-      const newLevel = Math.min(100, s + amount);
-      
-      if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
-        setNotifications((current) => [{
-          id: `notif-${Date.now()}`,
-          title: "Alerte Sécurité",
-          message: "Activité suspecte détectée. Ralentissez vos recherches.",
-          icon: "security",
-          timestamp: new Date(),
-        }, ...current]);
-      }
-      
-      if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
-        setIsLockedOut(true);
-        setTimeout(() => {
-          setIsLockedOut(false);
-          setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
-        }, 10000);
-      }
-      
-      return newLevel;
-    });
-    
-    setLastActionTime(now);
-  }, [lastActionTime]);
+  const isItemLocked = useCallback(
+    (itemId: string): boolean => {
+      const item = lockedItems.find((i) => i.id === itemId);
+      return item ? !item.unlocked : false;
+    },
+    [lockedItems]
+  );
+
+  const addSuspicion = useCallback(
+    (event: SuspicionEvent) => {
+      const now = Date.now();
+      const timeSinceLastAction = now - lastActionTime;
+      const multiplier = timeSinceLastAction < 2000 ? 1.5 : 1;
+      const amount = Math.round(event.amount * multiplier);
+
+      setSuspicionLevel((s) => {
+        const newLevel = Math.min(100, s + amount);
+
+        if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
+          setNotifications((current) => [
+            {
+              id: `notif-${Date.now()}`,
+              title: "Alerte Sécurité",
+              message: "Activité suspecte détectée. Ralentissez vos recherches.",
+              icon: "security",
+              timestamp: new Date(),
+            },
+            ...current,
+          ]);
+        }
+
+        if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
+          setIsLockedOut(true);
+          setTimeout(() => {
+            setIsLockedOut(false);
+            setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
+          }, 10000);
+        }
+
+        return newLevel;
+      });
+
+      setLastActionTime(now);
+    },
+    [lastActionTime]
+  );
 
   const discoverSecret = useCallback((secretId: string) => {
     setSecretsDiscovered((current) => {
       if (current.includes(secretId)) return current;
       return [...current, secretId];
     });
-  }, []);
-
-  const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string) => {
-    const id = `window-${windowCounter}`;
-    setWindowCounter((c) => c + 1);
-
-    const defaultTitles: Record<AppType, string> = {
-      explorer: "Explorateur de fichiers",
-      mail: "Courrier",
-      photos: "Photos",
-      notepad: "Bloc-notes",
-      calendar: "Calendrier",
-      trash: "Corbeille",
-      password: "Déverrouiller",
-      browser: "Navigateur",
-      clues: "Carnet d'indices",
-      audio: "Lecteur audio",
-    };
-
-    const offset = (windows.length % 5) * 30;
-    
-    const newWindow: WindowState = {
-      id,
-      app,
-      title: title || defaultTitles[app],
-      isMinimized: false,
-      isMaximized: false,
-      zIndex: maxZIndex + 1,
-      position: { x: 100 + offset, y: 50 + offset },
-      size: { width: 800, height: 550 },
-      content,
-    };
-
-    setMaxZIndex((z) => z + 1);
-    setWindows((w) => [...w, newWindow]);
-    setActiveWindowId(id);
-  }, [windows.length, maxZIndex, windowCounter]);
-
-  const closeWindow = useCallback((id: string) => {
-    setWindows((w) => w.filter((win) => win.id !== id));
-    setActiveWindowId((current) => (current === id ? null : current));
-  }, []);
-
-  const minimizeWindow = useCallback((id: string) => {
-    setWindows((w) =>
-      w.map((win) => (win.id === id ? { ...win, isMinimized: true } : win))
-    );
-    setActiveWindowId((current) => (current === id ? null : current));
-  }, []);
-
-  const maximizeWindow = useCallback((id: string) => {
-    setWindows((w) =>
-      w.map((win) => {
-        if (win.id !== id) return win;
-        if (win.isMaximized) {
-          return {
-            ...win,
-            isMaximized: false,
-            position: win.prevPosition || { x: 100, y: 50 },
-            size: win.prevSize || { width: 800, height: 550 },
-          };
-        } else {
-          return {
-            ...win,
-            isMaximized: true,
-            prevPosition: win.position,
-            prevSize: win.size,
-            position: { x: 0, y: 0 },
-            size: { width: window.innerWidth, height: window.innerHeight - 48 },
-          };
-        }
-      })
-    );
-  }, []);
-
-  const restoreWindow = useCallback((id: string) => {
-    setWindows((w) =>
-      w.map((win) =>
-        win.id === id ? { ...win, isMinimized: false, zIndex: maxZIndex + 1 } : win
-      )
-    );
-    setMaxZIndex((z) => z + 1);
-    setActiveWindowId(id);
-  }, [maxZIndex]);
-
-  const updateWindowSize = useCallback((id: string, size: { width: number; height: number }) => {
-    setWindows((w) =>
-      w.map((win) => (win.id === id ? { ...win, size, isMaximized: false } : win))
-    );
-  }, []);
-
-  const focusWindow = useCallback((id: string) => {
-    setWindows((w) =>
-      w.map((win) => (win.id === id ? { ...win, zIndex: maxZIndex + 1 } : win))
-    );
-    setMaxZIndex((z) => z + 1);
-    setActiveWindowId(id);
-  }, [maxZIndex]);
-
-  const updateWindowPosition = useCallback((id: string, position: { x: number; y: number }) => {
-    setWindows((w) =>
-      w.map((win) => (win.id === id ? { ...win, position } : win))
-    );
   }, []);
 
   return (
@@ -428,12 +419,4 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       {children}
     </GameContext.Provider>
   );
-}
-
-export function useGame() {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error("useGame must be used within a GameProvider");
-  }
-  return context;
 }
