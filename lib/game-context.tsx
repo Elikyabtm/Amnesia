@@ -1,7 +1,14 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { GUEST_PASSWORD, ADMIN_PASSWORD, TRASH_PIN, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import type { Scenario } from "./scenarios/types";
+
+// Default passwords for backward compatibility
+const DEFAULT_GUEST_PASSWORD = "Bourg1832";
+const DEFAULT_ADMIN_PASSWORD = "BSM1832#14041967!";
+const DEFAULT_TRASH_PIN = "3991";
+const DEFAULT_CONFIDENTIAL_PIN = "2015";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
 
