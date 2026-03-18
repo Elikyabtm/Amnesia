@@ -109,14 +109,22 @@ export function ScenarioProvider({ children }: { children: ReactNode }) {
     if (!currentScenario) {
       return { guest: "", admin: "" };
     }
-    return currentScenario.passwords;
+    return {
+      guest: currentScenario.passwords.guest,
+      admin: currentScenario.passwords.admin,
+    };
   }, [currentScenario]);
 
   const getCurrentPins = useCallback(() => {
     if (!currentScenario) {
       return { trash: "", trashHint: "", confidential: "", confidentialHint: "" };
     }
-    return currentScenario.pins;
+    return {
+      trash: currentScenario.pins.trash,
+      trashHint: currentScenario.pins.trashHint,
+      confidential: currentScenario.pins.confidential,
+      confidentialHint: currentScenario.pins.confidentialHint,
+    };
   }, [currentScenario]);
 
   const getTotalSecrets = useCallback(() => {

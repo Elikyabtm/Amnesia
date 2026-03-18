@@ -1,5 +1,6 @@
 "use client";
 
+// Game Context - Gestion de l'etat global du jeu
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
 import type { Scenario } from "./scenarios/types";
@@ -95,7 +96,19 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | null>(null);
 
-export function GameProvider({ children }: { children: ReactNode }) {
+interface GameProviderProps {
+  children: ReactNode;
+  scenario?: Scenario;
+}
+
+export function GameProvider({ children, scenario }: GameProviderProps) {
+  // Use scenario passwords if provided, otherwise use defaults
+  const guestPassword = scenario?.passwords?.guest || DEFAULT_GUEST_PASSWORD;
+  const adminPassword = scenario?.passwords?.admin || DEFAULT_ADMIN_PASSWORD;
+  const trashPin = scenario?.pins?.trash || DEFAULT_TRASH_PIN;
+  const trashHint = scenario?.pins?.trashHint || "Année du mariage, mais à l'envers...";
+  const confidentialPin = scenario?.pins?.confidential || DEFAULT_CONFIDENTIAL_PIN;
+  const confidentialHint = scenario?.pins?.confidentialHint || "L'année où j'ai été élu maire";
   const [gamePhase, setGamePhase] = useState<"title" | "intro" | "booting" | "exploring" | "won">("title");
   const [loginError, setLoginError] = useState(false);
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -110,15 +123,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     {
       id: "trash",
       name: "Corbeille",
-      pin: TRASH_PIN,
-      hint: "Année du mariage, mais à l'envers...",
+      pin: trashPin,
+      hint: trashHint,
       unlocked: false,
     },
     {
       id: "confidential",
       name: "Dossier Confidentiel",
-      pin: CONFIDENTIAL_PIN,
-      hint: "L'année où j'ai été élu maire",
+      pin: confidentialPin,
+      hint: confidentialHint,
       unlocked: false,
     },
   ]);
@@ -163,14 +176,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPasswordAttempts((a) => a + 1);
     
     // Check admin password first
-    if (password === ADMIN_PASSWORD) {
+    if (password === adminPassword) {
       setAccountLevel("admin");
       setGamePhase("won");
       return "admin";
     }
     
     // Check guest password (only if not already guest or admin)
-    if (password === GUEST_PASSWORD && accountLevel === "locked") {
+    if (password === guestPassword && accountLevel === "locked") {
       setAccountLevel("guest");
       // Unlock some basic files but not the secret ones
       setNotifications((current) => [{
