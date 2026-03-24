@@ -129,6 +129,64 @@ Ballons bleus et blancs partout.`
     content: `Visite officielle au Musée Maritime de Bourg-sur-Mer.
 
 Exposition "Mémoires de la Mer - 1832-2025"`
+  },
+  {
+    id: "photo4",
+    name: "mariage_1993.jpg",
+    type: "image",
+    imageSrc: "/images/mariage_1993.jpg",
+    content: `Photo de mariage en noir et blanc.
+
+Bernard et Marie devant la mairie de Bourg-sur-Mer.
+Date inscrite au dos : "15 avril 1993 - Le plus beau jour de notre vie"
+On distingue le fronton de la mairie avec les lettres BSM gravées dans la pierre.`
+  },
+  {
+    id: "photo5",
+    name: "papa_et_moi_1975.jpg",
+    type: "image",
+    imageSrc: "/images/papa_1975.jpg",
+    content: `Photo d'enfance jaunie par le temps.
+
+Un homme (Henri Dupuis) tient la main d'un jeune garçon devant l'entrée de la mairie.
+Note manuscrite au dos : "Bernard, 8 ans - avec Papa devant la mairie. 
+Il m'a dit ce jour-là : 'Un jour tu seras maire, comme ton grand-père rêvait de l'être.'"`
+  },
+  {
+    id: "photo6",
+    name: "concert_jazz_2024.jpg",
+    type: "image",
+    imageSrc: "/images/concert_jazz.jpg",
+    content: `Concert au port de Bourg-sur-Mer.
+
+Bernard au premier rang, souriant, applaudissant un groupe de jazz.
+Il porte un t-shirt noir avec un dièse (#) doré imprimé dessus.
+Bannière visible : "Festival Jazz BSM 2024"`
+  },
+  {
+    id: "photo7",
+    name: "bureau_mairie.jpg",
+    type: "image",
+    imageSrc: "/images/bureau_mairie.jpg",
+    content: `Bureau du maire avec vue sur le port.
+
+Sur le bureau : un cadre avec la photo de Marie, un presse-papier en forme d'ancre, 
+et un post-it jaune avec l'inscription "MDP: voir mémo vocal du 3 fév".
+Derrière, une plaque dorée : "Bernard Dupuis - Maire depuis 2015".`
+  },
+  {
+    id: "photo8",
+    name: "plaque_fondation.jpg",
+    type: "image",
+    imageSrc: "/images/plaque_fondation.jpg",
+    content: `Plaque commémorative en bronze sur un mur de pierre.
+
+Inscription :
+"BOURG-SUR-MER
+Fondée en l'an 1832
+Que notre mer nous guide et nous protège"
+
+En bas, les initiales BSM sont gravées dans un blason maritime.`
   }
 ];
 
@@ -649,6 +707,107 @@ Email : maire@bourg-sur-mer.fr
 Informations complémentaires :
 Date de naissance : 14/04/1967
 Lieu de naissance : Bourg-sur-Mer`
+  },
+  {
+    id: "web5",
+    url: "www.le-phare-info.fr/actualites",
+    title: "Le Phare - Journal local de Bourg-sur-Mer",
+    visitedAt: "20 février 2025",
+    content: `LE PHARE - ACTUALITÉS LOCALES
+
+DERNIÈRES NOUVELLES :
+
+> INAUGURATION DU SQUARE LÉON BLUM
+Le maire Bernard Dupuis inaugurera demain le nouveau square. 
+"Une fierté pour notre commune née il y a près de deux siècles", a-t-il déclaré.
+
+> FÊTE DE LA MUSIQUE : PROGRAMME DÉVOILÉ  
+Le dièse sera à l'honneur cette année avec un concert de jazz au port.
+Le maire, grand amateur de musique, a personnellement choisi le programme.
+
+> NÉCROLOGIE
+Hommage à Henri Dupuis (1935-1982), ancien conseiller municipal et père du maire actuel.
+"Un homme d'honneur qui nous a quittés trop tôt", selon les anciens du conseil.
+
+> ANNIVERSAIRES DE LA SEMAINE
+Joyeux anniversaire à tous les natifs d'avril ! 
+Notre maire fêtera d'ailleurs le sien le mois prochain.`
+  },
+  {
+    id: "web6",
+    url: "www.archives-bsm.fr/registres",
+    title: "Archives Municipales - Registres historiques",
+    visitedAt: "15 février 2025",
+    content: `ARCHIVES MUNICIPALES DE BOURG-SUR-MER
+
+REGISTRE DES NAISSANCES - Extrait
+
+Année 1967 :
+- 14/04/1967 : DUPUIS Bernard Henri Marie
+  Parents : Henri DUPUIS et Françoise MARTIN
+  Lieu : Maternité de Bourg-sur-Mer
+
+REGISTRE DES MARIAGES - Extrait
+
+Année 1993 :
+- 15/04/1993 : DUPUIS Bernard et LAURENT Marie
+  Témoins : Pierre DUPUIS (frère), Claire LAURENT (sœur)
+  Lieu : Mairie de Bourg-sur-Mer
+
+Note archiviste : La famille Dupuis est établie à BSM depuis la fondation.
+Les initiales BSM apparaissent sur les anciens actes officiels de la commune.`
+  },
+  {
+    id: "web7",
+    url: "www.securite-informatique.gouv.fr/conseils",
+    title: "ANSSI - Conseils pour mots de passe sécurisés",
+    visitedAt: "2 février 2025",
+    content: `AGENCE NATIONALE DE LA SÉCURITÉ INFORMATIQUE
+
+CRÉER UN MOT DE PASSE ROBUSTE :
+
+Recommandations officielles :
+1. Minimum 12 caractères
+2. Mélanger lettres majuscules et minuscules
+3. Inclure des chiffres
+4. Ajouter des caractères spéciaux (#, !, @, etc.)
+
+EXEMPLES DE FORMATS SÉCURISÉS :
+- [Initiales][Année][Symbole][Date]!
+- [Lieu][Chiffres]#[Anniversaire]
+
+ASTUCE : Combinez des éléments personnels mais non évidents.
+Par exemple : initiales d'un lieu + date historique + symbole + date personnelle
+
+À ÉVITER :
+- Dates de naissance seules
+- Noms propres sans modification
+- Suites de chiffres simples`
+  },
+  {
+    id: "web8",
+    url: "www.facebook.com/bernard.dupuis.bsm",
+    title: "Bernard Dupuis | Facebook",
+    visitedAt: "1 février 2025",
+    content: `BERNARD DUPUIS - PROFIL FACEBOOK
+
+À propos :
+Maire de Bourg-sur-Mer depuis 2015
+Né à Bourg-sur-Mer
+Marié à Marie Dupuis
+
+Publications récentes :
+
+[3 fév] "Nouveau mot de passe sur l'ordinateur de la mairie ! 
+Plus sécurisé cette fois. Merci au service IT pour leurs conseils.
+J'ai choisi un format qui me ressemble : ma ville, mes dates, ma passion pour la musique !"
+👍 45 J'aime - 12 Commentaires
+
+[14 jan] "Préparation de l'inauguration du square Léon Blum. 
+BSM a bien changé depuis 1832 !"
+👍 127 J'aime - 34 Commentaires
+
+[1 jan] "Bonne année 2025 à tous les habitants de Bourg-sur-Mer !"`
   }
 ];
 
@@ -716,6 +875,65 @@ Ma date de naissance complète, jour mois année, tout collé.
 Et le point d'exclamation final, parce que je suis fier de mes origines !
 
 Ah, et j'ai mis un code sur la corbeille aussi. L'année de notre mariage, mais à l'envers. Marie va adorer cette idée romantique..."`
+  },
+  {
+    id: "voice4",
+    name: "message_pierre_05_02.mp3",
+    audioSrc: "/audio/pierre.mp3",
+    date: "5 février 2025",
+    from: "Pierre (frère)",
+    transcript: `[Message vocal de Pierre]
+
+"Salut Bernard, c'est ton frère. J'espère que tu vas bien.
+
+Je voulais te rappeler qu'on se retrouve chez maman dimanche pour son anniversaire. 
+Elle aurait eu 88 ans cette année... Papa lui manque toujours, même après toutes ces années.
+
+Tu sais, j'ai retrouvé notre vieux carnet de codes secrets de quand on était gamins ! 
+Tu te souviens ? On inversait toujours les chiffres pour que personne ne comprenne.
+
+Allez, à dimanche. Et félicitations encore pour l'inauguration du square. 
+Papa serait fier de voir ce que BSM est devenu grâce à toi.
+
+Bisous."`
+  },
+  {
+    id: "voice5",
+    name: "message_service_it_02_02.mp3",
+    audioSrc: "/audio/service_it.mp3",
+    date: "2 février 2025",
+    from: "Service Informatique",
+    transcript: `[Message vocal du Service IT]
+
+"Bonjour Monsieur le Maire, ici le service informatique de la mairie.
+
+Suite à notre réunion d'hier sur la sécurité, voici les recommandations pour votre nouveau mot de passe :
+
+Premièrement, évitez l'ancien format trop simple comme 'Bourg1832'.
+Deuxièmement, utilisez un mélange de lettres majuscules, de chiffres et de symboles.
+Le dièse et le point d'exclamation sont de bons choix.
+
+Un bon format serait par exemple : des initiales, une année importante, un symbole, 
+puis une date significative au format jour-mois-année sur 8 chiffres.
+
+N'hésitez pas si vous avez des questions. Bonne journée !"`
+  },
+  {
+    id: "voice6",
+    name: "memo_musique_28_01.mp3",
+    audioSrc: "/audio/musique.mp3",
+    date: "28 janvier 2025",
+    from: "Moi-même",
+    transcript: `[Mémo vocal personnel - À propos du festival]
+
+"Note pour le comité : valider le programme du festival de jazz.
+
+J'insiste pour qu'on mette le dièse à l'honneur cette année. C'est mon symbole préféré en musique...
+D'ailleurs, je l'ai même intégré dans mon nouveau mot de passe, entre les chiffres ! 
+C'est ma façon de combiner mes deux passions : ma ville et la musique.
+
+À proposer au comité : des affiches avec le dièse doré sur fond bleu marine, 
+comme les couleurs de BSM depuis la fondation en 1832."`
   }
 ];
 
