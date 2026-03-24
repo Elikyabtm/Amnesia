@@ -17,6 +17,7 @@ import {
 import { fileSystem, type FileItem } from "@/lib/game-data";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
+import { FolderLockDialog } from "../folder-lock-dialog";
 
 interface FileExplorerProps {
   window: WindowState;
@@ -25,7 +26,9 @@ interface FileExplorerProps {
 export function FileExplorer({ window: win }: FileExplorerProps) {
   const [currentFolder, setCurrentFolder] = useState<FileItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const { openWindow, addClue } = useGame();
+  const [showLockDialog, setShowLockDialog] = useState(false);
+  const [lockedFolder, setLockedFolder] = useState<FileItem | null>(null);
+  const { openWindow, addClue, addSuspicion, discoverSecret, accountLevel, isItemLocked } = useGame();
   const { playSound } = useSound();
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
 
@@ -45,14 +48,14 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
     if (content.includes("1832") && (content.includes("Bourg") || content.includes("fondation"))) {
       addClue({
         category: "place",
-        text: "Bourg-sur-Mer fondee en 1832",
+        text: "Bourg-sur-Mer fondée en 1832",
         source: item.name,
       });
     }
     if (content.includes("Maire") || content.includes("maire")) {
       addClue({
         category: "identity",
-        text: "Vous etes le Maire de Bourg-sur-Mer",
+        text: "Vous êtes le Maire de Bourg-sur-Mer",
         source: item.name,
       });
     }
@@ -66,7 +69,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
     if (content.includes("Bourg1832")) {
       addClue({
         category: "password",
-        text: "L'ancien mot de passe etait 'Bourg1832' - trop simple",
+        text: "L'ancien mot de passe était 'Bourg1832' - trop simple",
         source: item.name,
       });
     }
@@ -77,7 +80,23 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         source: item.name,
       });
     }
-  }, [addClue]);
+
+    // Detect secret files and add suspicion
+    const secretKeywords = ["CONFIDENTIEL", "offshore", "corruption", "menaces", "compromettante", "secret"];
+    const isSecretFile = secretKeywords.some(keyword => 
+      item.name.toLowerCase().includes(keyword.toLowerCase()) || 
+      content.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (isSecretFile) {
+      addSuspicion({
+        type: "sensitive_file",
+        amount: 15,
+        message: `Accès au fichier sensible: ${item.name}`,
+      });
+      discoverSecret(item.name);
+    }
+  }, [addClue, addSuspicion, discoverSecret]);
 
   const getIcon = (item: FileItem) => {
     switch (item.type) {
@@ -104,6 +123,20 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       playSound("open");
       
       if (item.type === "folder") {
+        // Check if folder is locked
+        if (item.id === "confidential" && isItemLocked("confidential")) {
+          setLockedFolder(item);
+          setShowLockDialog(true);
+          return;
+        }
+        // Check if guest trying to access confidential
+        if (item.id === "confidential" && accountLevel === "guest") {
+          addSuspicion({
+            type: "sensitive_file",
+            amount: 10,
+            message: "Tentative d'accès au dossier confidentiel",
+          });
+        }
         setCurrentFolder(item);
         setSelectedItem(null);
       } else if (item.type === "image") {
@@ -148,6 +181,12 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
             key={folder.id}
             onClick={() => {
               playSound("click");
+              // Check if folder is locked
+              if (folder.id === "confidential" && isItemLocked("confidential")) {
+                setLockedFolder(folder);
+                setShowLockDialog(true);
+                return;
+              }
               setCurrentFolder(folder);
               setSelectedItem(null);
             }}
@@ -163,6 +202,9 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
               <ChevronRight className="w-4 h-4" />
             )}
             {folder.name}
+            {folder.id === "confidential" && isItemLocked("confidential") && (
+              <span className="ml-auto text-yellow-500 text-xs">🔒</span>
+            )}
           </button>
         ))}
 
@@ -249,6 +291,23 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
           {selectedItem && " • 1 sélectionné"}
         </div>
       </div>
+
+      {/* Folder Lock Dialog */}
+      {showLockDialog && lockedFolder && (
+        <FolderLockDialog
+          folderId={lockedFolder.id}
+          folderName={lockedFolder.name}
+          onClose={() => {
+            setShowLockDialog(false);
+            setLockedFolder(null);
+          }}
+          onUnlock={() => {
+            setShowLockDialog(false);
+            setLockedFolder(null);
+            setCurrentFolder(lockedFolder);
+          }}
+        />
+      )}
     </div>
   );
 }

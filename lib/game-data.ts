@@ -844,7 +844,7 @@ Cordialement."`
     audioSrc: "/audio/moimeme.mp3",
     date: "3 février 2025",
     from: "Moi-même",
-    transcript: `[Mémo vocal personnel]
+    transcript: `[Mémo vocal personnelt 
 
 "Note à moi-même : mot de passe changé ce matin. 
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { GUEST_PASSWORD, ADMIN_PASSWORD, TRASH_PIN, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import { GUEST_PASSWORD, ADMIN_PASSWORD, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
 
@@ -100,13 +100,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const [clueCounter, setClueCounter] = useState(0);
   const [lockedItems, setLockedItems] = useState<LockedItem[]>([
-    {
-      id: "trash",
-      name: "Corbeille",
-      pin: TRASH_PIN,
-      hint: "Année du mariage, mais à l'envers...",
-      unlocked: false,
-    },
     {
       id: "confidential",
       name: "Dossier Confidentiel",
