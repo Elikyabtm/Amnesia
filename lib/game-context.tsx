@@ -1,17 +1,9 @@
 "use client";
 
-// Game Context v3 - Fresh rewrite to clear cache
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
-import type { Scenario } from "./scenarios/types";
+import { GUEST_PASSWORD, ADMIN_PASSWORD, TRASH_PIN, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
 
-// Default values for passwords and PINs
-const PIN_TRASH_DEFAULT = "3991";
-const PIN_CONFIDENTIAL_DEFAULT = "2015";
-const PASSWORD_GUEST_DEFAULT = "Bourg1832";
-const PASSWORD_ADMIN_DEFAULT = "BSM1832#14041967!";
-
-export type AppType = "files" | "mail" | "photos" | "browser" | "notes" | "password" | "audio" | "clues" | "trash" | "calendar";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
 
 export interface WindowState {
   id: string;
@@ -22,12 +14,14 @@ export interface WindowState {
   zIndex: number;
   position: { x: number; y: number };
   size: { width: number; height: number };
+  prevPosition?: { x: number; y: number };
+  prevSize?: { width: number; height: number };
   content?: FileItem | string;
 }
 
 export interface ClueItem {
   id: string;
-  category: "identity" | "date" | "place" | "password" | "secret";
+  category: "identity" | "date" | "place" | "password";
   text: string;
   source: string;
   discoveredAt: Date;
@@ -94,28 +88,7 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | null>(null);
 
-export function useGame() {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error("useGame must be used within a GameProvider");
-  }
-  return context;
-}
-
-interface GameProviderProps {
-  children: ReactNode;
-  scenario?: Scenario;
-}
-
-export function GameProvider({ children, scenario }: GameProviderProps) {
-  // Use scenario values or defaults
-  const guestPwd = scenario?.passwords?.guest || PASSWORD_GUEST_DEFAULT;
-  const adminPwd = scenario?.passwords?.admin || PASSWORD_ADMIN_DEFAULT;
-  const trashPinValue = scenario?.pins?.trash || PIN_TRASH_DEFAULT;
-  const trashHintValue = scenario?.pins?.trashHint || "Année du mariage, mais à l'envers...";
-  const confPinValue = scenario?.pins?.confidential || PIN_CONFIDENTIAL_DEFAULT;
-  const confHintValue = scenario?.pins?.confidentialHint || "L'année où j'ai été élu maire";
-
+export function GameProvider({ children }: { children: ReactNode }) {
   const [gamePhase, setGamePhase] = useState<"title" | "intro" | "booting" | "exploring" | "won">("title");
   const [loginError, setLoginError] = useState(false);
   const [windows, setWindows] = useState<WindowState[]>([]);
@@ -130,15 +103,15 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
     {
       id: "trash",
       name: "Corbeille",
-      pin: trashPinValue,
-      hint: trashHintValue,
+      pin: TRASH_PIN,
+      hint: "Année du mariage, mais à l'envers...",
       unlocked: false,
     },
     {
       id: "confidential",
       name: "Dossier Confidentiel",
-      pin: confPinValue,
-      hint: confHintValue,
+      pin: CONFIDENTIAL_PIN,
+      hint: "L'année où j'ai été élu maire",
       unlocked: false,
     },
   ]);
@@ -158,19 +131,41 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
 
   const finishBooting = useCallback(() => {
     setGamePhase("exploring");
+    // Add initial notifications after a delay
+    setTimeout(() => {
+      setNotifications([
+        {
+          id: "notif-1",
+          title: "Nouveaux messages",
+          message: "Vous avez 4 emails non lus",
+          icon: "mail",
+          timestamp: new Date(),
+        },
+        {
+          id: "notif-2", 
+          title: "Rappel",
+          message: "Anniversaire dans 2 mois",
+          icon: "calendar",
+          timestamp: new Date(),
+        },
+      ]);
+    }, 2000);
   }, []);
 
   const tryPassword = useCallback((password: string): "wrong" | "guest" | "admin" => {
     setPasswordAttempts((a) => a + 1);
     
-    if (password === adminPwd) {
+    // Check admin password first
+    if (password === ADMIN_PASSWORD) {
       setAccountLevel("admin");
       setGamePhase("won");
       return "admin";
     }
     
-    if (password === guestPwd && accountLevel === "locked") {
+    // Check guest password (only if not already guest or admin)
+    if (password === GUEST_PASSWORD && accountLevel === "locked") {
       setAccountLevel("guest");
+      // Unlock some basic files but not the secret ones
       setNotifications((current) => [{
         id: `notif-${Date.now()}`,
         title: "Compte Invité",
@@ -181,123 +176,44 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       return "guest";
     }
     
+    // Wrong password - add suspicion
     setSuspicionLevel((s) => Math.min(100, s + 10));
     setLoginError(true);
     setTimeout(() => setLoginError(false), 500);
     
+    // Check for lockout
     if (suspicionLevel + 10 >= SUSPICION_THRESHOLDS.LOCKOUT) {
       setIsLockedOut(true);
       setTimeout(() => {
         setIsLockedOut(false);
         setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
-      }, 10000);
+      }, 10000); // 10 second lockout
     }
     
     return "wrong";
-  }, [accountLevel, suspicionLevel, adminPwd, guestPwd]);
-
-  const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string) => {
-    const defaultTitles: Record<AppType, string> = {
-      files: "Explorateur de fichiers",
-      mail: "Courrier",
-      photos: "Photos",
-      browser: "Navigateur",
-      notes: "Bloc-notes",
-      password: "Vérification d'identité",
-      audio: "Mémos vocaux",
-      clues: "Carnet d'indices",
-      trash: "Corbeille",
-      calendar: "Calendrier",
-    };
-
-    setWindowCounter((c) => c + 1);
-    const newWindow: WindowState = {
-      id: `${app}-${windowCounter}`,
-      app,
-      title: title || defaultTitles[app],
-      isMinimized: false,
-      isMaximized: false,
-      zIndex: maxZIndex + 1,
-      position: { x: 100 + (windowCounter % 5) * 30, y: 50 + (windowCounter % 5) * 30 },
-      size: { width: 800, height: 600 },
-      content,
-    };
-
-    setMaxZIndex((z) => z + 1);
-    setWindows((current) => [...current, newWindow]);
-    setActiveWindowId(newWindow.id);
-  }, [windowCounter, maxZIndex]);
-
-  const closeWindow = useCallback((id: string) => {
-    setWindows((current) => current.filter((w) => w.id !== id));
-    setActiveWindowId((current) => (current === id ? null : current));
-  }, []);
-
-  const minimizeWindow = useCallback((id: string) => {
-    setWindows((current) =>
-      current.map((w) => (w.id === id ? { ...w, isMinimized: true } : w))
-    );
-  }, []);
-
-  const maximizeWindow = useCallback((id: string) => {
-    setWindows((current) =>
-      current.map((w) => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w))
-    );
-  }, []);
-
-  const focusWindow = useCallback((id: string) => {
-    setMaxZIndex((z) => z + 1);
-    setWindows((current) =>
-      current.map((w) => (w.id === id ? { ...w, zIndex: maxZIndex + 1 } : w))
-    );
-    setActiveWindowId(id);
-  }, [maxZIndex]);
-
-  const updateWindowPosition = useCallback((id: string, position: { x: number; y: number }) => {
-    setWindows((current) =>
-      current.map((w) => (w.id === id ? { ...w, position } : w))
-    );
-  }, []);
-
-  const updateWindowSize = useCallback((id: string, size: { width: number; height: number }) => {
-    setWindows((current) =>
-      current.map((w) => (w.id === id ? { ...w, size } : w))
-    );
-  }, []);
-
-  const restoreWindow = useCallback((id: string) => {
-    setWindows((current) =>
-      current.map((w) => (w.id === id ? { ...w, isMinimized: false } : w))
-    );
-    focusWindow(id);
-  }, [focusWindow]);
+  }, [accountLevel, suspicionLevel]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
     setClues((current) => {
-      const exists = current.some(
-        (c) => c.category === clue.category && c.text === clue.text
-      );
-      if (exists) return current;
-
+      // Don't add duplicate clues
+      if (current.some((c) => c.text === clue.text)) return current;
+      const newClue: ClueItem = {
+        ...clue,
+        id: `clue-${clueCounter}`,
+        discoveredAt: new Date(),
+      };
       setClueCounter((c) => c + 1);
-      return [
-        ...current,
-        {
-          ...clue,
-          id: `clue-${clueCounter}`,
-          discoveredAt: new Date(),
-        },
-      ];
+      return [...current, newClue];
     });
   }, [clueCounter]);
 
   const addNotification = useCallback((notification: Omit<Notification, "id" | "timestamp">) => {
-    const newNotification: Notification = {
+    const newNotif: Notification = {
       ...notification,
       id: `notif-${Date.now()}`,
       timestamp: new Date(),
     };
-    setNotifications((current) => [newNotification, ...current]);
+    setNotifications((current) => [newNotif, ...current]);
   }, []);
 
   const dismissNotification = useCallback((id: string) => {
@@ -325,12 +241,15 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
   const addSuspicion = useCallback((event: SuspicionEvent) => {
     const now = Date.now();
     const timeSinceLastAction = now - lastActionTime;
+    
+    // Rapid actions (less than 2 seconds) increase suspicion more
     const multiplier = timeSinceLastAction < 2000 ? 1.5 : 1;
     const amount = Math.round(event.amount * multiplier);
     
     setSuspicionLevel((s) => {
       const newLevel = Math.min(100, s + amount);
       
+      // Trigger warnings at thresholds
       if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
         setNotifications((current) => [{
           id: `notif-${Date.now()}`,
@@ -360,6 +279,111 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       if (current.includes(secretId)) return current;
       return [...current, secretId];
     });
+  }, []);
+
+  const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string) => {
+    const id = `window-${windowCounter}`;
+    setWindowCounter((c) => c + 1);
+
+    const defaultTitles: Record<AppType, string> = {
+      explorer: "Explorateur de fichiers",
+      mail: "Courrier",
+      photos: "Photos",
+      notepad: "Bloc-notes",
+      calendar: "Calendrier",
+      trash: "Corbeille",
+      password: "Deverrouiller",
+      browser: "Navigateur",
+      clues: "Carnet d'indices",
+      audio: "Lecteur audio",
+    };
+
+    const offset = (windows.length % 5) * 30;
+    
+    const newWindow: WindowState = {
+      id,
+      app,
+      title: title || defaultTitles[app],
+      isMinimized: false,
+      isMaximized: false,
+      zIndex: maxZIndex + 1,
+      position: { x: 100 + offset, y: 50 + offset },
+      size: { width: 800, height: 550 },
+      content,
+    };
+
+    setMaxZIndex((z) => z + 1);
+    setWindows((w) => [...w, newWindow]);
+    setActiveWindowId(id);
+  }, [windows.length, maxZIndex, windowCounter]);
+
+  const closeWindow = useCallback((id: string) => {
+    setWindows((w) => w.filter((win) => win.id !== id));
+    setActiveWindowId((current) => (current === id ? null : current));
+  }, []);
+
+  const minimizeWindow = useCallback((id: string) => {
+    setWindows((w) =>
+      w.map((win) => (win.id === id ? { ...win, isMinimized: true } : win))
+    );
+    setActiveWindowId((current) => (current === id ? null : current));
+  }, []);
+
+  const maximizeWindow = useCallback((id: string) => {
+    setWindows((w) =>
+      w.map((win) => {
+        if (win.id !== id) return win;
+        if (win.isMaximized) {
+          // Restore to previous size
+          return {
+            ...win,
+            isMaximized: false,
+            position: win.prevPosition || { x: 100, y: 50 },
+            size: win.prevSize || { width: 800, height: 550 },
+          };
+        } else {
+          // Maximize
+          return {
+            ...win,
+            isMaximized: true,
+            prevPosition: win.position,
+            prevSize: win.size,
+            position: { x: 0, y: 0 },
+            size: { width: window.innerWidth, height: window.innerHeight - 48 },
+          };
+        }
+      })
+    );
+  }, []);
+
+  const restoreWindow = useCallback((id: string) => {
+    setWindows((w) =>
+      w.map((win) =>
+        win.id === id ? { ...win, isMinimized: false, zIndex: maxZIndex + 1 } : win
+      )
+    );
+    setMaxZIndex((z) => z + 1);
+    setActiveWindowId(id);
+  }, [maxZIndex]);
+
+  const updateWindowSize = useCallback((id: string, size: { width: number; height: number }) => {
+    setWindows((w) =>
+      w.map((win) => (win.id === id ? { ...win, size, isMaximized: false } : win))
+    );
+  }, []);
+
+  const focusWindow = useCallback((id: string) => {
+    setWindows((w) =>
+      w.map((win) => (win.id === id ? { ...win, zIndex: maxZIndex + 1 } : win))
+    );
+    setMaxZIndex((z) => z + 1);
+    setActiveWindowId(id);
+  }, [maxZIndex]);
+
+  const updateWindowPosition = useCallback((id: string, position: { x: number; y: number }) => {
+    setWindows((w) =>
+      w.map((win) => (win.id === id ? { ...win, position } : win))
+    );
   }, []);
 
   return (
@@ -402,4 +426,12 @@ export function GameProvider({ children, scenario }: GameProviderProps) {
       {children}
     </GameContext.Provider>
   );
+}
+
+export function useGame() {
+  const context = useContext(GameContext);
+  if (!context) {
+    throw new Error("useGame must be used within a GameProvider");
+  }
+  return context;
 }
