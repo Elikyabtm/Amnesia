@@ -17,6 +17,7 @@ import {
 import { fileSystem, type FileItem } from "@/lib/game-data";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
+import { FolderLockDialog } from "../folder-lock-dialog";
 
 interface FileExplorerProps {
   window: WindowState;
@@ -25,6 +26,8 @@ interface FileExplorerProps {
 export function FileExplorer({ window: win }: FileExplorerProps) {
   const [currentFolder, setCurrentFolder] = useState<FileItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [showLockDialog, setShowLockDialog] = useState(false);
+  const [lockedFolder, setLockedFolder] = useState<FileItem | null>(null);
   const { openWindow, addClue, addSuspicion, discoverSecret, accountLevel, isItemLocked } = useGame();
   const { playSound } = useSound();
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
@@ -122,7 +125,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       if (item.type === "folder") {
         // Check if folder is locked
         if (item.id === "confidential" && isItemLocked("confidential")) {
-          openWindow("trash", "Dossier Verrouillé", item);
+          setLockedFolder(item);
+          setShowLockDialog(true);
           return;
         }
         // Check if guest trying to access confidential
@@ -278,6 +282,22 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
           {selectedItem && " • 1 sélectionné"}
         </div>
       </div>
+
+      {/* Folder Lock Dialog */}
+      {showLockDialog && lockedFolder && (
+        <FolderLockDialog
+          folder={lockedFolder}
+          onClose={() => {
+            setShowLockDialog(false);
+            setLockedFolder(null);
+          }}
+          onUnlock={() => {
+            setShowLockDialog(false);
+            setLockedFolder(null);
+            setCurrentFolder(lockedFolder);
+          }}
+        />
+      )}
     </div>
   );
 }

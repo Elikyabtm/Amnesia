@@ -7,9 +7,6 @@
 export const GUEST_PASSWORD = "Bourg1832";
 export const ADMIN_PASSWORD = "BSM1832#14041967!";
 
-// Code PIN pour accéder à la corbeille (date de mariage inversée)
-export const TRASH_PIN = "3991"; // 1993 inversé
-
 // Code pour le dossier confidentiel (année élection maire)
 export const CONFIDENTIAL_PIN = "2015";
 
@@ -565,8 +562,8 @@ Heureusement j'ai enregistré un mémo vocal pour m'en souvenir...`
 - Code carte bancaire : XXXX (ne pas noter !)
 - Digicode bureau : 1832
 
-ATTENTION : Ne pas confondre avec le code de la corbeille !
-Celui-là c'est Marie qui l'a choisi... notre année spéciale, mais à l'envers.`
+Note : J'ai mis le même code sur le dossier confidentiel que sur le garage.
+Facile à retenir : l'année où tout a changé pour moi.`
   }
 ];
 
@@ -851,8 +848,8 @@ Cordialement."`
 Cette fois j'ai fait quelque chose de solide. J'ai mélangé tout ce qui compte pour moi...
 Mes racines, mon histoire, ma passion. Le service IT devrait être content.
 
-Ah, et j'ai sécurisé la corbeille aussi. Un petit clin d'œil à Marie...
-Elle qui trouve toujours que je fais les choses à l'envers."`
+J'ai aussi mis un code sur le dossier confidentiel. Le même que le garage, 
+pour ne pas m'embrouiller avec trop de codes différents."`
   },
   {
     id: "voice4",
