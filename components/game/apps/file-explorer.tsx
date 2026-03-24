@@ -286,7 +286,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       {/* Folder Lock Dialog */}
       {showLockDialog && lockedFolder && (
         <FolderLockDialog
-          folder={lockedFolder}
+          folderId={lockedFolder.id}
+          folderName={lockedFolder.name}
           onClose={() => {
             setShowLockDialog(false);
             setLockedFolder(null);
