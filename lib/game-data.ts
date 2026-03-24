@@ -173,6 +173,177 @@ Où ABC = lieu, 1234 = fondation, 12345678 = naissance en JJMMAAAA`
   }
 ];
 
+// Emails envoyés par Bernard
+export const sentMails: FileItem[] = [
+  {
+    id: "sent1",
+    name: "Re: Projet loi maritime",
+    type: "mail",
+    content: `À : La Sénatrice
+Objet : Re: Projet loi maritime
+Date : 18 février 2025
+
+Chère amie,
+
+Merci pour les documents. Je serai présent le 21, comme toujours.
+
+Et oui, je n'oublierai pas l'écharpe cette fois !
+
+Cordialement,
+Bernard Dupuis
+Maire de Bourg-sur-Mer`
+  },
+  {
+    id: "sent2",
+    name: "Re: RDV médecin",
+    type: "mail",
+    content: `À : Marie
+Objet : Re: RDV médecin
+Date : 12 février 2025
+
+Ma chérie,
+
+Promis, je n'oublierai pas. Tu as raison, je travaille trop ces derniers temps.
+
+On se voit ce soir. Je t'aime aussi.
+
+Bernard`
+  },
+  {
+    id: "sent3",
+    name: "À Philippe M. - Confirmation",
+    type: "mail",
+    content: `À : Philippe Maurin
+Objet : Confirmation réunion
+Date : 10 février 2025
+
+Philippe,
+
+C'est noté pour notre rendez-vous de la semaine prochaine.
+Apporte les derniers documents du projet.
+
+À bientôt,
+B.D.`
+  },
+  {
+    id: "sent4",
+    name: "Service IT - Question sécurité",
+    type: "mail",
+    content: `À : Service Informatique Mairie
+Objet : Question sur le nouveau mot de passe
+Date : 3 février 2025
+
+Bonjour,
+
+J'ai bien changé mon mot de passe comme convenu.
+Le nouveau format est plus complexe : initiales + année + symbole + date complète + ponctuation.
+
+Est-ce suffisamment sécurisé selon vous ?
+
+Cordialement,
+Bernard Dupuis`
+  }
+];
+
+// Emails favoris (marqués importants)
+export const favoriteMails: FileItem[] = [
+  {
+    id: "fav1",
+    name: "Marie - Notre premier rendez-vous",
+    type: "mail",
+    content: `De : Marie
+Objet : 30 ans déjà...
+Date : 15 avril 2023
+
+Mon Bernard,
+
+Te souviens-tu de notre premier rendez-vous ? C'était le 15 avril 1991, au café du port.
+Tu étais si nerveux que tu as renversé ton café sur la nappe !
+
+Deux ans plus tard, jour pour jour, on se mariait. Le 15 avril 1993.
+
+Je t'aime autant qu'au premier jour.
+
+Ta Marie`
+  },
+  {
+    id: "fav2",
+    name: "Papa - Dernier message",
+    type: "mail",
+    content: `De : Henri Dupuis (Papa)
+Objet : Fier de toi
+Date : 12 mars 1982
+
+Mon fils,
+
+Je suis si fier de l'homme que tu deviens. À 14 ans à peine, tu montres déjà le caractère d'un leader.
+
+Bourg-sur-Mer a besoin de gens comme toi. Cette ville fondée en 1832 mérite qu'on la serve avec honneur.
+
+Je sais que tu feras de grandes choses.
+
+Ton père qui t'aime,
+Henri
+
+PS: N'oublie jamais d'où tu viens. BSM pour toujours.`
+  },
+  {
+    id: "fav3",
+    name: "Résultat élection 2015",
+    type: "mail",
+    content: `De : Préfecture
+Objet : Résultats officiels - Élection municipale
+Date : 23 mars 2015
+
+Monsieur Bernard Dupuis,
+
+Nous avons l'honneur de vous confirmer votre élection en tant que Maire de Bourg-sur-Mer.
+
+Résultats du second tour :
+- Bernard Dupuis : 58,7%
+- Jean-Claude Martin : 41,3%
+
+Félicitations.
+
+Le Préfet`
+  }
+];
+
+// Emails supprimés
+export const deletedMails: FileItem[] = [
+  {
+    id: "del1",
+    name: "Newsletter - Offre spéciale",
+    type: "mail",
+    content: `De : Promotions Magazine
+Objet : -50% sur votre abonnement !
+Date : 1er février 2025
+
+OFFRE EXCEPTIONNELLE !
+
+Profitez de -50% sur votre abonnement annuel...
+
+[Message publicitaire]`
+  },
+  {
+    id: "del2",
+    name: "Re: Demande de subvention (refusée)",
+    type: "mail",
+    content: `De : Association des Pêcheurs
+Objet : Re: Demande de subvention
+Date : 28 janvier 2025
+
+Monsieur le Maire,
+
+Nous comprenons que le budget ne permet pas d'accorder notre demande cette année.
+
+Nous reviendrons vers vous en 2026.
+
+Cordialement,
+Le Président de l'Association`
+  }
+];
+
 export const mails: FileItem[] = [
   {
     id: "mail1",
