@@ -181,6 +181,12 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
             key={folder.id}
             onClick={() => {
               playSound("click");
+              // Check if folder is locked
+              if (folder.id === "confidential" && isItemLocked("confidential")) {
+                setLockedFolder(folder);
+                setShowLockDialog(true);
+                return;
+              }
               setCurrentFolder(folder);
               setSelectedItem(null);
             }}
@@ -196,6 +202,9 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
               <ChevronRight className="w-4 h-4" />
             )}
             {folder.name}
+            {folder.id === "confidential" && isItemLocked("confidential") && (
+              <span className="ml-auto text-yellow-500 text-xs">🔒</span>
+            )}
           </button>
         ))}
 
