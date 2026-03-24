@@ -170,8 +170,8 @@ Bannière visible : "Festival Jazz BSM 2024"`
     imageSrc: "/images/bureau_mairie.jpg",
     content: `Bureau du maire avec vue sur le port.
 
-Sur le bureau : un cadre avec la photo de Marie, un presse-papier en forme d'ancre, 
-et un post-it jaune avec l'inscription "MDP: voir mémo vocal du 3 fév".
+Sur le bureau : un cadre avec la photo de Marie, un presse-papier en forme d'ancre,
+des dossiers empilés et une partition de jazz.
 Derrière, une plaque dorée : "Bernard Dupuis - Maire depuis 2015".`
   },
   {
@@ -208,26 +208,19 @@ Garder en tête pour un futur discours d'adieu ?`
 
 "Bourg1832"
 
-Trop simple, trop évident.
-Le nouveau suit un format plus sécurisé :
-- Initiales + année importante + séparateur + date clé + ponctuation
-
-Note: j'ai choisi le dièse (#) comme séparateur car j'adore la musique.
-Le point d'exclamation final, c'est ma petite touche de fierté !`
+Le service IT dit que c'est trop simple. 
+Il faut quelque chose de plus personnel apparemment.`
   },
   {
     id: "trash3",
-    name: "Brouillon_format_MDP.txt",
+    name: "Brouillon_refus.txt",
     type: "file",
-    content: `Réflexions sur la sécurité...
+    content: `Demande de subvention - Festival Jazz 2024
+Status : REFUSÉE par le conseil
 
-Un bon mot de passe doit combiner :
-- Des lettres (mes initiales de lieu préféré ?)
-- Des chiffres (dates importantes)
-- Des symboles (# et !)
+Motif : Budget insuffisant cette année.
 
-Format retenu : ABC1234#12345678!
-Où ABC = lieu, 1234 = fondation, 12345678 = naissance en JJMMAAAA`
+Note perso : Dommage, j'aurais aimé voir plus de concerts avec des dièses...`
   }
 ];
 
@@ -285,18 +278,18 @@ B.D.`
   },
   {
     id: "sent4",
-    name: "Service IT - Question sécurité",
+    name: "Service IT - Merci",
     type: "mail",
     content: `À : Service Informatique Mairie
-Objet : Question sur le nouveau mot de passe
+Objet : Merci pour les conseils
 Date : 3 février 2025
 
 Bonjour,
 
-J'ai bien changé mon mot de passe comme convenu.
-Le nouveau format est plus complexe : initiales + année + symbole + date complète + ponctuation.
+C'est fait ! J'ai changé mon mot de passe.
+J'ai suivi vos recommandations : plusieurs types de caractères, plus long, plus personnel.
 
-Est-ce suffisamment sécurisé selon vous ?
+Merci pour votre aide.
 
 Cordialement,
 Bernard Dupuis`
@@ -467,7 +460,7 @@ N'oubliez pas de réserver au restaurant Le Phare.`
   },
   {
     id: "mail5",
-    name: "Service IT - Votre nouveau mot de passe",
+    name: "Service IT - Confirmation",
     type: "mail",
     content: `De : Service Informatique Mairie
 Objet : Confirmation changement de mot de passe
@@ -479,13 +472,10 @@ Votre mot de passe a été modifié avec succès.
 
 Pour rappel, voici les bonnes pratiques :
 - Ne jamais partager son mot de passe
-- Éviter les dates de naissance seules
-- Combiner lettres, chiffres et symboles
+- Éviter les informations trop évidentes seules
+- Combiner plusieurs types de caractères
 
 Si vous n'êtes pas à l'origine de ce changement, contactez-nous immédiatement.
-
-Note: Nous avons détecté que votre nouveau mot de passe contient un symbole musical (#). 
-Excellente idée pour la mémorisation !
 
 Cordialement,
 Le Service IT`
@@ -539,37 +529,29 @@ export const notes: FileItem[] = [
   },
   {
     id: "note3",
-    name: "Enigme_perso.txt",
+    name: "Poeme_ville.txt",
     type: "file",
-    content: `Petit pense-bête cryptique...
+    content: `Bourg-sur-Mer, ma ville natale,
+Trois lettres gravées dans la pierre,
+Depuis ce jour de mille huit cent trente-deux,
+Où nos ancêtres ont posé la première pierre.
 
-Trois lettres pour ma terre natale,
-Quatre chiffres pour son commencement,
-Un symbole de musique entre les deux mondes,
-Huit chiffres pour le jour où tout a commencé pour moi,
-Et le point final qui crie victoire.
-
-Mon coeur bat pour BSM depuis toujours.`
+Mon cœur bat au rythme des vagues,
+Comme un dièse dans une partition,
+Chaque date est une note de ma vie,
+Chaque symbole, une ponctuation.`
   },
   {
     id: "note4",
-    name: "Anciens_MDP_rejetes.txt",
+    name: "Tentatives_connexion.txt",
     type: "file",
-    content: `LISTE DES MOTS DE PASSE REJETÉS :
+    content: `Erreurs de connexion ce matin :
 
-- Bourg1832 (trop simple)
-- Bernard14041967 (trop évident)
-- Maire2015BSM (pas assez personnel)
-- 14Avril67! (manque le lieu)
-- BSM@1967! (mauvais format de date)
-- BourgSurMer1832 (trop long)
+- "Bourg1832" - ancien mot de passe, ne marche plus
+- "BDupuis1967" - refusé aussi
 
-Le bon format doit inclure :
-1. Abréviation du lieu (3 lettres)
-2. Année de fondation
-3. Séparateur musical
-4. Date complète (8 chiffres)
-5. Ponctuation finale`
+Note : le nouveau est plus complexe, j'ai tout mélangé cette fois.
+Heureusement j'ai enregistré un mémo vocal pour m'en souvenir...`
   },
   {
     id: "note5",
@@ -798,13 +780,12 @@ Marié à Marie Dupuis
 
 Publications récentes :
 
-[3 fév] "Nouveau mot de passe sur l'ordinateur de la mairie ! 
-Plus sécurisé cette fois. Merci au service IT pour leurs conseils.
-J'ai choisi un format qui me ressemble : ma ville, mes dates, ma passion pour la musique !"
+[3 fév] "Journée productive ! Réunion avec le service informatique ce matin.
+Il était temps de moderniser nos pratiques de sécurité..."
 👍 45 J'aime - 12 Commentaires
 
 [14 jan] "Préparation de l'inauguration du square Léon Blum. 
-BSM a bien changé depuis 1832 !"
+Notre ville a bien changé depuis sa fondation !"
 👍 127 J'aime - 34 Commentaires
 
 [1 jan] "Bonne année 2025 à tous les habitants de Bourg-sur-Mer !"`
@@ -865,16 +846,13 @@ Cordialement."`
     from: "Moi-même",
     transcript: `[Mémo vocal personnel]
 
-"Note à moi-même : le nouveau mot de passe est en place.
-J'ai suivi les conseils du service informatique : lettres, chiffres, symboles.
+"Note à moi-même : mot de passe changé ce matin. 
 
-Les trois lettres de ma ville d'abord... BSM, comme sur les plaques d'immatriculation d'antan.
-Puis l'année où tout a commencé pour Bourg-sur-Mer.
-Le dièse, parce que j'aime la musique.
-Ma date de naissance complète, jour mois année, tout collé.
-Et le point d'exclamation final, parce que je suis fier de mes origines !
+Cette fois j'ai fait quelque chose de solide. J'ai mélangé tout ce qui compte pour moi...
+Mes racines, mon histoire, ma passion. Le service IT devrait être content.
 
-Ah, et j'ai mis un code sur la corbeille aussi. L'année de notre mariage, mais à l'envers. Marie va adorer cette idée romantique..."`
+Ah, et j'ai sécurisé la corbeille aussi. Un petit clin d'œil à Marie...
+Elle qui trouve toujours que je fais les choses à l'envers."`
   },
   {
     id: "voice4",
@@ -907,14 +885,12 @@ Bisous."`
 
 "Bonjour Monsieur le Maire, ici le service informatique de la mairie.
 
-Suite à notre réunion d'hier sur la sécurité, voici les recommandations pour votre nouveau mot de passe :
+Suite à notre réunion d'hier, voici nos recommandations :
+Votre ancien mot de passe était vraiment trop simple. 
+Il faudrait quelque chose de plus long, avec différents types de caractères.
 
-Premièrement, évitez l'ancien format trop simple comme 'Bourg1832'.
-Deuxièmement, utilisez un mélange de lettres majuscules, de chiffres et de symboles.
-Le dièse et le point d'exclamation sont de bons choix.
-
-Un bon format serait par exemple : des initiales, une année importante, un symbole, 
-puis une date significative au format jour-mois-année sur 8 chiffres.
+Pensez à mélanger des choses qui comptent pour vous, 
+mais de façon moins évidente que juste votre nom ou une date seule.
 
 N'hésitez pas si vous avez des questions. Bonne journée !"`
   },
@@ -928,12 +904,11 @@ N'hésitez pas si vous avez des questions. Bonne journée !"`
 
 "Note pour le comité : valider le programme du festival de jazz.
 
-J'insiste pour qu'on mette le dièse à l'honneur cette année. C'est mon symbole préféré en musique...
-D'ailleurs, je l'ai même intégré dans mon nouveau mot de passe, entre les chiffres ! 
-C'est ma façon de combiner mes deux passions : ma ville et la musique.
+J'insiste pour qu'on mette le dièse à l'honneur cette année. 
+C'est mon symbole préféré en musique, celui qui élève les notes...
 
 À proposer au comité : des affiches avec le dièse doré sur fond bleu marine, 
-comme les couleurs de BSM depuis la fondation en 1832."`
+les couleurs historiques de notre ville."`
   }
 ];
 
