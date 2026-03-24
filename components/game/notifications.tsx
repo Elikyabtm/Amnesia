@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Mail, Calendar, Bell } from "lucide-react";
+import { X, Mail, Calendar, Bell, Shield, AlertTriangle } from "lucide-react";
 import { useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 
@@ -9,6 +9,8 @@ const iconMap = {
   mail: Mail,
   calendar: Calendar,
   system: Bell,
+  security: Shield,
+  antivirus: Shield,
 };
 
 export function NotificationCenter() {

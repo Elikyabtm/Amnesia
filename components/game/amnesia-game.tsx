@@ -1,6 +1,7 @@
 "use client";
 
 import { GameProvider, useGame } from "@/lib/game-context";
+import { SoundProvider } from "@/lib/sound-context";
 import { TitleScreen } from "./title-screen";
 import { LoginScreen } from "./login-screen";
 import { Desktop } from "./desktop";
@@ -40,8 +41,10 @@ function GameContent() {
 
 export function AmnesiaGame() {
   return (
-    <GameProvider>
-      <GameContent />
-    </GameProvider>
+    <SoundProvider>
+      <GameProvider>
+        <GameContent />
+      </GameProvider>
+    </SoundProvider>
   );
 }

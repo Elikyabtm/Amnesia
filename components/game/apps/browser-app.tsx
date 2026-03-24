@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, ArrowLeft, ArrowRight, RotateCw, Home, Star, Clock, Search, X, ChevronRight, MapPin, Phone, Mail, Calendar, Users, Building } from "lucide-react";
+import { Globe, ArrowLeft, ArrowRight, RotateCw, Home, Star, Clock, Search, X, ChevronRight, MapPin, Phone, Mail, Calendar, Users, Building, Newspaper, FileText, Shield, Facebook, ThumbsUp, MessageCircle, Hash, Music, BookOpen, AlertTriangle } from "lucide-react";
 import { browserHistory, type BrowserPage } from "@/lib/game-data";
 import { useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
@@ -94,13 +94,21 @@ export function BrowserApp() {
   const renderPageContent = (page: BrowserPage) => {
     switch (page.id) {
       case "web1":
-        return <MairieSiteHistoire page={page} />;
+        return <MairieSiteHistoire page={page} onNavigate={navigateTo} />;
       case "web2":
-        return <MairieSiteEquipe page={page} />;
+        return <MairieSiteEquipe page={page} onNavigate={navigateTo} />;
       case "web3":
         return <MuseeSite page={page} />;
       case "web4":
         return <PagesJaunesSite page={page} />;
+      case "web5":
+        return <LePhareNews page={page} />;
+      case "web6":
+        return <ArchivesSite page={page} />;
+      case "web7":
+        return <SecuriteSite page={page} />;
+      case "web8":
+        return <FacebookSite page={page} />;
       default:
         return <DefaultPageContent page={page} />;
     }
@@ -238,7 +246,7 @@ function BrowserHomePage({ onNavigate }: { onNavigate: (page: BrowserPage) => vo
 }
 
 // Mairie site - Histoire page
-function MairieSiteHistoire({ page }: { page: BrowserPage }) {
+function MairieSiteHistoire({ page, onNavigate }: { page: BrowserPage; onNavigate: (page: BrowserPage) => void }) {
   return (
     <div className="min-h-full bg-white">
       {/* Header */}
@@ -321,7 +329,7 @@ function MairieSiteHistoire({ page }: { page: BrowserPage }) {
 }
 
 // Mairie site - Equipe page
-function MairieSiteEquipe({ page }: { page: BrowserPage }) {
+function MairieSiteEquipe({ page, onNavigate }: { page: BrowserPage; onNavigate: (page: BrowserPage) => void }) {
   return (
     <div className="min-h-full bg-white">
       {/* Header */}
@@ -570,6 +578,342 @@ function DefaultPageContent({ page }: { page: BrowserPage }) {
           <pre className="whitespace-pre-wrap font-sans text-gray-800 leading-relaxed">
             {page.content}
           </pre>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Le Phare - Local news site
+function LePhareNews({ page }: { page: BrowserPage }) {
+  return (
+    <div className="min-h-full bg-[#f8f9fa]">
+      {/* Header */}
+      <div className="bg-[#1a365d] text-white">
+        <div className="max-w-5xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Newspaper className="w-8 h-8" />
+            <div>
+              <h1 className="text-2xl font-serif font-bold">Le Phare</h1>
+              <p className="text-xs text-white/60">Journal local de Bourg-sur-Mer depuis 1892</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="grid gap-6">
+          {/* Main article */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <span className="text-xs font-semibold text-[#1a365d] uppercase tracking-wider">À la une</span>
+              <h2 className="text-2xl font-serif font-bold text-gray-900 mt-2">Inauguration du Square Léon Blum</h2>
+              <p className="text-gray-600 mt-3">
+                Le maire Bernard Dupuis inaugurera demain le nouveau square. 
+                <span className="italic">"Une fierté pour notre commune née il y a près de deux siècles"</span>, a-t-il déclaré.
+              </p>
+              <span className="text-xs text-gray-400 mt-4 block">20 février 2025</span>
+            </div>
+          </div>
+
+          {/* Other articles */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Music className="w-4 h-4 text-[#1a365d]" />
+                <span className="text-xs font-semibold text-[#1a365d] uppercase">Culture</span>
+              </div>
+              <h3 className="font-serif font-bold text-gray-900">Fête de la Musique : Programme Dévoilé</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Le <strong>dièse</strong> sera à l'honneur cette année avec un concert de jazz au port.
+                Le maire, grand amateur de musique, a personnellement choisi le programme.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <BookOpen className="w-4 h-4 text-gray-500" />
+                <span className="text-xs font-semibold text-gray-500 uppercase">Nécrologie</span>
+              </div>
+              <h3 className="font-serif font-bold text-gray-900">Hommage à Henri Dupuis (1935-1982)</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Ancien conseiller municipal et père du maire actuel.
+                <span className="italic">"Un homme d'honneur qui nous a quittés trop tôt"</span>, selon les anciens du conseil.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 col-span-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="w-4 h-4 text-amber-600" />
+                <span className="text-xs font-semibold text-amber-600 uppercase">Carnet</span>
+              </div>
+              <h3 className="font-serif font-bold text-gray-900">Anniversaires de la Semaine</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Joyeux anniversaire à tous les natifs d'avril ! 
+                Notre maire fêtera d'ailleurs le sien le mois prochain.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Archives municipales
+function ArchivesSite({ page }: { page: BrowserPage }) {
+  return (
+    <div className="min-h-full bg-[#faf8f5]">
+      {/* Header */}
+      <div className="bg-[#5c4033] text-white">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <FileText className="w-6 h-6" />
+            <div>
+              <h1 className="text-xl font-semibold">Archives Municipales</h1>
+              <p className="text-xs text-white/60">Bourg-sur-Mer - Registres historiques</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="space-y-6">
+          {/* Naissances */}
+          <div className="bg-white rounded-lg shadow-sm border border-[#d4c4b0] overflow-hidden">
+            <div className="bg-[#e8e0d5] px-5 py-3 border-b border-[#d4c4b0]">
+              <h2 className="font-serif font-semibold text-[#5c4033]">Registre des Naissances - Extrait</h2>
+            </div>
+            <div className="p-5">
+              <div className="font-mono text-sm bg-[#faf8f5] p-4 rounded border border-[#e8e0d5]">
+                <p className="text-[#5c4033] font-semibold mb-2">Année 1967 :</p>
+                <div className="pl-4 border-l-2 border-[#d4c4b0]">
+                  <p className="text-gray-700"><strong>14/04/1967</strong> : DUPUIS Bernard Henri Marie</p>
+                  <p className="text-gray-600 text-xs mt-1">Parents : Henri DUPUIS et Françoise MARTIN</p>
+                  <p className="text-gray-600 text-xs">Lieu : Maternité de Bourg-sur-Mer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mariages */}
+          <div className="bg-white rounded-lg shadow-sm border border-[#d4c4b0] overflow-hidden">
+            <div className="bg-[#e8e0d5] px-5 py-3 border-b border-[#d4c4b0]">
+              <h2 className="font-serif font-semibold text-[#5c4033]">Registre des Mariages - Extrait</h2>
+            </div>
+            <div className="p-5">
+              <div className="font-mono text-sm bg-[#faf8f5] p-4 rounded border border-[#e8e0d5]">
+                <p className="text-[#5c4033] font-semibold mb-2">Année 1993 :</p>
+                <div className="pl-4 border-l-2 border-[#d4c4b0]">
+                  <p className="text-gray-700"><strong>15/04/1993</strong> : DUPUIS Bernard et LAURENT Marie</p>
+                  <p className="text-gray-600 text-xs mt-1">Témoins : Pierre DUPUIS (frère), Claire LAURENT (sœur)</p>
+                  <p className="text-gray-600 text-xs">Lieu : Mairie de Bourg-sur-Mer</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Note archiviste */}
+          <div className="bg-[#fffbeb] border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-amber-800 italic">
+              <strong>Note archiviste :</strong> La famille Dupuis est établie à BSM depuis la fondation.
+              Les initiales <strong>BSM</strong> apparaissent sur les anciens actes officiels de la commune.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Site ANSSI Sécurité
+function SecuriteSite({ page }: { page: BrowserPage }) {
+  return (
+    <div className="min-h-full bg-white">
+      {/* Header */}
+      <div className="bg-[#000091] text-white">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Shield className="w-8 h-8" />
+            <div>
+              <h1 className="text-xl font-bold">ANSSI</h1>
+              <p className="text-xs text-white/70">Agence Nationale de la Sécurité des Systèmes d'Information</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-bold text-[#000091] mb-6">Créer un mot de passe robuste</h2>
+        
+        <div className="space-y-6">
+          {/* Recommandations */}
+          <div className="bg-[#f5f5fe] rounded-lg p-6 border-l-4 border-[#000091]">
+            <h3 className="font-semibold text-[#000091] mb-4">Recommandations officielles :</h3>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2 text-gray-700">
+                <div className="w-6 h-6 rounded-full bg-[#000091] text-white flex items-center justify-center text-xs">1</div>
+                Minimum 12 caractères
+              </li>
+              <li className="flex items-center gap-2 text-gray-700">
+                <div className="w-6 h-6 rounded-full bg-[#000091] text-white flex items-center justify-center text-xs">2</div>
+                Mélanger lettres majuscules et minuscules
+              </li>
+              <li className="flex items-center gap-2 text-gray-700">
+                <div className="w-6 h-6 rounded-full bg-[#000091] text-white flex items-center justify-center text-xs">3</div>
+                Inclure des chiffres
+              </li>
+              <li className="flex items-center gap-2 text-gray-700">
+                <div className="w-6 h-6 rounded-full bg-[#000091] text-white flex items-center justify-center text-xs">4</div>
+                Ajouter des caractères spéciaux (<strong>#</strong>, <strong>!</strong>, @, etc.)
+              </li>
+            </ul>
+          </div>
+
+          {/* Exemples */}
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="font-semibold text-gray-800 mb-4">Exemples de formats sécurisés :</h3>
+            <div className="space-y-2 font-mono text-sm">
+              <p className="text-gray-600">[Initiales][Année][Symbole][Date]!</p>
+              <p className="text-gray-600">[Lieu][Chiffres]#[Anniversaire]</p>
+            </div>
+          </div>
+
+          {/* Astuce */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <h4 className="font-semibold text-green-800 mb-2">Astuce :</h4>
+            <p className="text-sm text-green-700">
+              Combinez des éléments personnels mais non évidents.
+              Par exemple : <strong>initiales d'un lieu + date historique + symbole + date personnelle</strong>
+            </p>
+          </div>
+
+          {/* À éviter */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <h4 className="font-semibold text-red-800">À éviter :</h4>
+            </div>
+            <ul className="text-sm text-red-700 space-y-1 ml-7">
+              <li>- Dates de naissance seules</li>
+              <li>- Noms propres sans modification</li>
+              <li>- Suites de chiffres simples</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Facebook profile
+function FacebookSite({ page }: { page: BrowserPage }) {
+  return (
+    <div className="min-h-full bg-[#f0f2f5]">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0">
+        <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-3">
+          <Facebook className="w-10 h-10 text-[#1877f2]" />
+          <div className="flex-1 max-w-md">
+            <div className="bg-[#f0f2f5] rounded-full px-4 py-2 text-gray-500 text-sm">
+              Rechercher sur Facebook
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile */}
+      <div className="max-w-4xl mx-auto">
+        {/* Cover */}
+        <div className="h-48 bg-gradient-to-r from-[#1877f2] to-[#42b883] rounded-b-lg" />
+        
+        {/* Profile info */}
+        <div className="bg-white px-6 pb-4 border-b border-gray-200">
+          <div className="flex items-end gap-4 -mt-8">
+            <div className="w-32 h-32 rounded-full bg-white border-4 border-white shadow-lg flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <Users className="w-16 h-16 text-gray-400" />
+            </div>
+            <div className="pb-4">
+              <h1 className="text-2xl font-bold text-gray-900">Bernard Dupuis</h1>
+              <p className="text-gray-500">Maire de Bourg-sur-Mer depuis 2015</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Posts */}
+        <div className="p-4 space-y-4">
+          {/* Post 1 */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1877f2] to-[#42b883] flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">Bernard Dupuis</p>
+                  <p className="text-xs text-gray-500">3 février 2025</p>
+                </div>
+              </div>
+              <p className="text-gray-800">
+                Nouveau mot de passe sur l'ordinateur de la mairie ! Plus sécurisé cette fois. 
+                Merci au service IT pour leurs conseils.<br/><br/>
+                J'ai choisi un format qui me ressemble : <strong>ma ville</strong>, <strong>mes dates</strong>, 
+                ma passion pour la <strong>musique</strong> !
+              </p>
+              <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-gray-500 text-sm">
+                <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> 45</span>
+                <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> 12 commentaires</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Post 2 */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1877f2] to-[#42b883] flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">Bernard Dupuis</p>
+                  <p className="text-xs text-gray-500">14 janvier 2025</p>
+                </div>
+              </div>
+              <p className="text-gray-800">
+                Préparation de l'inauguration du square Léon Blum. 
+                <strong> BSM</strong> a bien changé depuis <strong>1832</strong> !
+              </p>
+              <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-gray-500 text-sm">
+                <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> 127</span>
+                <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> 34 commentaires</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Post 3 */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1877f2] to-[#42b883] flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">Bernard Dupuis</p>
+                  <p className="text-xs text-gray-500">1 janvier 2025</p>
+                </div>
+              </div>
+              <p className="text-gray-800">
+                Bonne année 2025 à tous les habitants de Bourg-sur-Mer !
+              </p>
+              <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-gray-500 text-sm">
+                <span className="flex items-center gap-1"><ThumbsUp className="w-4 h-4" /> 342</span>
+                <span className="flex items-center gap-1"><MessageCircle className="w-4 h-4" /> 87 commentaires</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

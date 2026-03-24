@@ -90,11 +90,11 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
         </h1>
         
         <p className="text-white/60 text-lg mb-2 tracking-widest">
-          QUI ETES-VOUS ?
+          QUI ÊTES-VOUS ?
         </p>
         <p className="text-white/40 text-sm mb-12 max-w-md mx-auto px-4">
-          Vous vous reveillez devant un ordinateur sans aucun souvenir.
-          Explorez les fichiers pour decouvrir votre identite et retrouver votre mot de passe.
+          Vous vous réveillez devant un ordinateur sans aucun souvenir.
+          Explorez les fichiers pour découvrir votre identité et retrouver votre mot de passe.
         </p>
 
         {/* Menu buttons */}
@@ -137,24 +137,24 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
             <div className="space-y-4 text-white/80 text-sm">
               <div className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-[#0078d4] flex items-center justify-center text-white text-xs flex-shrink-0">1</span>
-                <p>Explorez le bureau de votre ordinateur en double-cliquant sur les icones.</p>
+                <p>Explorez le bureau de votre ordinateur en double-cliquant sur les icônes.</p>
               </div>
               <div className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-[#0078d4] flex items-center justify-center text-white text-xs flex-shrink-0">2</span>
-                <p>Lisez les emails, documents, regardez les photos et ecoutez les messages vocaux.</p>
+                <p>Lisez les emails, documents, regardez les photos et écoutez les messages vocaux.</p>
               </div>
               <div className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-[#0078d4] flex items-center justify-center text-white text-xs flex-shrink-0">3</span>
-                <p>Collectez des indices dans votre carnet pour reconstituer votre identite.</p>
+                <p>Collectez des indices dans votre carnet pour reconstituer votre identité.</p>
               </div>
               <div className="flex gap-3">
                 <span className="w-6 h-6 rounded-full bg-[#0078d4] flex items-center justify-center text-white text-xs flex-shrink-0">4</span>
-                <p>Une fois que vous pensez connaitre le mot de passe, utilisez l'icone "Deverrouiller".</p>
+                <p>Une fois que vous pensez connaître le mot de passe, utilisez l&apos;icône &quot;Déverrouiller&quot;.</p>
               </div>
               
               <div className="mt-4 p-3 bg-white/5 rounded border border-white/10">
                 <p className="text-white/60 text-xs">
-                  <strong className="text-white/80">Astuce :</strong> Le mot de passe est compose d'elements lies a votre histoire personnelle. 
+                  <strong className="text-white/80">Astuce :</strong> Le mot de passe est composé d&apos;éléments liés à votre histoire personnelle. 
                   Cherchez des dates, des lieux, des noms...
                 </p>
               </div>

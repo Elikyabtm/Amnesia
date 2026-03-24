@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { CORRECT_PASSWORD, type FileItem } from "./game-data";
+import { GUEST_PASSWORD, ADMIN_PASSWORD, TRASH_PIN, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
 
@@ -31,8 +31,24 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  icon: "mail" | "calendar" | "system";
+  icon: "mail" | "calendar" | "system" | "security" | "antivirus";
   timestamp: Date;
+}
+
+export interface LockedItem {
+  id: string;
+  name: string;
+  pin: string;
+  hint: string;
+  unlocked: boolean;
+}
+
+export type AccountLevel = "locked" | "guest" | "admin";
+
+export interface SuspicionEvent {
+  type: "password_fail" | "rapid_search" | "sensitive_file" | "repeated_access";
+  amount: number;
+  message: string;
 }
 
 interface GameContextType {
@@ -44,10 +60,15 @@ interface GameContextType {
   clues: ClueItem[];
   notifications: Notification[];
   passwordAttempts: number;
+  lockedItems: LockedItem[];
+  accountLevel: AccountLevel;
+  suspicionLevel: number;
+  isLockedOut: boolean;
+  secretsDiscovered: string[];
   startGame: () => void;
   enterDesktop: () => void;
   finishBooting: () => void;
-  tryPassword: (password: string) => boolean;
+  tryPassword: (password: string) => "wrong" | "guest" | "admin";
   openWindow: (app: AppType, title?: string, content?: FileItem | string) => void;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
@@ -59,6 +80,10 @@ interface GameContextType {
   addClue: (clue: Omit<ClueItem, "id" | "discoveredAt">) => void;
   addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void;
   dismissNotification: (id: string) => void;
+  tryUnlockItem: (itemId: string, pin: string) => boolean;
+  isItemLocked: (itemId: string) => boolean;
+  addSuspicion: (event: SuspicionEvent) => void;
+  discoverSecret: (secretId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -74,6 +99,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const [clueCounter, setClueCounter] = useState(0);
+  const [lockedItems, setLockedItems] = useState<LockedItem[]>([
+    {
+      id: "trash",
+      name: "Corbeille",
+      pin: TRASH_PIN,
+      hint: "Année du mariage, mais à l'envers...",
+      unlocked: false,
+    },
+    {
+      id: "confidential",
+      name: "Dossier Confidentiel",
+      pin: CONFIDENTIAL_PIN,
+      hint: "L'année où j'ai été élu maire",
+      unlocked: false,
+    },
+  ]);
+  const [accountLevel, setAccountLevel] = useState<AccountLevel>("locked");
+  const [suspicionLevel, setSuspicionLevel] = useState(0);
+  const [isLockedOut, setIsLockedOut] = useState(false);
+  const [secretsDiscovered, setSecretsDiscovered] = useState<string[]>([]);
+  const [lastActionTime, setLastActionTime] = useState<number>(Date.now());
 
   const startGame = useCallback(() => {
     setGamePhase("intro");
@@ -106,16 +152,46 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, 2000);
   }, []);
 
-  const tryPassword = useCallback((password: string) => {
+  const tryPassword = useCallback((password: string): "wrong" | "guest" | "admin" => {
     setPasswordAttempts((a) => a + 1);
-    if (password === CORRECT_PASSWORD) {
+    
+    // Check admin password first
+    if (password === ADMIN_PASSWORD) {
+      setAccountLevel("admin");
       setGamePhase("won");
-      return true;
+      return "admin";
     }
+    
+    // Check guest password (only if not already guest or admin)
+    if (password === GUEST_PASSWORD && accountLevel === "locked") {
+      setAccountLevel("guest");
+      // Unlock some basic files but not the secret ones
+      setNotifications((current) => [{
+        id: `notif-${Date.now()}`,
+        title: "Compte Invité",
+        message: "Accès limité. Certains fichiers restent verrouillés.",
+        icon: "security",
+        timestamp: new Date(),
+      }, ...current]);
+      return "guest";
+    }
+    
+    // Wrong password - add suspicion
+    setSuspicionLevel((s) => Math.min(100, s + 10));
     setLoginError(true);
     setTimeout(() => setLoginError(false), 500);
-    return false;
-  }, []);
+    
+    // Check for lockout
+    if (suspicionLevel + 10 >= SUSPICION_THRESHOLDS.LOCKOUT) {
+      setIsLockedOut(true);
+      setTimeout(() => {
+        setIsLockedOut(false);
+        setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
+      }, 10000); // 10 second lockout
+    }
+    
+    return "wrong";
+  }, [accountLevel, suspicionLevel]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
     setClues((current) => {
@@ -142,6 +218,67 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications((current) => current.filter((n) => n.id !== id));
+  }, []);
+
+  const tryUnlockItem = useCallback((itemId: string, pin: string): boolean => {
+    const item = lockedItems.find((i) => i.id === itemId);
+    if (!item) return false;
+    
+    if (pin === item.pin) {
+      setLockedItems((current) =>
+        current.map((i) => (i.id === itemId ? { ...i, unlocked: true } : i))
+      );
+      return true;
+    }
+    return false;
+  }, [lockedItems]);
+
+  const isItemLocked = useCallback((itemId: string): boolean => {
+    const item = lockedItems.find((i) => i.id === itemId);
+    return item ? !item.unlocked : false;
+  }, [lockedItems]);
+
+  const addSuspicion = useCallback((event: SuspicionEvent) => {
+    const now = Date.now();
+    const timeSinceLastAction = now - lastActionTime;
+    
+    // Rapid actions (less than 2 seconds) increase suspicion more
+    const multiplier = timeSinceLastAction < 2000 ? 1.5 : 1;
+    const amount = Math.round(event.amount * multiplier);
+    
+    setSuspicionLevel((s) => {
+      const newLevel = Math.min(100, s + amount);
+      
+      // Trigger warnings at thresholds
+      if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
+        setNotifications((current) => [{
+          id: `notif-${Date.now()}`,
+          title: "Alerte Sécurité",
+          message: "Activité suspecte détectée. Ralentissez vos recherches.",
+          icon: "security",
+          timestamp: new Date(),
+        }, ...current]);
+      }
+      
+      if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
+        setIsLockedOut(true);
+        setTimeout(() => {
+          setIsLockedOut(false);
+          setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
+        }, 10000);
+      }
+      
+      return newLevel;
+    });
+    
+    setLastActionTime(now);
+  }, [lastActionTime]);
+
+  const discoverSecret = useCallback((secretId: string) => {
+    setSecretsDiscovered((current) => {
+      if (current.includes(secretId)) return current;
+      return [...current, secretId];
+    });
   }, []);
 
   const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string) => {
@@ -260,6 +397,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         clues,
         notifications,
         passwordAttempts,
+        lockedItems,
+        accountLevel,
+        suspicionLevel,
+        isLockedOut,
+        secretsDiscovered,
         startGame,
         enterDesktop,
         finishBooting,
@@ -275,6 +417,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         addClue,
         addNotification,
         dismissNotification,
+        tryUnlockItem,
+        isItemLocked,
+        addSuspicion,
+        discoverSecret,
       }}
     >
       {children}
