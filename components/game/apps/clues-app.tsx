@@ -4,6 +4,20 @@ import { useState } from "react";
 import { BookOpen, User, Calendar, MapPin, Key, Lightbulb, Search } from "lucide-react";
 import { useGame, type ClueItem } from "@/lib/game-context";
 
+const GUEST_HINTS = [
+  "Votre ancien mot de passe a été noté quelque part... puis jeté.",
+  "Ouvrez la corbeille : certains fichiers n'auraient pas dû y rester.",
+  "Le journal des connexions dans Documents mentionne l'ancien mot de passe.",
+];
+
+const ADMIN_HINTS = [
+  "Le nouveau mot de passe est \"plus personnel\" : relisez les échanges avec le Service IT.",
+  "Les initiales de votre ville sont gravées sur plusieurs photos.",
+  "Quelle année votre ville a-t-elle été fondée ?",
+  "Un symbole musical revient souvent : regardez la photo du concert de jazz.",
+  "Votre date de naissance, au format JJMMAAAA, termine le mot de passe... suivie d'un point d'exclamation.",
+];
+
 const categoryConfig = {
   identity: { label: "Identite", icon: User, color: "#0078d4" },
   date: { label: "Dates", icon: Calendar, color: "#dc2626" },
@@ -12,7 +26,15 @@ const categoryConfig = {
 };
 
 export function CluesApp() {
-  const { clues } = useGame();
+  const { clues, accountLevel } = useGame();
+  const [hintsShown, setHintsShown] = useState(0);
+  const hints = accountLevel === "locked" ? GUEST_HINTS : ADMIN_HINTS;
+  const hintsKey = accountLevel === "locked" ? "guest" : "admin";
+  const [hintStage, setHintStage] = useState(hintsKey);
+  if (hintStage !== hintsKey) {
+    setHintStage(hintsKey);
+    setHintsShown(0);
+  }
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -151,20 +173,38 @@ export function CluesApp() {
         )}
       </div>
 
-      {/* Password hint section */}
-      {clues.length >= 3 && (
-        <div className="p-4 border-t border-white/10 bg-[#2d2d2d]/50">
-          <div className="flex items-start gap-3">
-            <Key className="w-5 h-5 text-[#f59e0b] flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-white/80 font-medium">Indice mot de passe</p>
-              <p className="text-xs text-white/50 mt-1">
-                Le mot de passe combine plusieurs informations personnelles...
+      {/* Progressive hints */}
+      <div className="p-4 border-t border-white/10 bg-[#2d2d2d]/50">
+        <div className="flex items-start gap-3">
+          <Key className="w-5 h-5 text-[#f59e0b] flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm text-white/80 font-medium">
+                {accountLevel === "locked" ? "Objectif : compte invité" : "Objectif : compte administrateur"}
               </p>
+              {hintsShown < hints.length && (
+                <button
+                  onClick={() => setHintsShown((n) => n + 1)}
+                  className="text-xs px-2 py-1 rounded bg-[#f59e0b]/20 text-[#f59e0b] hover:bg-[#f59e0b]/30 transition-colors flex-shrink-0"
+                >
+                  Indice ({hintsShown}/{hints.length})
+                </button>
+              )}
             </div>
+            {hintsShown === 0 ? (
+              <p className="text-xs text-white/50 mt-1">
+                Bloqué ? Demandez un indice — ils deviennent de plus en plus précis.
+              </p>
+            ) : (
+              <ol className="text-xs text-white/60 mt-2 space-y-1 list-decimal list-inside">
+                {hints.slice(0, hintsShown).map((hint) => (
+                  <li key={hint}>{hint}</li>
+                ))}
+              </ol>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

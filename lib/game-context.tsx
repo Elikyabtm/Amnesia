@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import { GUEST_PASSWORD, ADMIN_PASSWORD, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
@@ -84,7 +84,13 @@ interface GameContextType {
   isItemLocked: (itemId: string) => boolean;
   addSuspicion: (event: SuspicionEvent) => void;
   discoverSecret: (secretId: string) => void;
+  startTime: number | null;
+  endTime: number | null;
+  lockoutRemaining: number;
 }
+
+let notifSeq = 0;
+const notifId = () => `notif-${Date.now()}-${++notifSeq}`;
 
 const GameContext = createContext<GameContextType | null>(null);
 
@@ -98,7 +104,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [clues, setClues] = useState<ClueItem[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
-  const [clueCounter, setClueCounter] = useState(0);
+  const clueCounterRef = useRef(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [endTime, setEndTime] = useState<number | null>(null);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
   const [lockedItems, setLockedItems] = useState<LockedItem[]>([
     {
       id: "confidential",
@@ -112,7 +121,64 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [suspicionLevel, setSuspicionLevel] = useState(0);
   const [isLockedOut, setIsLockedOut] = useState(false);
   const [secretsDiscovered, setSecretsDiscovered] = useState<string[]>([]);
-  const [lastActionTime, setLastActionTime] = useState<number>(Date.now());
+  const lastActionTimeRef = useRef<number>(0);
+  const suspicionRef = useRef(0);
+
+  const LOCKOUT_SECONDS = 10;
+
+  // Keep a ref in sync so callbacks always see the latest suspicion level
+  useEffect(() => {
+    suspicionRef.current = suspicionLevel;
+  }, [suspicionLevel]);
+
+  // Lockout countdown: one timer, cleaned up properly
+  useEffect(() => {
+    if (!isLockedOut) return;
+    setLockoutRemaining(LOCKOUT_SECONDS);
+    const interval = setInterval(() => {
+      setLockoutRemaining((r) => {
+        if (r <= 1) {
+          clearInterval(interval);
+          setIsLockedOut(false);
+          setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER - 10);
+          return 0;
+        }
+        return r - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isLockedOut]);
+
+  // Suspicion slowly decays when the player is calm
+  useEffect(() => {
+    if (gamePhase !== "exploring" || isLockedOut) return;
+    const interval = setInterval(() => {
+      if (Date.now() - lastActionTimeRef.current > 15000) {
+        setSuspicionLevel((s) => Math.max(0, s - 2));
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [gamePhase, isLockedOut]);
+
+  const raiseSuspicion = useCallback((amount: number) => {
+    const current = suspicionRef.current;
+    const newLevel = Math.min(100, current + amount);
+    suspicionRef.current = newLevel;
+    setSuspicionLevel(newLevel);
+
+    if (current < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING && newLevel < SUSPICION_THRESHOLDS.LOCKOUT) {
+      setNotifications((n) => [{
+        id: notifId(),
+        title: "Alerte Sécurité",
+        message: "Activité suspecte détectée. Ralentissez vos recherches.",
+        icon: "security",
+        timestamp: new Date(),
+      }, ...n]);
+    }
+    if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
+      setIsLockedOut(true);
+    }
+  }, []);
 
   const startGame = useCallback(() => {
     setGamePhase("intro");
@@ -124,6 +190,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const finishBooting = useCallback(() => {
     setGamePhase("exploring");
+    setStartTime(Date.now());
     // Add initial notifications after a delay
     setTimeout(() => {
       setNotifications([
@@ -137,7 +204,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         {
           id: "notif-2", 
           title: "Rappel",
-          message: "Anniversaire dans 2 mois",
+          message: "Anniversaire le 14 avril",
           icon: "calendar",
           timestamp: new Date(),
         },
@@ -145,65 +212,61 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, 2000);
   }, []);
 
-  const tryPassword = useCallback((password: string): "wrong" | "guest" | "admin" => {
+  const tryPassword = useCallback((rawPassword: string): "wrong" | "guest" | "admin" => {
+    const password = rawPassword.trim();
     setPasswordAttempts((a) => a + 1);
-    
-    // Check admin password first
+    lastActionTimeRef.current = Date.now();
+
     if (password === ADMIN_PASSWORD) {
       setAccountLevel("admin");
+      setEndTime(Date.now());
       setGamePhase("won");
       return "admin";
     }
-    
-    // Check guest password (only if not already guest or admin)
+
     if (password === GUEST_PASSWORD && accountLevel === "locked") {
       setAccountLevel("guest");
-      // Unlock some basic files but not the secret ones
-      setNotifications((current) => [{
-        id: `notif-${Date.now()}`,
-        title: "Compte Invité",
-        message: "Accès limité. Certains fichiers restent verrouillés.",
-        icon: "security",
-        timestamp: new Date(),
-      }, ...current]);
+      setNotifications((current) => [
+        {
+          id: notifId(),
+          title: "Courrier synchronisé",
+          message: "2 nouveaux messages importants dans votre boîte de réception.",
+          icon: "mail",
+          timestamp: new Date(),
+        },
+        {
+          id: notifId(),
+          title: "Compte Invité",
+          message: "Accès limité. Certains fichiers restent verrouillés.",
+          icon: "security",
+          timestamp: new Date(),
+        },
+        ...current,
+      ]);
       return "guest";
     }
-    
-    // Wrong password - add suspicion
-    setSuspicionLevel((s) => Math.min(100, s + 10));
+
+    raiseSuspicion(10);
     setLoginError(true);
     setTimeout(() => setLoginError(false), 500);
-    
-    // Check for lockout
-    if (suspicionLevel + 10 >= SUSPICION_THRESHOLDS.LOCKOUT) {
-      setIsLockedOut(true);
-      setTimeout(() => {
-        setIsLockedOut(false);
-        setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
-      }, 10000); // 10 second lockout
-    }
-    
     return "wrong";
-  }, [accountLevel, suspicionLevel]);
+  }, [accountLevel, raiseSuspicion]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
     setClues((current) => {
-      // Don't add duplicate clues
       if (current.some((c) => c.text === clue.text)) return current;
-      const newClue: ClueItem = {
-        ...clue,
-        id: `clue-${clueCounter}`,
-        discoveredAt: new Date(),
-      };
-      setClueCounter((c) => c + 1);
-      return [...current, newClue];
+      clueCounterRef.current += 1;
+      return [
+        ...current,
+        { ...clue, id: `clue-${clueCounterRef.current}`, discoveredAt: new Date() },
+      ];
     });
-  }, [clueCounter]);
+  }, []);
 
   const addNotification = useCallback((notification: Omit<Notification, "id" | "timestamp">) => {
     const newNotif: Notification = {
       ...notification,
-      id: `notif-${Date.now()}`,
+      id: notifId(),
       timestamp: new Date(),
     };
     setNotifications((current) => [newNotif, ...current]);
@@ -223,8 +286,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       );
       return true;
     }
+    raiseSuspicion(8);
     return false;
-  }, [lockedItems]);
+  }, [lockedItems, raiseSuspicion]);
 
   const isItemLocked = useCallback((itemId: string): boolean => {
     const item = lockedItems.find((i) => i.id === itemId);
@@ -233,39 +297,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const addSuspicion = useCallback((event: SuspicionEvent) => {
     const now = Date.now();
-    const timeSinceLastAction = now - lastActionTime;
-    
-    // Rapid actions (less than 2 seconds) increase suspicion more
-    const multiplier = timeSinceLastAction < 2000 ? 1.5 : 1;
-    const amount = Math.round(event.amount * multiplier);
-    
-    setSuspicionLevel((s) => {
-      const newLevel = Math.min(100, s + amount);
-      
-      // Trigger warnings at thresholds
-      if (s < SUSPICION_THRESHOLDS.WARNING && newLevel >= SUSPICION_THRESHOLDS.WARNING) {
-        setNotifications((current) => [{
-          id: `notif-${Date.now()}`,
-          title: "Alerte Sécurité",
-          message: "Activité suspecte détectée. Ralentissez vos recherches.",
-          icon: "security",
-          timestamp: new Date(),
-        }, ...current]);
-      }
-      
-      if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
-        setIsLockedOut(true);
-        setTimeout(() => {
-          setIsLockedOut(false);
-          setSuspicionLevel(SUSPICION_THRESHOLDS.DANGER);
-        }, 10000);
-      }
-      
-      return newLevel;
-    });
-    
-    setLastActionTime(now);
-  }, [lastActionTime]);
+    // Rapid actions (less than 2 seconds apart) increase suspicion more
+    const multiplier = now - lastActionTimeRef.current < 2000 ? 1.5 : 1;
+    lastActionTimeRef.current = now;
+    raiseSuspicion(Math.round(event.amount * multiplier));
+  }, [raiseSuspicion]);
 
   const discoverSecret = useCallback((secretId: string) => {
     setSecretsDiscovered((current) => {
@@ -414,6 +450,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isItemLocked,
         addSuspicion,
         discoverSecret,
+        startTime,
+        endTime,
+        lockoutRemaining,
       }}
     >
       {children}

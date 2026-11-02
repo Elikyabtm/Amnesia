@@ -6,10 +6,9 @@ import { Shield, AlertTriangle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function SuspicionBar() {
-  const { suspicionLevel, isLockedOut, accountLevel } = useGame();
+  const { suspicionLevel, isLockedOut, lockoutRemaining, gamePhase } = useGame();
 
-  // Don't show if not exploring
-  if (accountLevel === "locked") return null;
+  if (gamePhase !== "exploring") return null;
 
   const getColor = () => {
     if (suspicionLevel >= SUSPICION_THRESHOLDS.DANGER) return "bg-red-500";
@@ -76,7 +75,7 @@ export function SuspicionBar() {
               Activité suspecte détectée. Le système est temporairement bloqué.
             </p>
             <p className="text-red-400 text-sm">
-              Veuillez patienter 10 secondes...
+              Veuillez patienter {lockoutRemaining} seconde{lockoutRemaining > 1 ? "s" : ""}...
             </p>
           </div>
         </div>

@@ -14,7 +14,7 @@ import {
   ArrowRight,
   RefreshCw
 } from "lucide-react";
-import { fileSystem, type FileItem } from "@/lib/game-data";
+import { fileSystem, secretDocuments, type FileItem } from "@/lib/game-data";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { FolderLockDialog } from "../folder-lock-dialog";
@@ -81,20 +81,22 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
       });
     }
 
-    // Detect secret files and add suspicion
-    const secretKeywords = ["CONFIDENTIEL", "offshore", "corruption", "menaces", "compromettante", "secret"];
-    const isSecretFile = secretKeywords.some(keyword => 
-      item.name.toLowerCase().includes(keyword.toLowerCase()) || 
-      content.toLowerCase().includes(keyword.toLowerCase())
-    );
+    if (content.includes("BSM")) {
+      addClue({
+        category: "place",
+        text: "BSM = initiales de Bourg-sur-Mer",
+        source: item.name,
+      });
+    }
 
-    if (isSecretFile) {
+    // Secret files raise suspicion and count toward the ending
+    if (secretDocuments.some((d) => d.id === item.id)) {
       addSuspicion({
         type: "sensitive_file",
         amount: 15,
         message: `Accès au fichier sensible: ${item.name}`,
       });
-      discoverSecret(item.name);
+      discoverSecret(item.id);
     }
   }, [addClue, addSuspicion, discoverSecret]);
 
@@ -144,6 +146,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         detectClues(item);
       } else if (item.type === "audio") {
         openWindow("audio");
+        detectClues(item);
       } else {
         openWindow("notepad", item.name, item);
         detectClues(item);
@@ -152,7 +155,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
     } else {
       lastClickRef.current = { id: item.id, time: now };
     }
-  }, [openWindow, playSound]);
+  }, [openWindow, playSound, isItemLocked, accountLevel, addSuspicion, detectClues]);
 
   const goBack = () => {
     playSound("click");

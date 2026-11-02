@@ -33,8 +33,8 @@ export function MailApp({ window: win }: MailAppProps) {
   const { playSound } = useSound();
   const { addClue, accountLevel, addSuspicion, discoverSecret } = useGame();
   
-  // Show secret mails only in admin mode
-  const inboxMails = accountLevel === "admin" ? allMails : mails;
+  // Secret mails sync once the player has logged in (guest or admin)
+  const inboxMails = accountLevel === "locked" ? mails : [...secretMails, ...mails];
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
 
   // Get mails for current folder
@@ -123,7 +123,7 @@ export function MailApp({ window: win }: MailAppProps) {
         amount: 20,
         message: `Email sensible consulté: ${mail.name}`,
       });
-      discoverSecret(mail.name);
+      discoverSecret(mail.id);
     }
   }, [addClue, addSuspicion, discoverSecret]);
 
@@ -176,6 +176,9 @@ export function MailApp({ window: win }: MailAppProps) {
     const fromMatch = content.match(/De\s*:\s*([^\n<]+)/);
     return fromMatch ? fromMatch[1].trim() : mail.name.split(" - ")[0];
   };
+
+  const getInitial = (mail: FileItem) =>
+    (getMailSender(mail).replace(/^À:\s*/, "").match(/\p{L}/u)?.[0] ?? "?").toUpperCase();
 
   return (
     <div className="flex h-full">
@@ -293,7 +296,7 @@ export function MailApp({ window: win }: MailAppProps) {
               >
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#404040] flex items-center justify-center text-white/70 text-xs font-medium flex-shrink-0">
-                    {mail.name.charAt(0)}
+                    {getInitial(mail)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
@@ -356,7 +359,7 @@ export function MailApp({ window: win }: MailAppProps) {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#404040] flex items-center justify-center text-white/70 font-medium">
-                  {selectedMail.name.charAt(0)}
+                  {getInitial(selectedMail)}
                 </div>
                 <div>
                   <div className="text-sm text-white">{getMailSender(selectedMail)}</div>

@@ -5,26 +5,13 @@ import { SoundProvider } from "@/lib/sound-context";
 import { TitleScreen } from "./title-screen";
 import { LoginScreen } from "./login-screen";
 import { Desktop } from "./desktop";
-import { VictoryScreen } from "./victory-screen";
 import { BootScreen } from "./boot-screen";
 
 function GameContent() {
   const { gamePhase, startGame, finishBooting } = useGame();
 
-  const handleRestart = () => {
-    window.location.reload();
-  };
-
-  if (gamePhase === "won") {
-    return (
-      <>
-        <Desktop />
-        <VictoryScreen onRestart={handleRestart} />
-      </>
-    );
-  }
-
-  if (gamePhase === "exploring") {
+  // Desktop renders the WinScreen itself once the game is won
+  if (gamePhase === "exploring" || gamePhase === "won") {
     return <Desktop />;
   }
 

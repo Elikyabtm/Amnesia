@@ -45,25 +45,18 @@ export function RandomEvents() {
   useEffect(() => {
     if (gamePhase !== "exploring") return;
 
-    const scheduleNextEvent = () => {
-      const delay = EVENT_INTERVAL_MIN + Math.random() * (EVENT_INTERVAL_MAX - EVENT_INTERVAL_MIN);
-      return setTimeout(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const scheduleNextEvent = (delay: number) => {
+      timeout = setTimeout(() => {
         triggerEvent();
-        scheduleNextEvent();
+        scheduleNextEvent(EVENT_INTERVAL_MIN + Math.random() * (EVENT_INTERVAL_MAX - EVENT_INTERVAL_MIN));
       }, delay);
     };
 
-    // Start with a longer delay (45 seconds)
-    const initialTimeout = setTimeout(() => {
-      triggerEvent();
-    }, 45000);
+    // First event after 45 seconds, then every 1.5–3 minutes
+    scheduleNextEvent(45000);
 
-    const recurringTimeout = scheduleNextEvent();
-
-    return () => {
-      clearTimeout(initialTimeout);
-      clearTimeout(recurringTimeout);
-    };
+    return () => clearTimeout(timeout);
   }, [gamePhase, triggerEvent]);
 
   // Handle event duration
