@@ -19,6 +19,7 @@ import { AudioApp } from "./apps/audio-app";
 import { RandomEvents } from "./random-events";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
+import { WindowSwitcher } from "./window-switcher";
 
 export function Desktop() {
   const { windows, gamePhase } = useGame();
@@ -59,6 +60,9 @@ export function Desktop() {
 
         {/* Win Screen */}
         {gamePhase === "won" && <WinScreen />}
+
+        {/* Alt+Tab / Alt+Q */}
+        <WindowSwitcher />
 
         {/* Taskbar */}
         <Taskbar />

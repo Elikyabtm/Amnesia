@@ -111,6 +111,10 @@ interface GameContextType {
   startTime: number | null;
   endTime: number | null;
   isRestored: boolean;
+  /** Le joueur a découvert qu'il est Bernard Dupuis (ou s'est connecté en admin) */
+  identityKnown: boolean;
+  /** Restaure (si réduite) et met au premier plan une fenêtre */
+  activateWindow: (id: string) => void;
   resetGame: () => void;
   lockoutRemaining: number;
 }
@@ -144,6 +148,9 @@ function computeNewWindowRect(openCount: number) {
     },
   };
 }
+
+// Indices qui révèlent l'identité du joueur
+const IDENTITY_CLUES = ["Votre nom est Bernard Dupuis", "Vous êtes Bernard Dupuis, Maire de Bourg-sur-Mer"];
 
 let notifSeq = 0;
 const notifId = () => `notif-${Date.now()}-${++notifSeq}`;
@@ -502,7 +509,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       password: "Déverrouiller",
       browser: "Navigateur",
       clues: "Carnet d'indices",
-      audio: "Lecteur audio",
+      audio: "Messages vocaux",
     };
 
     const { position, size } = computeNewWindowRect(windows.length);
@@ -580,6 +587,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const activateWindow = useCallback((id: string) => {
+    setWindows((w) =>
+      w.map((win) => (win.id === id ? { ...win, isMinimized: false, zIndex: maxZIndex + 1 } : win))
+    );
+    setMaxZIndex((z) => z + 1);
+    setActiveWindowId(id);
+  }, [maxZIndex]);
+
+  const identityKnown = accountLevel === "admin" || clues.some((c) => IDENTITY_CLUES.includes(c.text));
+
   const focusWindow = useCallback((id: string) => {
     setWindows((w) =>
       w.map((win) => (win.id === id ? { ...win, zIndex: maxZIndex + 1 } : win))
@@ -637,6 +654,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         startTime,
         endTime,
         isRestored,
+        identityKnown,
+        activateWindow,
         resetGame,
         lockoutRemaining,
       }}

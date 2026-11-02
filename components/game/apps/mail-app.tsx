@@ -39,7 +39,7 @@ export function MailApp({ window: win }: MailAppProps) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const [localFavorites, setLocalFavorites] = useState<string[]>(favoriteMails.map(m => m.id));
   const { playSound } = useSound();
-  const { addClue, accountLevel, addSuspicion, discoverSecret, readMailIds, markMailRead } = useGame();
+  const { addClue, accountLevel, addSuspicion, discoverSecret, readMailIds, markMailRead, identityKnown } = useGame();
 
   useEffect(() => {
     if (win.target) markMailRead(win.target.id);
@@ -280,11 +280,12 @@ export function MailApp({ window: win }: MailAppProps) {
         <div className="p-3 border-t border-white/10">
           <div className="flex items-center gap-2 text-xs text-white/50">
             <div className="w-8 h-8 rounded-full bg-[#0078d4] flex items-center justify-center text-white font-medium">
-              BD
+              {identityKnown ? "BD" : "?"}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-white/80 truncate">Bernard Dupuis</div>
-              <div className="truncate">b.dupuis@mairie.fr</div>
+              {/* Le nom n'apparaît qu'une fois l'identité découverte (pas de spoiler) */}
+              <div className="text-white/80 truncate">{identityKnown ? "Bernard Dupuis" : "???"}</div>
+              <div className="truncate">{identityKnown ? "b.dupuis@mairie.fr" : "Compte de la mairie"}</div>
             </div>
           </div>
         </div>

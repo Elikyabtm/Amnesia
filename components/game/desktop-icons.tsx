@@ -1,29 +1,14 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { FolderOpen, Mail, Image, FileText, Calendar, Trash2, Lock, Globe, BookOpen, Mic } from "lucide-react";
 import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
+import { APPS, DESKTOP_APPS } from "./app-registry";
 
-interface DesktopIconData {
-  id: AppType;
-  icon: typeof FolderOpen;
-  label: string;
-  color: string;
-}
-
-const defaultIcons: DesktopIconData[] = [
-  { id: "explorer", icon: FolderOpen, label: "Documents", color: "#f4c542" },
-  { id: "mail", icon: Mail, label: "Courrier", color: "#0078d4" },
-  { id: "photos", icon: Image, label: "Photos", color: "#00a86b" },
-  { id: "browser", icon: Globe, label: "Navigateur", color: "#00bcf2" },
-  { id: "audio", icon: Mic, label: "Messages", color: "#9333ea" },
-  { id: "notepad", icon: FileText, label: "Bloc-notes", color: "#6b7280" },
-  { id: "calendar", icon: Calendar, label: "Calendrier", color: "#dc2626" },
-  { id: "clues", icon: BookOpen, label: "Indices", color: "#f97316" },
-  { id: "trash", icon: Trash2, label: "Corbeille", color: "#6b7280" },
-  { id: "password", icon: Lock, label: "Déverrouiller", color: "#22c55e" },
-];
+const defaultIcons = DESKTOP_APPS.map((id) => {
+  const app = APPS[id];
+  return { id, icon: app.icon, label: app.desktopLabel ?? app.label, color: app.color };
+});
 
 interface IconPosition {
   id: string;

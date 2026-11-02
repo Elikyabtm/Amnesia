@@ -23,19 +23,11 @@ import {
   X
 } from "lucide-react";
 import { ConfirmDialog } from "./confirm-dialog";
+import { TaskbarApps } from "./taskbar-apps";
 import { useGameClock, gameNow } from "@/lib/game-clock";
 import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { fileSystem, mails, notes, corbeille } from "@/lib/game-data";
-
-const apps: { id: AppType; icon: typeof FolderOpen; label: string }[] = [
-  { id: "explorer", icon: FolderOpen, label: "Explorateur" },
-  { id: "mail", icon: Mail, label: "Courrier" },
-  { id: "photos", icon: Image, label: "Photos" },
-  { id: "notepad", icon: FileText, label: "Bloc-notes" },
-  { id: "calendar", icon: Calendar, label: "Calendrier" },
-  { id: "trash", icon: Trash2, label: "Corbeille" },
-];
 
 const startMenuApps = [
   { id: "explorer" as AppType, icon: FolderOpen, label: "Explorateur de fichiers" },
@@ -44,7 +36,7 @@ const startMenuApps = [
   { id: "notepad" as AppType, icon: FileText, label: "Bloc-notes" },
   { id: "calendar" as AppType, icon: Calendar, label: "Calendrier" },
   { id: "browser" as AppType, icon: Globe, label: "Navigateur" },
-  { id: "password" as AppType, icon: Lock, label: "Changement MDP" },
+  { id: "password" as AppType, icon: Lock, label: "Déverrouiller" },
 ];
 
 export function Taskbar() {
@@ -54,7 +46,7 @@ export function Taskbar() {
   const [showSearch, setShowSearch] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { openWindow, windows, focusWindow, restoreWindow, accountLevel, resetGame } = useGame();
+  const { openWindow, accountLevel, resetGame, identityKnown } = useGame();
   const { playSound, volume, setVolume, isMuted, toggleMute } = useSound();
   const startMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -76,23 +68,6 @@ export function Taskbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleAppClick = (appId: AppType) => {
-    playSound("click");
-    
-    const existingWindow = windows.find((w) => w.app === appId);
-    
-    if (existingWindow) {
-      if (existingWindow.isMinimized) {
-        restoreWindow(existingWindow.id);
-      } else {
-        focusWindow(existingWindow.id);
-      }
-    } else {
-      playSound("open");
-      openWindow(appId);
-    }
-  };
 
   const handleStartMenuAppClick = (appId: AppType) => {
     setShowStartMenu(false);
@@ -166,7 +141,7 @@ export function Taskbar() {
                 <User className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-white font-medium">Bernard Dupuis</p>
+                <p className="text-white font-medium">{identityKnown ? "Bernard Dupuis" : "???"}</p>
                 <p className="text-white/50 text-xs">
                   {accountLevel === "admin" ? "Administrateur" : accountLevel === "guest" ? "Invité" : "Non connecté"}
                 </p>
@@ -337,41 +312,7 @@ export function Taskbar() {
         </div>
 
         {/* Center apps */}
-        <div className="flex items-center gap-1 bg-[#2d2d2d]/50 rounded-lg px-2 py-1">
-          {apps.map(({ id, icon: Icon, label }) => {
-            const hasWindow = windows.some((w) => w.app === id);
-            const isMinimized = windows.some((w) => w.app === id && w.isMinimized);
-            
-            return (
-              <button
-                key={id}
-                onClick={() => handleAppClick(id)}
-                className={`relative p-2.5 rounded transition-all group ${
-                  hasWindow 
-                    ? "bg-white/10 hover:bg-white/15" 
-                    : "hover:bg-white/10"
-                }`}
-                title={label}
-              >
-                <Icon className={`w-5 h-5 ${hasWindow ? "text-white" : "text-white/70"}`} />
-                
-                {/* Active indicator */}
-                {hasWindow && (
-                  <div 
-                    className={`absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full transition-all ${
-                      isMinimized ? "w-1 bg-white/50" : "w-4 bg-[#0078d4]"
-                    }`}
-                  />
-                )}
-
-                {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#2d2d2d] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                  {label}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        <TaskbarApps />
 
         {/* System tray */}
         <div className="absolute right-2 flex items-center gap-1 text-white/70">
