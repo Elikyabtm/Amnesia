@@ -47,3 +47,6 @@ export const PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", 
 
 /** Icônes du bureau, dans l'ordre par défaut */
 export const DESKTOP_APPS: AppType[] = ["explorer", "mail", "photos", "browser", "audio", "notepad", "calendar", "clues", "trash", "password"];
+
+/** Applications épinglées dans le menu Démarrer */
+export const START_PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", "audio", "notepad", "calendar", "clues", "trash", "password"];

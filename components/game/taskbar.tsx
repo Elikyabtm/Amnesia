@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   FolderOpen, 
   Mail, 
@@ -22,42 +22,29 @@ import {
   Lock,
   X
 } from "lucide-react";
-import { ConfirmDialog } from "./confirm-dialog";
+import { StartMenu } from "./start-menu";
 import { TaskbarApps } from "./taskbar-apps";
 import { useGameClock, gameNow } from "@/lib/game-clock";
 import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { fileSystem, mails, notes, corbeille } from "@/lib/game-data";
 
-const startMenuApps = [
-  { id: "explorer" as AppType, icon: FolderOpen, label: "Explorateur de fichiers" },
-  { id: "mail" as AppType, icon: Mail, label: "Courrier" },
-  { id: "photos" as AppType, icon: Image, label: "Photos" },
-  { id: "notepad" as AppType, icon: FileText, label: "Bloc-notes" },
-  { id: "calendar" as AppType, icon: Calendar, label: "Calendrier" },
-  { id: "browser" as AppType, icon: Globe, label: "Navigateur" },
-  { id: "password" as AppType, icon: Lock, label: "Déverrouiller" },
-];
-
 export function Taskbar() {
   const time = useGameClock() ?? gameNow();
   const [showStartMenu, setShowStartMenu] = useState(false);
-  const [confirmNewGame, setConfirmNewGame] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { openWindow, accountLevel, resetGame, identityKnown } = useGame();
+  const { openWindow } = useGame();
   const { playSound, volume, setVolume, isMuted, toggleMute } = useSound();
-  const startMenuRef = useRef<HTMLDivElement>(null);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+  const closeStartMenu = useCallback(() => setShowStartMenu(false), []);
   const searchRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
 
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (startMenuRef.current && !startMenuRef.current.contains(e.target as Node)) {
-        setShowStartMenu(false);
-      }
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSearch(false);
       }
@@ -68,13 +55,6 @@ export function Taskbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleStartMenuAppClick = (appId: AppType) => {
-    setShowStartMenu(false);
-    playSound("click");
-    playSound("open");
-    openWindow(appId);
-  };
 
   // Search functionality
   const searchResults = searchQuery.trim() ? [
@@ -118,78 +98,7 @@ export function Taskbar() {
 
   return (
     <>
-      {confirmNewGame && (
-        <ConfirmDialog
-          title="Nouvelle partie"
-          message="Commencer une nouvelle partie ? Votre progression actuelle (indices, dossiers déverrouillés, temps de jeu) sera définitivement effacée."
-          confirmLabel="Effacer et recommencer"
-          danger
-          onConfirm={resetGame}
-          onCancel={() => setConfirmNewGame(false)}
-        />
-      )}
-      {/* Start Menu */}
-      {showStartMenu && (
-        <div 
-          ref={startMenuRef}
-          className="fixed bottom-14 left-2 w-80 bg-[#202020]/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl z-[2000] animate-fade-in overflow-hidden"
-        >
-          {/* User section */}
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#0078d4] flex items-center justify-center">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className="text-white font-medium">{identityKnown ? "Bernard Dupuis" : "???"}</p>
-                <p className="text-white/50 text-xs">
-                  {accountLevel === "admin" ? "Administrateur" : accountLevel === "guest" ? "Invité" : "Non connecté"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Apps grid */}
-          <div className="p-3">
-            <p className="text-white/50 text-xs mb-2 px-1">Applications</p>
-            <div className="grid grid-cols-3 gap-1">
-              {startMenuApps.map(({ id, icon: Icon, label }) => (
-                <button
-                  key={id}
-                  onClick={() => handleStartMenuAppClick(id)}
-                  className="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-white/10 transition-colors"
-                >
-                  <Icon className="w-6 h-6 text-white/80" />
-                  <span className="text-white/70 text-xs text-center leading-tight">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom actions */}
-          <div className="p-2 border-t border-white/10 flex justify-between">
-            <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm">
-              <Settings className="w-4 h-4" />
-              Paramètres
-            </button>
-            <button
-              onClick={() => {
-                playSound("click");
-                setShowStartMenu(false);
-                setConfirmNewGame(true);
-              }}
-              className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Nouvelle partie
-            </button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm">
-              <Power className="w-4 h-4" />
-              Arrêter
-            </button>
-          </div>
-        </div>
-      )}
+      <StartMenu open={showStartMenu} onClose={closeStartMenu} toggleRef={startButtonRef} />
 
       {/* Search Panel */}
       {showSearch && (
@@ -288,6 +197,8 @@ export function Taskbar() {
         {/* Start button and search */}
         <div className="absolute left-2 flex items-center gap-1">
           <button 
+            ref={startButtonRef}
+            aria-label="Démarrer"
             onClick={() => {
               playSound("click");
               setShowStartMenu(!showStartMenu);

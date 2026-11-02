@@ -6,6 +6,7 @@ import { TitleScreen } from "./title-screen";
 import { LoginScreen } from "./login-screen";
 import { Desktop } from "./desktop";
 import { BootScreen } from "./boot-screen";
+import { PowerScreen } from "./power-screen";
 
 function GameContent() {
   const { gamePhase, startGame, finishBooting, isRestored } = useGame();
@@ -20,11 +21,15 @@ function GameContent() {
     return <Desktop />;
   }
 
+  if (gamePhase === "restarting" || gamePhase === "shuttingdown") {
+    return <PowerScreen />;
+  }
+
   if (gamePhase === "booting") {
     return <BootScreen onComplete={finishBooting} />;
   }
 
-  if (gamePhase === "intro") {
+  if (gamePhase === "intro" || gamePhase === "sleep") {
     return <LoginScreen />;
   }
 

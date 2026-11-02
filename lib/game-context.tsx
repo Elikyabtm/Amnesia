@@ -27,6 +27,16 @@ export interface WindowState {
   target?: WindowTarget;
 }
 
+export type GamePhase =
+  | "title"
+  | "intro"
+  | "booting"
+  | "exploring"
+  | "won"
+  | "sleep"
+  | "restarting"
+  | "shuttingdown";
+
 export type SnapZone = "left" | "right" | "max";
 
 export interface WindowTarget {
@@ -75,7 +85,17 @@ export interface SuspicionEvent {
 }
 
 interface GameContextType {
-  gamePhase: "title" | "intro" | "booting" | "exploring" | "won";
+  gamePhase: GamePhase;
+  /** Une partie est en cours (éteinte) et peut être reprise depuis l'écran titre */
+  canContinue: boolean;
+  continueGame: () => void;
+  /** Veille : retour à l'écran de verrouillage, fenêtres conservées */
+  sleep: () => void;
+  wake: () => void;
+  restartComputer: () => void;
+  shutdownComputer: () => void;
+  /** Appelé par les écrans de transition (arrêt / redémarrage) */
+  finishPowerTransition: () => void;
   loginError: boolean;
   windows: WindowState[];
   activeWindowId: string | null;
@@ -178,7 +198,9 @@ const notifId = () => `notif-${Date.now()}-${++notifSeq}`;
 const GameContext = createContext<GameContextType | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [gamePhase, setGamePhase] = useState<"title" | "intro" | "booting" | "exploring" | "won">("title");
+  const [gamePhase, setGamePhase] = useState<GamePhase>("title");
+  // Moment où le chronomètre a été mis en pause (ordinateur éteint)
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
   const [loginError, setLoginError] = useState(false);
   const [windows, setWindows] = useState<WindowState[]>([]);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
@@ -291,8 +313,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setRevealedPassword(save.revealedPassword);
       setStartTime(now - save.elapsedMs);
       setEndTime(save.gamePhase === "won" ? now : null);
-      setGamePhase(save.gamePhase);
-      if (save.gamePhase === "exploring") {
+      if (save.poweredOff && save.gamePhase === "exploring") {
+        // Ordinateur éteint : on revient à l'écran titre avec "Continuer"
+        setPausedAt(now);
+        setGamePhase("title");
+      } else {
+        setGamePhase(save.gamePhase);
+      }
+      if (save.gamePhase === "exploring" && !save.poweredOff) {
         setNotifications([
           {
             id: notifId(),
@@ -308,13 +336,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const buildSave = useCallback((): SaveData | null => {
-    if ((gamePhase !== "exploring" && gamePhase !== "won") || startTime === null) return null;
+    if (startTime === null) return null;
+    // Toute phase de jeu (bureau, veille, éteint...) se sauvegarde comme "en cours"
+    const poweredOff = gamePhase === "title" || gamePhase === "shuttingdown";
     return {
       version: 1,
       savedAt: new Date().toISOString(),
-      gamePhase,
+      gamePhase: gamePhase === "won" ? "won" : "exploring",
+      poweredOff,
       accountLevel,
-      elapsedMs: (endTime ?? Date.now()) - startTime,
+      elapsedMs: (endTime ?? pausedAt ?? Date.now()) - startTime,
       passwordAttempts,
       suspicionLevel,
       clues: clues.map((c) => ({ ...c, discoveredAt: c.discoveredAt.toISOString() })),
@@ -324,7 +355,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       listenedVoiceIds,
       revealedPassword,
     };
-  }, [gamePhase, startTime, endTime, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -367,6 +398,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const finishBooting = useCallback(() => {
     setGamePhase("exploring");
+    if (startTime !== null) {
+      // Redémarrage ou reprise : la partie continue, le chronomètre reprend
+      if (pausedAt !== null) {
+        const pause = Date.now() - pausedAt;
+        setStartTime((t) => (t === null ? t : t + pause));
+        setPausedAt(null);
+      }
+      return;
+    }
     setStartTime(Date.now());
     // Add initial notifications after a delay
     setTimeout(() => {
@@ -387,7 +427,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
       ]);
     }, 2000);
+  }, [startTime, pausedAt]);
+
+  // ---------- Alimentation ----------
+  const sleep = useCallback(() => setGamePhase("sleep"), []);
+  const wake = useCallback(() => setGamePhase("exploring"), []);
+
+  const restartComputer = useCallback(() => {
+    setWindows([]);
+    setActiveWindowId(null);
+    setPausedAt(Date.now());
+    setGamePhase("restarting");
   }, []);
+
+  const shutdownComputer = useCallback(() => {
+    setWindows([]);
+    setActiveWindowId(null);
+    setPausedAt(Date.now());
+    setGamePhase("shuttingdown");
+  }, []);
+
+  const finishPowerTransition = useCallback(() => {
+    setGamePhase((phase) => (phase === "restarting" ? "booting" : phase === "shuttingdown" ? "title" : phase));
+  }, []);
+
+  const canContinue = gamePhase === "title" && startTime !== null && endTime === null;
+  const continueGame = useCallback(() => setGamePhase("booting"), []);
 
   const tryPassword = useCallback(async (rawPassword: string): Promise<PasswordVerdict> => {
     setPasswordAttempts((a) => a + 1);
@@ -708,6 +773,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         startTime,
         endTime,
         isRestored,
+        canContinue,
+        continueGame,
+        sleep,
+        wake,
+        restartComputer,
+        shutdownComputer,
+        finishPowerTransition,
         identityKnown,
         activateWindow,
         snapWindow,

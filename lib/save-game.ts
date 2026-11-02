@@ -11,6 +11,8 @@ export interface SaveData {
   version: 1;
   savedAt: string;
   gamePhase: "exploring" | "won";
+  /** Ordinateur éteint via "Arrêter" : le rechargement ramène à l'écran titre */
+  poweredOff?: boolean;
   accountLevel: AccountLevel;
   elapsedMs: number;
   passwordAttempts: number;
