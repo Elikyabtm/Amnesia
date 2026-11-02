@@ -21,9 +21,13 @@ export interface WindowState {
   prevPosition?: { x: number; y: number };
   prevSize?: { width: number; height: number };
   content?: FileItem | string;
+  /** Fenêtre aimantée sur une moitié de l'écran */
+  snapped?: "left" | "right";
   /** Élément à afficher à l'ouverture (email, page, mémo...) et passage à surligner */
   target?: WindowTarget;
 }
+
+export type SnapZone = "left" | "right" | "max";
 
 export interface WindowTarget {
   id: string;
@@ -115,6 +119,10 @@ interface GameContextType {
   identityKnown: boolean;
   /** Restaure (si réduite) et met au premier plan une fenêtre */
   activateWindow: (id: string) => void;
+  /** Aimante une fenêtre sur une moitié de l'écran, ou l'agrandit ("max") */
+  snapWindow: (id: string, zone: SnapZone) => void;
+  /** Rend sa taille d'origine à une fenêtre aimantée/agrandie, à la position donnée */
+  detachWindow: (id: string, position: { x: number; y: number }) => void;
   resetGame: () => void;
   lockoutRemaining: number;
 }
@@ -151,6 +159,18 @@ function computeNewWindowRect(openCount: number) {
 
 // Indices qui révèlent l'identité du joueur
 const IDENTITY_CLUES = ["Votre nom est Bernard Dupuis", "Vous êtes Bernard Dupuis, Maire de Bourg-sur-Mer"];
+
+/** Position et taille d'une fenêtre aimantée (moitié gauche/droite) ou agrandie */
+function snapRect(zone: SnapZone) {
+  const w = typeof window !== "undefined" ? window.innerWidth : 1280;
+  const h = (typeof window !== "undefined" ? window.innerHeight : 800) - TASKBAR_HEIGHT;
+  if (zone === "max") return { position: { x: 0, y: 0 }, size: { width: w, height: h } };
+  const half = Math.floor(w / 2);
+  return {
+    position: { x: zone === "left" ? 0 : w - half, y: 0 },
+    size: { width: half, height: h },
+  };
+}
 
 let notifSeq = 0;
 const notifId = () => `notif-${Date.now()}-${++notifSeq}`;
@@ -549,25 +569,59 @@ export function GameProvider({ children }: { children: ReactNode }) {
       w.map((win) => {
         if (win.id !== id) return win;
         if (win.isMaximized) {
-          // Restore to previous size
+          // Retour à la taille d'avant
           return {
             ...win,
             isMaximized: false,
+            snapped: undefined,
             position: win.prevPosition || computeNewWindowRect(0).position,
             size: win.prevSize || computeNewWindowRect(0).size,
           };
-        } else {
-          // Maximize
-          return {
-            ...win,
-            isMaximized: true,
-            prevPosition: win.position,
-            prevSize: win.size,
-            position: { x: 0, y: 0 },
-            size: { width: window.innerWidth, height: window.innerHeight - TASKBAR_HEIGHT },
-          };
         }
+        const rect = snapRect("max");
+        return {
+          ...win,
+          isMaximized: true,
+          snapped: undefined,
+          // Une fenêtre aimantée garde la taille qu'elle avait avant l'aimantation
+          prevPosition: win.snapped ? win.prevPosition : win.position,
+          prevSize: win.snapped ? win.prevSize : win.size,
+          ...rect,
+        };
       })
+    );
+  }, []);
+
+  const snapWindow = useCallback((id: string, zone: SnapZone) => {
+    setWindows((w) =>
+      w.map((win) => {
+        if (win.id !== id) return win;
+        const alreadyDocked = win.isMaximized || !!win.snapped;
+        return {
+          ...win,
+          isMaximized: zone === "max",
+          snapped: zone === "max" ? undefined : zone,
+          prevPosition: alreadyDocked ? win.prevPosition : win.position,
+          prevSize: alreadyDocked ? win.prevSize : win.size,
+          ...snapRect(zone),
+        };
+      })
+    );
+  }, []);
+
+  const detachWindow = useCallback((id: string, position: { x: number; y: number }) => {
+    setWindows((w) =>
+      w.map((win) =>
+        win.id === id
+          ? {
+              ...win,
+              isMaximized: false,
+              snapped: undefined,
+              position,
+              size: win.prevSize || computeNewWindowRect(0).size,
+            }
+          : win
+      )
     );
   }, []);
 
@@ -583,7 +637,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const updateWindowSize = useCallback((id: string, size: { width: number; height: number }) => {
     setWindows((w) =>
-      w.map((win) => (win.id === id ? { ...win, size, isMaximized: false } : win))
+      w.map((win) => (win.id === id ? { ...win, size, isMaximized: false, snapped: undefined } : win))
     );
   }, []);
 
@@ -656,6 +710,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isRestored,
         identityKnown,
         activateWindow,
+        snapWindow,
+        detachWindow,
         resetGame,
         lockoutRemaining,
       }}
