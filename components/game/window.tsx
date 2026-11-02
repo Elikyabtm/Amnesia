@@ -11,7 +11,11 @@ interface WindowProps {
 }
 
 export function Window({ window: win, children }: WindowProps) {
-  const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, updateWindowPosition, updateWindowSize, activeWindowId } = useGame();
+  const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, updateWindowPosition, updateWindowSize, activeWindowId, isLockedOut } = useGame();
+
+  // Pendant un blocage, la fenêtre Déverrouiller passe au-dessus du voile de
+  // blocage pour afficher son compte à rebours.
+  const raisedAboveLockout = isLockedOut && win.app === "password" && !win.isMinimized;
   const { playSound } = useSound();
   const windowRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
@@ -136,7 +140,7 @@ export function Window({ window: win, children }: WindowProps) {
         top: win.position.y,
         width: win.size.width,
         height: win.size.height,
-        zIndex: win.zIndex,
+        zIndex: raisedAboveLockout ? 9999 : win.zIndex,
       }}
       onClick={() => focusWindow(win.id)}
     >

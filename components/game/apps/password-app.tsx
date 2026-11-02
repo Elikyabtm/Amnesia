@@ -5,12 +5,13 @@ import { Eye, EyeOff, Lock, KeyRound, User, Shield, Crown } from "lucide-react";
 import { useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { cn } from "@/lib/utils";
+import { SuspicionMeter } from "../suspicion-meter";
 
 export function PasswordApp() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [lastResult, setLastResult] = useState<"wrong" | "guest" | "admin" | null>(null);
-  const { tryPassword, loginError, accountLevel, closeWindow, windows } = useGame();
+  const { tryPassword, loginError, accountLevel, closeWindow, windows, isLockedOut } = useGame();
   const { playSound } = useSound();
 
   const [checking, setChecking] = useState(false);
@@ -18,7 +19,7 @@ export function PasswordApp() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (checking || !password.trim()) return;
+    if (checking || isLockedOut || !password.trim()) return;
     setChecking(true);
     const verdict = await tryPassword(password);
     const { result } = verdict;
@@ -91,8 +92,10 @@ export function PasswordApp() {
       )}
 
       {/* Content */}
-      <div className="flex-1 p-6 flex flex-col items-center justify-center">
-        <div className="w-full max-w-md">
+      <div className="flex-1 p-6 flex flex-col overflow-auto">
+        <div className="w-full max-w-md m-auto">
+          <SuspicionMeter className="mb-4" />
+
           {/* Success message for guest */}
           {lastResult === "guest" && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg animate-fade-in">
@@ -144,6 +147,7 @@ export function PasswordApp() {
                     placeholder={accountLevel === "guest" ? "Mot de passe administrateur..." : "Entrez le mot de passe..."}
                     className="flex-1 px-4 py-3 outline-none bg-transparent text-gray-900 placeholder-gray-400"
                     autoFocus
+                    disabled={isLockedOut}
                   />
                   <button
                     type="button"
@@ -184,7 +188,7 @@ export function PasswordApp() {
 
               <button
                 type="submit"
-                disabled={checking}
+                disabled={checking || isLockedOut}
                 className={cn(
                   "disabled:opacity-60 disabled:cursor-wait",
                   "w-full py-3 text-white rounded-md transition-colors font-medium",
