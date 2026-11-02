@@ -36,7 +36,7 @@ function StatCard({ value, label, progress }: { value: string; label: string; pr
 type Ending = "innocent" | "curious" | "detective" | "accomplice";
 
 export function WinScreen() {
-  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame } = useGame();
+  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame, eventsState } = useGame();
   const { playSound } = useSound();
   const duration = startTime && endTime ? formatDuration(endTime - startTime) : "--:--";
   const cluesFound = clues.filter((c) => isCatalogClue(c.text)).length;
@@ -175,12 +175,17 @@ export function WinScreen() {
 
         {/* Stats */}
         {showDetails && (
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8 animate-fade-in">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8 animate-fade-in">
             <StatCard value={duration} label="Temps de partie" />
             <StatCard value={String(passwordAttempts)} label={`Tentative${passwordAttempts > 1 ? "s" : ""} de mot de passe`} />
             <StatCard value={`${cluesFound}/${CLUE_TOTAL}`} label="Indices trouvés" progress={cluesFound / CLUE_TOTAL} />
             <StatCard value={`${secretsDiscovered.length}/${TOTAL_SECRETS}`} label="Secrets trouvés" progress={secretsDiscovered.length / TOTAL_SECRETS} />
             <StatCard value={`${suspicionLevel}%`} label="Suspicion finale" />
+            <StatCard
+              value={eventsState.stats.played ? `${eventsState.stats.firstTry}/${eventsState.stats.played}` : "—"}
+              label="Mini-jeux réussis du 1er coup"
+              progress={eventsState.stats.played ? eventsState.stats.firstTry / eventsState.stats.played : undefined}
+            />
           </div>
         )}
 
