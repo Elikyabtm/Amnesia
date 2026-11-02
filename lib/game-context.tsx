@@ -9,7 +9,7 @@ import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator";
 
 export interface WindowState {
   id: string;
@@ -202,13 +202,19 @@ const WINDOW_CASCADE_SLOTS = 6;
  * ~75 % de la hauteur de l'écran, avec un léger décalage en cascade pour
  * chaque fenêtre déjà ouverte.
  */
-function computeNewWindowRect(openCount: number) {
+/** Applications compactes : taille fixe plutôt que 70 % x 75 % de l'écran */
+const PREFERRED_WINDOW_SIZES: Partial<Record<AppType, { width: number; height: number }>> = {
+  calculator: { width: 340, height: 540 },
+};
+
+function computeNewWindowRect(openCount: number, app?: AppType) {
   const viewportW = typeof window !== "undefined" ? window.innerWidth : 1280;
   const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
   const availableH = viewportH - TASKBAR_HEIGHT;
+  const preferred = app ? PREFERRED_WINDOW_SIZES[app] : undefined;
 
-  const width = Math.min(viewportW, Math.max(480, Math.round(viewportW * 0.7)));
-  const height = Math.min(availableH, Math.max(360, Math.round(viewportH * 0.75)));
+  const width = Math.min(viewportW, preferred?.width ?? Math.max(480, Math.round(viewportW * 0.7)));
+  const height = Math.min(availableH, preferred?.height ?? Math.max(360, Math.round(viewportH * 0.75)));
 
   const offset = (openCount % WINDOW_CASCADE_SLOTS) * WINDOW_CASCADE_STEP;
   const x = Math.round((viewportW - width) / 2) + offset;
@@ -772,9 +778,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       settings: "Paramètres",
       contacts: "Contacts",
       terminal: "Invite de commandes",
+      calculator: "Calculatrice",
     };
 
-    const { position, size } = computeNewWindowRect(windows.length);
+    const { position, size } = computeNewWindowRect(windows.length, app);
 
     const newWindow: WindowState = {
       id,
