@@ -59,6 +59,7 @@ export function SystemTray() {
     markNotificationsSeen,
     clearNotificationHistory,
     batteryLevel,
+    batteryCharging,
     openWindow,
   } = useGame();
   const { playSound, volume, setVolume, isMuted, toggleMute } = useSound();
@@ -243,7 +244,9 @@ export function SystemTray() {
               <div>
                 <p className="text-white text-lg font-semibold tabular-nums">{batteryLevel} %</p>
                 <p className="text-white/50 text-xs">
-                  Sur batterie · environ {Math.floor(batteryMinutes / 60)} h {String(batteryMinutes % 60).padStart(2, "0")} restantes
+                  {batteryCharging
+                    ? "Branché · en charge"
+                    : `Sur batterie · environ ${Math.floor(batteryMinutes / 60)} h ${String(batteryMinutes % 60).padStart(2, "0")} restantes`}
                 </p>
               </div>
             </div>

@@ -8,6 +8,7 @@ import { isCatalogClue, UNREACHABLE_CLUES } from "./clue-catalog";
 import { DEFAULT_WALLPAPER } from "./data/wallpapers";
 import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { DEFAULT_BEST_SCORES, type MinesweeperLevel, type MinesweeperScore } from "./data/minesweeper";
+import { INITIAL_EVENTS_STATE, type EventsState } from "./events/types";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
@@ -143,8 +144,20 @@ interface GameContextType {
   trashEmptied: boolean;
   restoreTrashItem: (id: string) => void;
   emptyTrash: () => void;
-  /** Niveau de batterie en % (la phase "événements" le fera baisser) */
+  /** Niveau de batterie en % (piloté par le gestionnaire d'événements) */
   batteryLevel: number;
+  setBatteryLevel: (level: number) => void;
+  /** Chargeur branché (après l'événement batterie) */
+  batteryCharging: boolean;
+  setBatteryCharging: (charging: boolean) => void;
+  /** Connexion réseau (coupée pendant l'événement Wi-Fi) */
+  networkOnline: boolean;
+  setNetworkOnline: (online: boolean) => void;
+  /** État des événements système et des mini-jeux */
+  eventsState: EventsState;
+  setEventsState: React.Dispatch<React.SetStateAction<EventsState>>;
+  /** Temps de jeu écoulé en ms (hors ordinateur éteint) */
+  getElapsedMs: () => number;
   passwordAttempts: number;
   lockedItems: LockedItem[];
   accountLevel: AccountLevel;
@@ -268,7 +281,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
   const [seenNotificationIds, setSeenNotificationIds] = useState<string[]>([]);
-  const [batteryLevel] = useState(100);
+  const [batteryLevel, setBatteryLevel] = useState(100);
+  const [batteryCharging, setBatteryCharging] = useState(false);
+  const [networkOnline, setNetworkOnline] = useState(true);
+  const [eventsState, setEventsState] = useState<EventsState>(INITIAL_EVENTS_STATE);
 
   // ---------- Bureau ----------
   const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
@@ -451,6 +467,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (save.browserBookmarks) setBrowserBookmarks(save.browserBookmarks);
       if (save.userFiles) setUserFiles(save.userFiles);
       if (save.minesweeperScores) setMinesweeperScores(save.minesweeperScores);
+      if (save.events) {
+        setEventsState(save.events);
+        setBatteryCharging(save.events.batteryResolved);
+      }
       if (save.trash) {
         setTrashRestoredIds(save.trash.restored);
         setTrashEmptied(save.trash.emptied);
@@ -517,8 +537,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       browserBookmarks,
       userFiles,
       minesweeperScores,
+      events: eventsState,
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles, minesweeperScores]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles, minesweeperScores, eventsState]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -613,6 +634,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const finishPowerTransition = useCallback(() => {
     setGamePhase((phase) => (phase === "restarting" ? "booting" : phase === "shuttingdown" ? "title" : phase));
   }, []);
+
+  const getElapsedMs = useCallback(
+    () => (startTime === null ? 0 : (endTime ?? pausedAt ?? Date.now()) - startTime),
+    [startTime, endTime, pausedAt]
+  );
 
   const canContinue = gamePhase === "title" && startTime !== null && endTime === null;
   const continueGame = useCallback(() => setGamePhase("booting"), []);
@@ -947,6 +973,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
         markNotificationsSeen,
         clearNotificationHistory,
         batteryLevel,
+        setBatteryLevel,
+        batteryCharging,
+        setBatteryCharging,
+        networkOnline,
+        setNetworkOnline,
+        eventsState,
+        setEventsState,
+        getElapsedMs,
         userFiles,
         saveUserFile,
         minesweeperScores,

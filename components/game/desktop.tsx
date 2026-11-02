@@ -23,7 +23,7 @@ import { CalculatorApp } from "./apps/calculator-app";
 import { MusicApp } from "./apps/music-app";
 import { PaintApp } from "./apps/paint-app";
 import { MinesweeperApp } from "./apps/minesweeper-app";
-import { RandomEvents } from "./random-events";
+import { EventManager } from "./events/event-manager";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
 import { WindowSwitcher } from "./window-switcher";
@@ -65,8 +65,8 @@ export function Desktop() {
         {/* Notifications */}
         <NotificationCenter />
 
-        {/* Random Events */}
-        <RandomEvents />
+        {/* Événements système et mini-jeux */}
+        <EventManager />
 
         {/* Suspicion Bar */}
         <SuspicionBar />
