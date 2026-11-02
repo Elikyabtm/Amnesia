@@ -102,6 +102,13 @@ interface GameContextType {
   maxZIndex: number;
   clues: ClueItem[];
   notifications: Notification[];
+  /** Historique de toutes les notifications reçues (centre de notifications) */
+  notificationHistory: Notification[];
+  unseenNotificationCount: number;
+  markNotificationsSeen: () => void;
+  clearNotificationHistory: () => void;
+  /** Niveau de batterie en % (la phase "événements" le fera baisser) */
+  batteryLevel: number;
   passwordAttempts: number;
   lockedItems: LockedItem[];
   accountLevel: AccountLevel;
@@ -208,6 +215,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [windowCounter, setWindowCounter] = useState(0);
   const [clues, setClues] = useState<ClueItem[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
+  const [seenNotificationIds, setSeenNotificationIds] = useState<string[]>([]);
+  const [batteryLevel] = useState(100);
+
+  // Toute notification affichée rejoint l'historique (une seule fois)
+  useEffect(() => {
+    setNotificationHistory((history) => {
+      const known = new Set(history.map((n) => n.id));
+      const fresh = notifications.filter((n) => !known.has(n.id));
+      return fresh.length ? [...fresh, ...history].slice(0, 50) : history;
+    });
+  }, [notifications]);
+
+  const unseenNotificationCount = notificationHistory.filter((n) => !seenNotificationIds.includes(n.id)).length;
+  const markNotificationsSeen = useCallback(() => {
+    setSeenNotificationIds(notificationHistory.map((n) => n.id));
+  }, [notificationHistory]);
+  const clearNotificationHistory = useCallback(() => {
+    setNotificationHistory([]);
+    setSeenNotificationIds([]);
+  }, []);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const clueCounterRef = useRef(0);
   const [readMailIds, setReadMailIds] = useState<string[]>([]);
@@ -310,6 +338,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setSecretsDiscovered(save.secretsDiscovered);
       setReadMailIds(save.readMailIds);
       setListenedVoiceIds(save.listenedVoiceIds ?? []);
+      setNotificationHistory((save.notificationHistory ?? []).map((n) => ({ ...n, timestamp: new Date(n.timestamp) })));
+      setSeenNotificationIds(save.seenNotificationIds ?? []);
       setRevealedPassword(save.revealedPassword);
       setStartTime(now - save.elapsedMs);
       setEndTime(save.gamePhase === "won" ? now : null);
@@ -354,8 +384,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       readMailIds,
       listenedVoiceIds,
       revealedPassword,
+      notificationHistory: notificationHistory.map((n) => ({ ...n, timestamp: n.timestamp.toISOString() })),
+      seenNotificationIds,
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -740,6 +772,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         maxZIndex,
         clues,
         notifications,
+        notificationHistory,
+        unseenNotificationCount,
+        markNotificationsSeen,
+        clearNotificationHistory,
+        batteryLevel,
         passwordAttempts,
         lockedItems,
         accountLevel,

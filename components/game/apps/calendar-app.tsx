@@ -7,6 +7,7 @@ import { calendarEvents } from "@/lib/game-data";
 import { useSound } from "@/hooks/use-sound";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { gameNow } from "@/lib/game-clock";
+import { parseEventDate } from "@/lib/calendar-utils";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MONTHS = [
@@ -41,20 +42,6 @@ const eventDetails: Record<string, { time?: string; location?: string; descripti
     description: "Visite de contrôle annuelle. Penser à apporter les derniers résultats d'analyse.",
   },
 };
-
-const MONTH_INDEX: Record<string, number> = {
-  janvier: 0, février: 1, mars: 2, avril: 3, mai: 4, juin: 5,
-  juillet: 6, août: 7, septembre: 8, octobre: 9, novembre: 10, décembre: 11,
-};
-
-// "14 avril 2025" -> { day: 14, month: 3, year: 2025 }
-function parseEventDate(text: string) {
-  const match = text.toLowerCase().match(/^(\d{1,2})\s+(\S+)\s+(\d{4})$/);
-  if (!match) return null;
-  const month = MONTH_INDEX[match[2]];
-  if (month === undefined) return null;
-  return { day: Number(match[1]), month, year: Number(match[3]) };
-}
 
 interface CalendarAppProps {
   window: WindowState;
