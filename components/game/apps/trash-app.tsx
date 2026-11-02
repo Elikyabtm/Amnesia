@@ -28,13 +28,15 @@ export function TrashApp({ window: win }: TrashAppProps) {
       openWindow("notepad", item.name, item);
       
       // Add clue if relevant content
-      if (item.content?.includes("ancien") || item.content?.includes("MDP")) {
+      // Insensible à la casse : la note contient "ANCIEN MOT DE PASSE" en majuscules
+      const lower = item.content?.toLowerCase() ?? "";
+      if (lower.includes("ancien") || lower.includes("mdp")) {
         addClue({
           category: "password",
           text: "L'ancien mot de passe était trop simple",
           source: item.name,
           ref: { kind: "file", id: item.id },
-          highlight: item.content?.includes("ancien") ? "ancien" : "MDP",
+          highlight: lower.includes("ancien") ? "ancien" : "mdp",
         });
       }
       
