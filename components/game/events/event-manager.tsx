@@ -74,10 +74,13 @@ export function useEventScheduler() {
     }
   }, [gamePhase, eventsState.plan.length, eventsState.done.length, setEventsState]);
 
+  // Saisie en cours : fenêtre Déverrouiller au premier plan, ou code PIN du
+  // dossier confidentiel en train d'être tapé
   const passwordBusy = useCallback(() => {
-    const focused = typeof document !== "undefined" && document.activeElement instanceof HTMLInputElement && document.activeElement.type === "password";
     const pwdActive = windows.some((w) => w.id === activeWindowId && w.app === "password" && !w.isMinimized);
-    return focused || pwdActive;
+    const el = typeof document !== "undefined" ? document.activeElement : null;
+    const typingPin = el instanceof HTMLInputElement && el.type === "password" && !!el.closest("[data-pin-dialog]");
+    return pwdActive || typingPin;
   }, [windows, activeWindowId]);
 
   const start = useCallback((id: GameEventId) => {

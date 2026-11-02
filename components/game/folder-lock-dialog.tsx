@@ -48,7 +48,7 @@ export function FolderLockDialog({ folderId, folderName, onUnlock, onClose }: Fo
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div data-pin-dialog className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-[#1a1a1a] border border-white/20 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-[#252525] border-b border-white/10">
