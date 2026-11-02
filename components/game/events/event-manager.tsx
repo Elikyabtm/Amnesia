@@ -362,7 +362,7 @@ function DebugPanel({
         })}
       </div>
       <div className="flex flex-wrap gap-1 mb-2">
-        {[21, 11, 0].map((lvl) => (
+        {[BATTERY_WARNING_LEVEL, BATTERY_DIM_LEVEL, 0].map((lvl) => (
           <button key={lvl} onClick={() => onBattery(lvl)} className="px-2 py-1 rounded bg-white/10 hover:bg-white/20">
             Batterie {lvl} %
           </button>
