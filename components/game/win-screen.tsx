@@ -6,15 +6,32 @@ import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User } from "lucide
 import { cn } from "@/lib/utils";
 import { secretDocuments, secretMails } from "@/lib/game-data";
 import { useSound } from "@/hooks/use-sound";
+import { CLUE_TOTAL, isCatalogClue } from "@/lib/clue-catalog";
 
 const ALL_SECRETS = [...secretDocuments, ...secretMails];
 const TOTAL_SECRETS = ALL_SECRETS.length;
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.round(ms / 1000));
-  const m = Math.floor(totalSeconds / 60);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
+  const ss = s.toString().padStart(2, "0");
+  return h > 0 ? `${h}:${m.toString().padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+function StatCard({ value, label, progress }: { value: string; label: string; progress?: number }) {
+  return (
+    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 flex flex-col justify-between">
+      <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
+      <div className="text-xs text-white/50 mt-1 leading-tight">{label}</div>
+      {progress !== undefined && (
+        <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full bg-[#4ea8ff]" style={{ width: `${Math.round(Math.min(1, progress) * 100)}%` }} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 type Ending = "innocent" | "curious" | "detective" | "accomplice";
@@ -23,6 +40,7 @@ export function WinScreen() {
   const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame } = useGame();
   const { playSound } = useSound();
   const duration = startTime && endTime ? formatDuration(endTime - startTime) : "--:--";
+  const cluesFound = clues.filter((c) => isCatalogClue(c.text)).length;
   const [ending, setEnding] = useState<Ending>("innocent");
   const [showDetails, setShowDetails] = useState(false);
 
@@ -159,26 +177,11 @@ export function WinScreen() {
         {/* Stats */}
         {showDetails && (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-8 animate-fade-in">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{duration}</div>
-              <div className="text-xs text-white/50 mt-1">Temps</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{clues.length}</div>
-              <div className="text-xs text-white/50 mt-1">Indices</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{passwordAttempts}</div>
-              <div className="text-xs text-white/50 mt-1">Tentatives MDP</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{secretsDiscovered.length}/{TOTAL_SECRETS}</div>
-              <div className="text-xs text-white/50 mt-1">Secrets trouvés</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{suspicionLevel}%</div>
-              <div className="text-xs text-white/50 mt-1">Suspicion finale</div>
-            </div>
+            <StatCard value={duration} label="Temps de partie" />
+            <StatCard value={String(passwordAttempts)} label={`Tentative${passwordAttempts > 1 ? "s" : ""} de mot de passe`} />
+            <StatCard value={`${cluesFound}/${CLUE_TOTAL}`} label="Indices trouvés" progress={cluesFound / CLUE_TOTAL} />
+            <StatCard value={`${secretsDiscovered.length}/${TOTAL_SECRETS}`} label="Secrets trouvés" progress={secretsDiscovered.length / TOTAL_SECRETS} />
+            <StatCard value={`${suspicionLevel}%`} label="Suspicion finale" />
           </div>
         )}
 

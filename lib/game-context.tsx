@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import { SUSPICION_THRESHOLDS, mails, secretMails, type FileItem } from "./game-data";
 import { gameNow, birthdayCountdownText } from "./game-clock";
+import { isCatalogClue, UNREACHABLE_CLUES } from "./clue-catalog";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
@@ -413,6 +414,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, [accountLevel, raiseSuspicion]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
+    if (process.env.NODE_ENV !== "production" && !isCatalogClue(clue.text) && !UNREACHABLE_CLUES.includes(clue.text)) {
+      console.warn(`[Amnesia] Indice absent de lib/clue-catalog.ts : "${clue.text}"`);
+    }
     setClues((current) => {
       if (current.some((c) => c.text === clue.text)) return current;
       clueCounterRef.current += 1;
