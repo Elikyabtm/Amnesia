@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
-import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import { SUSPICION_THRESHOLDS, mails, secretMails, type FileItem } from "./game-data";
 import { gameNow, birthdayCountdownText } from "./game-clock";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
@@ -86,6 +86,8 @@ interface GameContextType {
   isItemLocked: (itemId: string) => boolean;
   addSuspicion: (event: SuspicionEvent) => void;
   discoverSecret: (secretId: string) => void;
+  readMailIds: string[];
+  markMailRead: (mailId: string) => void;
   startTime: number | null;
   endTime: number | null;
   lockoutRemaining: number;
@@ -107,6 +109,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const clueCounterRef = useRef(0);
+  const [readMailIds, setReadMailIds] = useState<string[]>([]);
   const [revealedPassword, setRevealedPassword] = useState<{ password: string; parts: PasswordPart[] } | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -199,7 +202,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         {
           id: "notif-1",
           title: "Nouveaux messages",
-          message: "Vous avez 4 emails non lus",
+          message: `Vous avez ${mails.length} emails non lus`,
           icon: "mail",
           timestamp: gameNow(),
         },
@@ -243,7 +246,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         {
           id: notifId(),
           title: "Courrier synchronisé",
-          message: "2 nouveaux messages importants dans votre boîte de réception.",
+          message: `${secretMails.length} nouveaux messages importants dans votre boîte de réception.`,
           icon: "mail",
           timestamp: gameNow(),
         },
@@ -321,6 +324,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     lastActionTimeRef.current = now;
     raiseSuspicion(Math.round(event.amount * multiplier));
   }, [raiseSuspicion]);
+
+  const markMailRead = useCallback((mailId: string) => {
+    setReadMailIds((current) => (current.includes(mailId) ? current : [...current, mailId]));
+  }, []);
 
   const discoverSecret = useCallback((secretId: string) => {
     setSecretsDiscovered((current) => {
@@ -470,6 +477,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         isItemLocked,
         addSuspicion,
         discoverSecret,
+        readMailIds,
+        markMailRead,
         startTime,
         endTime,
         lockoutRemaining,

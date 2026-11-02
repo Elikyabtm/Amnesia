@@ -31,7 +31,7 @@ export function MailApp({ window: win }: MailAppProps) {
   const [currentFolder, setCurrentFolder] = useState<MailFolder>("inbox");
   const [localFavorites, setLocalFavorites] = useState<string[]>(favoriteMails.map(m => m.id));
   const { playSound } = useSound();
-  const { addClue, accountLevel, addSuspicion, discoverSecret } = useGame();
+  const { addClue, accountLevel, addSuspicion, discoverSecret, readMailIds, markMailRead } = useGame();
   
   // Secret mails sync once the player has logged in (guest or admin)
   const inboxMails = accountLevel === "locked" ? mails : [...secretMails, ...mails];
@@ -130,8 +130,13 @@ export function MailApp({ window: win }: MailAppProps) {
   const handleMailClick = useCallback((mail: FileItem) => {
     playSound("click");
     setSelectedMail(mail);
+    markMailRead(mail.id);
     detectClues(mail);
-  }, [playSound, detectClues]);
+  }, [playSound, detectClues, markMailRead]);
+
+  const isUnread = (mail: FileItem) =>
+    inboxMails.some((m) => m.id === mail.id) && !readMailIds.includes(mail.id);
+  const unreadCount = inboxMails.filter((m) => !readMailIds.includes(m.id)).length;
 
   const handleFolderClick = useCallback((folder: MailFolder) => {
     playSound("click");
@@ -200,7 +205,9 @@ export function MailApp({ window: win }: MailAppProps) {
           >
             <Inbox className="w-4 h-4" />
             <span className="flex-1 text-left text-sm">Boîte de réception</span>
-            <span className="text-xs bg-[#0078d4] px-1.5 py-0.5 rounded">{inboxMails.length}</span>
+            {unreadCount > 0 && (
+              <span className="text-xs bg-[#0078d4] px-1.5 py-0.5 rounded">{unreadCount}</span>
+            )}
           </button>
           <button 
             onClick={() => handleFolderClick("favorites")}
@@ -300,7 +307,8 @@ export function MailApp({ window: win }: MailAppProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm text-white truncate font-medium">
+                      <span className={`text-sm truncate flex items-center gap-1.5 ${isUnread(mail) ? "text-white font-semibold" : "text-white/80"}`}>
+                        {isUnread(mail) && <span className="w-2 h-2 rounded-full bg-[#0078d4] flex-shrink-0" />}
                         {getMailSender(mail)}
                       </span>
                       {isFavorite(mail.id) && (
