@@ -1,53 +1,28 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  FolderOpen, 
-  Mail, 
-  Image, 
-  FileText, 
-  Calendar, 
-  Trash2,
-  Search,
-  Wifi,
-  Volume2,
-  VolumeX,
-  Battery,
-  ChevronUp,
-  Settings,
-  Power,
-  RotateCcw,
-  User,
-  Globe,
-  Lock,
-  X
-} from "lucide-react";
+import { Search, Wifi, Volume2, VolumeX, Battery, ChevronUp } from "lucide-react";
 import { StartMenu } from "./start-menu";
+import { SearchPanel } from "./search-panel";
 import { TaskbarApps } from "./taskbar-apps";
 import { useGameClock, gameNow } from "@/lib/game-clock";
-import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
-import { fileSystem, mails, notes, corbeille } from "@/lib/game-data";
 
 export function Taskbar() {
   const time = useGameClock() ?? gameNow();
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const { openWindow } = useGame();
   const { playSound, volume, setVolume, isMuted, toggleMute } = useSound();
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const closeStartMenu = useCallback(() => setShowStartMenu(false), []);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const closeSearch = useCallback(() => setShowSearch(false), []);
   const volumeRef = useRef<HTMLDivElement>(null);
 
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setShowSearch(false);
-      }
       if (volumeRef.current && !volumeRef.current.contains(e.target as Node)) {
         setShowVolumeSlider(false);
       }
@@ -55,38 +30,6 @@ export function Taskbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Search functionality
-  const searchResults = searchQuery.trim() ? [
-    ...fileSystem.flatMap(folder => 
-      folder.children?.filter(f => 
-        f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        f.content?.toLowerCase().includes(searchQuery.toLowerCase())
-      ) || []
-    ),
-    ...mails.filter(m => 
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.content?.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-    ...notes.filter(n => 
-      n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      n.content?.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-  ].slice(0, 6) : [];
-
-  const handleSearchResultClick = (item: typeof searchResults[0]) => {
-    setShowSearch(false);
-    setSearchQuery("");
-    playSound("click");
-    
-    if (item.type === "mail") {
-      openWindow("mail");
-    } else if (item.type === "image") {
-      openWindow("photos");
-    } else {
-      openWindow("notepad", item.name, item);
-    }
-  };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -100,64 +43,7 @@ export function Taskbar() {
     <>
       <StartMenu open={showStartMenu} onClose={closeStartMenu} toggleRef={startButtonRef} />
 
-      {/* Search Panel */}
-      {showSearch && (
-        <div 
-          ref={searchRef}
-          className="fixed bottom-14 left-14 w-96 bg-[#202020]/95 backdrop-blur-xl border border-white/10 rounded-lg shadow-2xl z-[2000] animate-fade-in overflow-hidden"
-        >
-          <div className="p-3 border-b border-white/10">
-            <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
-              <Search className="w-4 h-4 text-white/50" />
-              <input
-                type="text"
-                placeholder="Rechercher des fichiers, emails..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-white text-sm outline-none placeholder:text-white/40"
-                autoFocus
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-white/50 hover:text-white">
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="p-2 max-h-80 overflow-y-auto">
-            {searchQuery.trim() === "" ? (
-              <p className="text-white/40 text-sm text-center py-4">Tapez pour rechercher...</p>
-            ) : searchResults.length === 0 ? (
-              <p className="text-white/40 text-sm text-center py-4">Aucun résultat pour &quot;{searchQuery}&quot;</p>
-            ) : (
-              <div className="space-y-1">
-                {searchResults.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => handleSearchResultClick(item)}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-                  >
-                    {item.type === "mail" ? (
-                      <Mail className="w-5 h-5 text-blue-400" />
-                    ) : item.type === "image" ? (
-                      <Image className="w-5 h-5 text-green-400" />
-                    ) : (
-                      <FileText className="w-5 h-5 text-yellow-400" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm truncate">{item.name}</p>
-                      <p className="text-white/40 text-xs truncate">
-                        {item.content?.slice(0, 50)}...
-                      </p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <SearchPanel open={showSearch} onClose={closeSearch} toggleRef={searchButtonRef} />
 
       {/* Volume Slider */}
       {showVolumeSlider && (
@@ -211,6 +97,8 @@ export function Taskbar() {
             </svg>
           </button>
           <button 
+            ref={searchButtonRef}
+            aria-label="Rechercher"
             onClick={() => {
               playSound("click");
               setShowSearch(!showSearch);
