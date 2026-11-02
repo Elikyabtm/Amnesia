@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Moon, Power, RotateCcw, RefreshCw, User } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, Power, RotateCcw, RefreshCw, Settings, User } from "lucide-react";
 import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { ConfirmDialog } from "./confirm-dialog";
@@ -179,6 +179,15 @@ export function StartMenu({ open, onClose, toggleRef }: StartMenuProps) {
               </div>
             </div>
 
+            <div className="flex items-center gap-1">
+            <button
+              onClick={() => launch("settings")}
+              className="p-2 rounded hover:bg-white/10 transition-colors"
+              title="Paramètres"
+              aria-label="Paramètres"
+            >
+              <Settings className="w-5 h-5 text-white/80" />
+            </button>
             <button
               onClick={() => {
                 playSound("click");
@@ -190,6 +199,7 @@ export function StartMenu({ open, onClose, toggleRef }: StartMenuProps) {
             >
               <Power className="w-5 h-5 text-white/80" />
             </button>
+            </div>
 
             {showPower && (
               <div className="absolute right-3 bottom-full mb-1 w-52 bg-[#2b2b2b] border border-white/10 rounded-lg shadow-2xl p-1 animate-fade-in">

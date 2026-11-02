@@ -9,7 +9,7 @@ import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings";
 
 export interface WindowState {
   id: string;
@@ -56,7 +56,8 @@ export interface WindowTarget {
 
 /** D'où vient un indice : permet de rouvrir le document source depuis le carnet. */
 export interface ClueRef {
-  kind: "file" | "mail" | "voice" | "page" | "event";
+  /** "app" : section d'une application, id au format "<application>:<section>" */
+  kind: "file" | "mail" | "voice" | "page" | "event" | "app";
   id: string;
 }
 
@@ -768,6 +769,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       browser: "Navigateur",
       clues: "Carnet d'indices",
       audio: "Messages vocaux",
+      settings: "Paramètres",
     };
 
     const { position, size } = computeNewWindowRect(windows.length);

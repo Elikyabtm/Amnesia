@@ -59,6 +59,11 @@ export function resolveClueSource(ref: ClueRef, highlight?: string | string[]): 
       return ref.id.startsWith("about:") || browserHistory.some((p) => p.id === ref.id) ? { app: "browser", target } : null;
     case "event":
       return { app: "calendar", target };
+    case "app": {
+      // "settings:account" -> application Paramètres, section Compte
+      const [app, section] = ref.id.split(":");
+      return { app: app as AppType, target: { id: section ?? "", highlight } };
+    }
   }
 }
 

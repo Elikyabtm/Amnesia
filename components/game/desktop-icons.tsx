@@ -20,7 +20,6 @@ import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { APPS, DESKTOP_APPS } from "./app-registry";
 import { ContextMenu, type ContextMenuItem } from "./context-menu";
-import { WallpaperPicker } from "./wallpaper-picker";
 
 const CELL = 90;
 const MARGIN = 16;
@@ -61,7 +60,6 @@ export function DesktopIcons() {
   const [menu, setMenu] = useState<Menu>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [properties, setProperties] = useState<DesktopItem | null>(null);
-  const [personalize, setPersonalize] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [rows, setRows] = useState(5);
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
@@ -224,7 +222,7 @@ export function DesktopIcons() {
         ],
         divider: true,
       },
-      { label: "Personnaliser", icon: Palette, action: () => setPersonalize(true) },
+      { label: "Personnaliser", icon: Palette, action: () => openWindow("settings", undefined, undefined, { id: "personalization" }) },
     ];
   };
 
@@ -318,12 +316,6 @@ export function DesktopIcons() {
         </DialogFrame>
       )}
 
-      {personalize && (
-        <DialogFrame title="Personnaliser · Arrière-plan" onClose={() => setPersonalize(false)} wide>
-          <p className="text-sm text-white/60 mb-3">Choisissez un fond d&apos;écran pour le bureau.</p>
-          <WallpaperPicker />
-        </DialogFrame>
-      )}
     </div>
   );
 }

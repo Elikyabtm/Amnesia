@@ -16,6 +16,7 @@ import { PasswordApp } from "./apps/password-app";
 import { BrowserApp } from "./apps/browser-app";
 import { CluesApp } from "./apps/clues-app";
 import { AudioApp } from "./apps/audio-app";
+import { SettingsApp } from "./apps/settings-app";
 import { RandomEvents } from "./random-events";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
@@ -45,6 +46,7 @@ export function Desktop() {
             {win.app === "browser" && <BrowserApp window={win} />}
             {win.app === "clues" && <CluesApp />}
             {win.app === "audio" && <AudioApp window={win} />}
+            {win.app === "settings" && <SettingsApp window={win} />}
           </Window>
         ))}
 
