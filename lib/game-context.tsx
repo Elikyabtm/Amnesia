@@ -6,10 +6,11 @@ import { gameNow, birthdayCountdownText } from "./game-clock";
 import { isCatalogClue, UNREACHABLE_CLUES } from "./clue-catalog";
 import { DEFAULT_WALLPAPER } from "./data/wallpapers";
 import { DEFAULT_BOOKMARKS } from "./data/browser";
+import { DEFAULT_BEST_SCORES, type MinesweeperLevel, type MinesweeperScore } from "./data/minesweeper";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator" | "music" | "paint";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator" | "music" | "paint" | "minesweeper";
 
 export interface WindowState {
   id: string;
@@ -130,6 +131,9 @@ interface GameContextType {
   /** Documents texte créés par le joueur dans le Bloc-notes (dossier Documents) */
   userFiles: FileItem[];
   saveUserFile: (file: { id?: string; name: string; content: string; imageSrc?: string }) => FileItem;
+  /** Meilleurs scores du Démineur (records de Bernard remplacés si battus) */
+  minesweeperScores: Record<MinesweeperLevel, MinesweeperScore>;
+  recordMinesweeperScore: (level: MinesweeperLevel, score: MinesweeperScore) => void;
   /** Favoris du navigateur (identifiants de pages) */
   browserBookmarks: string[];
   toggleBrowserBookmark: (pageId: string) => void;
@@ -205,6 +209,7 @@ const WINDOW_CASCADE_SLOTS = 6;
 /** Applications compactes : taille fixe plutôt que 70 % x 75 % de l'écran */
 const PREFERRED_WINDOW_SIZES: Partial<Record<AppType, { width: number; height: number }>> = {
   calculator: { width: 340, height: 540 },
+  minesweeper: { width: 420, height: 560 },
 };
 
 function computeNewWindowRect(openCount: number, app?: AppType) {
@@ -277,6 +282,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       : { id: file.id ?? `user-${Date.now()}`, name, type: "file", content: file.content };
     setUserFiles((files) => (files.some((f) => f.id === saved.id) ? files.map((f) => (f.id === saved.id ? saved : f)) : [...files, saved]));
     return saved;
+  }, []);
+  const [minesweeperScores, setMinesweeperScores] = useState(DEFAULT_BEST_SCORES);
+  const recordMinesweeperScore = useCallback((level: MinesweeperLevel, score: MinesweeperScore) => {
+    setMinesweeperScores((s) => (score.seconds < s[level].seconds ? { ...s, [level]: score } : s));
   }, []);
   const [browserBookmarks, setBrowserBookmarks] = useState<string[]>(DEFAULT_BOOKMARKS);
   const toggleBrowserBookmark = useCallback((pageId: string) => {
@@ -440,6 +449,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setSeenNotificationIds(save.seenNotificationIds ?? []);
       if (save.browserBookmarks) setBrowserBookmarks(save.browserBookmarks);
       if (save.userFiles) setUserFiles(save.userFiles);
+      if (save.minesweeperScores) setMinesweeperScores(save.minesweeperScores);
       if (save.trash) {
         setTrashRestoredIds(save.trash.restored);
         setTrashEmptied(save.trash.emptied);
@@ -505,8 +515,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       trash: { restored: trashRestoredIds, emptied: trashEmptied },
       browserBookmarks,
       userFiles,
+      minesweeperScores,
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles, minesweeperScores]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -784,6 +795,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       calculator: "Calculatrice",
       music: "Musique",
       paint: "Paint",
+      minesweeper: "Démineur",
     };
 
     const { position, size } = computeNewWindowRect(windows.length, app);
@@ -936,6 +948,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         batteryLevel,
         userFiles,
         saveUserFile,
+        minesweeperScores,
+        recordMinesweeperScore,
         browserBookmarks,
         toggleBrowserBookmark,
         trashRestoredIds,

@@ -4,6 +4,7 @@
 
 import type { AccountLevel, ClueItem, DesktopFolder, MailFolderId, Notification } from "./game-context";
 import type { FileItem } from "./game-data";
+import type { MinesweeperLevel, MinesweeperScore } from "./data/minesweeper";
 import type { PasswordPart } from "./verify-client";
 
 const SAVE_KEY = "amnesia-save-v1";
@@ -28,6 +29,7 @@ export interface SaveData {
   trash?: { restored: string[]; emptied: boolean };
   browserBookmarks?: string[];
   userFiles?: FileItem[];
+  minesweeperScores?: Record<MinesweeperLevel, MinesweeperScore>;
   mail?: {
     folderOverrides: Record<string, MailFolderId>;
     starred: string[];

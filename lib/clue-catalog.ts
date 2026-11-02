@@ -42,6 +42,8 @@ export const CLUE_CATALOG: readonly string[] = [
   "Bernard aime « toujours finir sur un point d'exclamation ! », même ses mots de passe",
   // Paint
   "Pense-bête dans Paint : sur le clavier, le dièse (#) se tape avec AltGr + 3",
+  // Démineur
+  "Les records du Démineur sont signés « BSM », les initiales de Bourg-sur-Mer",
   // Paramètres
   "Le nouveau mot de passe compte 17 caractères, dont 2 symboles",
   // Dossier confidentiel

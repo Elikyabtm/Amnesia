@@ -22,6 +22,7 @@ import { TerminalApp } from "./apps/terminal-app";
 import { CalculatorApp } from "./apps/calculator-app";
 import { MusicApp } from "./apps/music-app";
 import { PaintApp } from "./apps/paint-app";
+import { MinesweeperApp } from "./apps/minesweeper-app";
 import { RandomEvents } from "./random-events";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
@@ -57,6 +58,7 @@ export function Desktop() {
             {win.app === "calculator" && <CalculatorApp />}
             {win.app === "music" && <MusicApp window={win} />}
             {win.app === "paint" && <PaintApp />}
+            {win.app === "minesweeper" && <MinesweeperApp />}
           </Window>
         ))}
 
