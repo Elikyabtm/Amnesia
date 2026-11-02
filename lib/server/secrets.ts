@@ -17,3 +17,12 @@ export const ADMIN_PASSWORD_PARTS = [
   { value: "14041967", label: "date de naissance" },
   { value: "!", label: "ponctuation finale" },
 ];
+
+// Elements checked to give the player partial feedback on a wrong attempt.
+// Each element is matched case-insensitively anywhere in the attempt.
+export const ADMIN_PASSWORD_ELEMENTS: string[][] = [
+  ["BSM"],
+  ["1832"],
+  ["14041967"],
+  ["#", "!"], // both symbols are needed for this element to count
+];

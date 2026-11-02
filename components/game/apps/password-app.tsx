@@ -14,14 +14,17 @@ export function PasswordApp() {
   const { playSound } = useSound();
 
   const [checking, setChecking] = useState(false);
+  const [feedback, setFeedback] = useState<{ correct: number; total: number } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (checking || !password.trim()) return;
     setChecking(true);
-    const { result } = await tryPassword(password);
+    const verdict = await tryPassword(password);
+    const { result } = verdict;
     setChecking(false);
     setLastResult(result);
+    setFeedback(result === "wrong" ? verdict.feedback ?? null : null);
     
     if (result === "admin") {
       playSound("success");
@@ -150,10 +153,32 @@ export function PasswordApp() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {loginError && (
-                  <p className="text-red-500 text-sm mt-2 animate-fade-in">
-                    Mot de passe incorrect. Continuez à chercher des indices !
-                  </p>
+                {lastResult === "wrong" && (
+                  <div className="mt-2 animate-fade-in">
+                    <p className="text-red-500 text-sm">
+                      Mot de passe incorrect. Continuez à chercher des indices !
+                    </p>
+                    {feedback && (feedback.correct > 0 || accountLevel === "guest") && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {Array.from({ length: feedback.total }, (_, i) => (
+                            <span
+                              key={i}
+                              className={cn(
+                                "w-3 h-3 rounded-sm",
+                                i < feedback.correct ? "bg-emerald-500" : "bg-gray-300"
+                              )}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {feedback.correct === feedback.total
+                            ? "Tous les éléments sont là, mais pas dans le bon ordre ou le bon format."
+                            : `${feedback.correct} élément${feedback.correct > 1 ? "s" : ""} sur ${feedback.total} ${feedback.correct > 1 ? "sont corrects" : "est correct"}.`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
