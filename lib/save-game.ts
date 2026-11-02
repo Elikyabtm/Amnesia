@@ -25,6 +25,7 @@ export interface SaveData {
   listenedVoiceIds?: string[];
   notificationHistory?: (Omit<Notification, "timestamp"> & { timestamp: string })[];
   seenNotificationIds?: string[];
+  trash?: { restored: string[]; emptied: boolean };
   mail?: {
     folderOverrides: Record<string, MailFolderId>;
     starred: string[];

@@ -12,6 +12,8 @@ export const CLUE_CATALOG: readonly string[] = [
   "L'ancien mot de passe était 'Bourg1832' - trop simple",
   "Votre nom est Bernard Dupuis",
   "BSM = initiales de Bourg-sur-Mer",
+  // Téléchargements (mémo du service informatique)
+  "Format du mot de passe : [fondation ville] + [date naissance]",
   // Corbeille
   "L'ancien mot de passe était trop simple",
   // Courrier
@@ -38,7 +40,6 @@ export const CLUE_CATALOG: readonly string[] = [
 // Détecteurs présents dans le code mais qu'aucun contenu ne déclenche
 // (le texte recherché n'existe dans aucun document). Exclus du total.
 export const UNREACHABLE_CLUES: readonly string[] = [
-  "Format du mot de passe : [fondation ville] + [date naissance]", // Explorateur
   "Bernard aura 58 ans", // Courrier : aucun email ne contient "58 ans"
   "Format MDP : initiales + année + symbole + date + ponctuation", // Courrier
   "Une référence à l'année 1967 dans un message vocal", // Mémos vocaux

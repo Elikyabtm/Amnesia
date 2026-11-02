@@ -17,8 +17,9 @@ import {
   voiceMessages,
   type FileItem,
 } from "./game-data";
+import { downloads } from "./data/downloads";
 
-export const ALL_FILES: FileItem[] = [...documents, ...photos, ...notes, ...audioMemos, ...corbeille, ...secretDocuments];
+export const ALL_FILES: FileItem[] = [...documents, ...photos, ...notes, ...audioMemos, ...corbeille, ...secretDocuments, ...downloads];
 
 /** Dossier d'origine d'un email (avant tout déplacement par le joueur). */
 export function baseMailFolder(mailId: string): MailFolderId | null {

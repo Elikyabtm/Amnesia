@@ -125,6 +125,11 @@ interface GameContextType {
   createDesktopFolder: () => string;
   renameDesktopFolder: (id: string, name: string) => void;
   deleteDesktopFolder: (id: string) => void;
+  /** Corbeille : fichiers restaurés à leur emplacement d'origine, corbeille vidée */
+  trashRestoredIds: string[];
+  trashEmptied: boolean;
+  restoreTrashItem: (id: string) => void;
+  emptyTrash: () => void;
   /** Niveau de batterie en % (la phase "événements" le fera baisser) */
   batteryLevel: number;
   passwordAttempts: number;
@@ -249,6 +254,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
   const [iconPositions, setIconPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [desktopFolders, setDesktopFolders] = useState<DesktopFolder[]>([]);
+  const [trashRestoredIds, setTrashRestoredIds] = useState<string[]>([]);
+  const [trashEmptied, setTrashEmptied] = useState(false);
+  const restoreTrashItem = useCallback((id: string) => {
+    setTrashRestoredIds((ids) => (ids.includes(id) ? ids : [...ids, id]));
+  }, []);
+  const emptyTrash = useCallback(() => setTrashEmptied(true), []);
 
   const createDesktopFolder = useCallback(() => {
     const id = `folder-${Date.now()}`;
@@ -399,6 +410,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setListenedVoiceIds(save.listenedVoiceIds ?? []);
       setNotificationHistory((save.notificationHistory ?? []).map((n) => ({ ...n, timestamp: new Date(n.timestamp) })));
       setSeenNotificationIds(save.seenNotificationIds ?? []);
+      if (save.trash) {
+        setTrashRestoredIds(save.trash.restored);
+        setTrashEmptied(save.trash.emptied);
+      }
       if (save.mail) {
         setMailFolderOverrides(save.mail.folderOverrides);
         setStarredMailIds(save.mail.starred);
@@ -457,8 +472,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       seenNotificationIds,
       desktop: { wallpaper, iconPositions, folders: desktopFolders },
       mail: { folderOverrides: mailFolderOverrides, starred: starredMailIds, composed: composedMails },
+      trash: { restored: trashRestoredIds, emptied: trashEmptied },
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -880,6 +896,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         markNotificationsSeen,
         clearNotificationHistory,
         batteryLevel,
+        trashRestoredIds,
+        trashEmptied,
+        restoreTrashItem,
+        emptyTrash,
         wallpaper,
         setWallpaper,
         iconPositions,

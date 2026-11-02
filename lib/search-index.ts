@@ -19,6 +19,7 @@ import {
   sentMails,
   voiceMessages,
 } from "./game-data";
+import { downloads } from "./data/downloads";
 
 export type SearchCategory = "app" | "file" | "mail" | "voice" | "page" | "event";
 
@@ -101,6 +102,7 @@ export function searchEverything(rawQuery: string, ctx: SearchContext): SearchRe
     { items: photos, location: "Photos" },
     { items: notes, location: "Notes" },
     { items: audioMemos, location: "Mémos vocaux" },
+    { items: downloads, location: "Téléchargements" },
     { items: corbeille, location: "Corbeille" },
   ];
   if (ctx.confidentialUnlocked) fileGroups.push({ items: secretDocuments, location: "Dossier Confidentiel" });
