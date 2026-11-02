@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, User, Calendar, MapPin, Key, Lightbulb, Search } from "lucide-react";
+import { BookOpen, User, Calendar, MapPin, Key, Lightbulb, Search, ExternalLink } from "lucide-react";
+import { resolveClueSource } from "@/lib/clue-sources";
 import { useGame, type ClueItem } from "@/lib/game-context";
 
 const GUEST_HINTS = [
@@ -26,7 +27,13 @@ const categoryConfig = {
 };
 
 export function CluesApp() {
-  const { clues, accountLevel } = useGame();
+  const { clues, accountLevel, openWindow } = useGame();
+
+  const openSource = (clue: ClueItem) => {
+    if (!clue.ref) return;
+    const source = resolveClueSource(clue.ref, clue.highlight);
+    if (source) openWindow(source.app, source.title, source.content, source.target);
+  };
   const [hintsShown, setHintsShown] = useState(0);
   const hints = accountLevel === "locked" ? GUEST_HINTS : ADMIN_HINTS;
   const hintsKey = accountLevel === "locked" ? "guest" : "admin";
@@ -62,7 +69,7 @@ export function CluesApp() {
           </div>
           <div>
             <h2 className="text-lg font-medium text-white">Carnet d'indices</h2>
-            <p className="text-sm text-white/50">{clues.length} indice{clues.length > 1 ? "s" : ""} découvert{clues.length > 1 ? "s" : ""}</p>
+            <p className="text-sm text-white/50">Cliquez sur un indice pour ouvrir sa source · {clues.length} indice{clues.length > 1 ? "s" : ""} découvert{clues.length > 1 ? "s" : ""}</p>
           </div>
         </div>
 
@@ -145,26 +152,36 @@ export function CluesApp() {
                     <span className="text-sm font-medium text-white/80">{config.label}</span>
                   </div>
                   <div className="space-y-2">
-                    {categoryClues.map((clue) => (
-                      <div
-                        key={clue.id}
-                        className="p-3 bg-[#2d2d2d] rounded-lg border-l-2 hover:bg-[#353535] transition-colors"
-                        style={{ borderLeftColor: config.color }}
-                      >
-                        <p className="text-white text-sm">{clue.text}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-white/40">
-                            Source: {clue.source}
-                          </span>
-                          <span className="text-xs text-white/30">
-                            {clue.discoveredAt.toLocaleTimeString("fr-FR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                    {categoryClues.map((clue) => {
+                      const canOpen = !!clue.ref;
+                      return (
+                        <button
+                          key={clue.id}
+                          type="button"
+                          disabled={!canOpen}
+                          onClick={() => openSource(clue)}
+                          title={canOpen ? "Ouvrir le document source" : undefined}
+                          className="group w-full text-left p-3 bg-[#2d2d2d] rounded-lg border-l-2 hover:bg-[#353535] transition-colors disabled:cursor-default enabled:cursor-pointer"
+                          style={{ borderLeftColor: config.color }}
+                        >
+                          <p className="text-white text-sm">{clue.text}</p>
+                          <div className="flex items-center justify-between mt-2 gap-2">
+                            <span className="text-xs text-white/40 flex items-center gap-1 min-w-0">
+                              <span className="truncate">Source : {clue.source}</span>
+                              {canOpen && (
+                                <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              )}
+                            </span>
+                            <span className="text-xs text-white/30 flex-shrink-0">
+                              {clue.discoveredAt.toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );

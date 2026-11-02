@@ -19,6 +19,7 @@ export interface SaveData {
   unlockedItemIds: string[];
   secretsDiscovered: string[];
   readMailIds: string[];
+  listenedVoiceIds?: string[];
   revealedPassword: { password: string; parts: PasswordPart[] } | null;
 }
 

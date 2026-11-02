@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useTextHighlight } from "@/lib/use-text-highlight";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, X, Bell } from "lucide-react";
 import { calendarEvents } from "@/lib/game-data";
 import { useSound } from "@/hooks/use-sound";
-import { useGame } from "@/lib/game-context";
+import { useGame, type WindowState } from "@/lib/game-context";
 import { gameNow } from "@/lib/game-clock";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -55,11 +56,36 @@ function parseEventDate(text: string) {
   return { day: Number(match[1]), month, year: Number(match[3]) };
 }
 
-export function CalendarApp() {
+interface CalendarAppProps {
+  window: WindowState;
+}
+
+export function CalendarApp({ window: win }: CalendarAppProps) {
   const [today] = useState(() => gameNow());
-  const [currentDate, setCurrentDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()));
-  const [selectedEvent, setSelectedEvent] = useState<typeof calendarEvents[0] | null>(null);
+  // Ouvert depuis le carnet d'indices : on va au mois de l'événement source et on l'affiche
+  const [targetEvent] = useState(() =>
+    win.target ? calendarEvents.find((e) => e.event === win.target?.id) ?? null : null
+  );
+  const [targetDate] = useState(() => {
+    const d = targetEvent ? parseEventDate(targetEvent.date) : null;
+    return d ? new Date(d.year, d.month, d.day) : null;
+  });
+  const [currentDate, setCurrentDate] = useState(() =>
+    targetDate
+      ? new Date(targetDate.getFullYear(), targetDate.getMonth(), 1)
+      : new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    () => targetDate ?? new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  );
+  const [selectedEvent, setSelectedEvent] = useState<typeof calendarEvents[0] | null>(targetEvent);
+  const eventDetailRef = useRef<HTMLDivElement>(null);
+  useTextHighlight(
+    eventDetailRef,
+    selectedEvent && selectedEvent.event === win.target?.id ? win.target?.highlight : undefined,
+    win.id,
+    [selectedEvent?.event]
+  );
   const [view, setView] = useState<"calendar" | "agenda">("calendar");
   const { playSound } = useSound();
   const { addClue } = useGame();
@@ -104,6 +130,8 @@ export function CalendarApp() {
         category: "date",
         text: "L'anniversaire de Bernard est le 14 avril, il aura 58 ans (né en 1967)",
         source: "Calendrier",
+        ref: { kind: "event", id: event.event },
+        highlight: "58 ans",
       });
     }
     if (event.event.includes("32 ans")) {
@@ -111,6 +139,8 @@ export function CalendarApp() {
         category: "date",
         text: "Mariage en 1993, soit 32 ans en 2025",
         source: "Calendrier",
+        ref: { kind: "event", id: event.event },
+        highlight: "32 ans",
       });
     }
   };
@@ -125,7 +155,7 @@ export function CalendarApp() {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="relative flex h-full">
       {/* Sidebar */}
       <div className="w-72 bg-[#1f1f1f] border-r border-white/10 flex flex-col">
         {/* View toggle */}
@@ -382,7 +412,7 @@ export function CalendarApp() {
         {/* Event detail modal */}
         {selectedEvent && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-10">
-            <div className="bg-[#2d2d2d] rounded-xl max-w-md w-full animate-window-open">
+            <div ref={eventDetailRef} className="bg-[#2d2d2d] rounded-xl max-w-md w-full animate-window-open">
               <div className={`p-6 rounded-t-xl ${selectedEvent.important ? "bg-[#0078d4]" : "bg-[#404040]"}`}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">

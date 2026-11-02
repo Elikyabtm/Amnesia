@@ -1,17 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useTextHighlight } from "@/lib/use-text-highlight";
 import { Globe, ArrowLeft, ArrowRight, RotateCw, Home, Star, Clock, Search, X, ChevronRight, MapPin, Phone, Mail, Calendar, Users, Building, Newspaper, FileText, Shield, Facebook, ThumbsUp, MessageCircle, Hash, Music, BookOpen, AlertTriangle } from "lucide-react";
 import { browserHistory, type BrowserPage } from "@/lib/game-data";
-import { useGame } from "@/lib/game-context";
+import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 
-export function BrowserApp() {
-  const [currentPage, setCurrentPage] = useState<BrowserPage | null>(null);
-  const [urlInput, setUrlInput] = useState("");
-  const [showHistory, setShowHistory] = useState(true);
-  const [history, setHistory] = useState<BrowserPage[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+interface BrowserAppProps {
+  window: WindowState;
+}
+
+export function BrowserApp({ window: win }: BrowserAppProps) {
+  // Ouvert depuis le carnet d'indices : on affiche directement la page source
+  const [targetPage] = useState<BrowserPage | null>(
+    () => (win.target ? browserHistory.find((p) => p.id === win.target?.id) ?? null : null)
+  );
+  const [currentPage, setCurrentPage] = useState<BrowserPage | null>(targetPage);
+  const [urlInput, setUrlInput] = useState(targetPage?.url ?? "");
+  const [showHistory, setShowHistory] = useState(!targetPage);
+  const [history, setHistory] = useState<BrowserPage[]>(targetPage ? [targetPage] : []);
+  const [historyIndex, setHistoryIndex] = useState(targetPage ? 0 : -1);
+  const contentRef = useRef<HTMLDivElement>(null);
+  useTextHighlight(
+    contentRef,
+    !showHistory && currentPage && currentPage.id === win.target?.id ? win.target?.highlight : undefined,
+    win.id,
+    [showHistory, currentPage?.id]
+  );
   const { addClue } = useGame();
   const { playSound } = useSound();
 
@@ -35,6 +51,8 @@ export function BrowserApp() {
         category: "place",
         text: "Bourg-sur-Mer a été fondée en 1832",
         source: page.title,
+        ref: { kind: "page", id: page.id },
+        highlight: "1832",
       });
     }
     if (page.content.includes("14 avril 1967") || page.content.includes("14/04/1967")) {
@@ -42,6 +60,9 @@ export function BrowserApp() {
         category: "date",
         text: "Bernard Dupuis est né le 14 avril 1967",
         source: page.title,
+        ref: { kind: "page", id: page.id },
+        // La page affichée peut utiliser l'une ou l'autre écriture de la date
+        highlight: ["14 avril 1967", "14/04/1967"],
       });
     }
     if (page.content.includes("Bernard Dupuis") && page.content.includes("Maire")) {
@@ -49,6 +70,8 @@ export function BrowserApp() {
         category: "identity",
         text: "Vous êtes Bernard Dupuis, Maire de Bourg-sur-Mer",
         source: page.title,
+        ref: { kind: "page", id: page.id },
+        highlight: "Bernard Dupuis",
       });
     }
   };
@@ -171,7 +194,7 @@ export function BrowserApp() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto">
+      <div ref={contentRef} className="flex-1 overflow-auto">
         {showHistory || !currentPage ? (
           <BrowserHomePage onNavigate={navigateTo} />
         ) : (

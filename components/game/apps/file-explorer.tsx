@@ -18,6 +18,7 @@ import { fileSystem, secretDocuments, type FileItem } from "@/lib/game-data";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { FolderLockDialog } from "../folder-lock-dialog";
+import { pickPassage } from "@/lib/clue-sources";
 
 interface FileExplorerProps {
   window: WindowState;
@@ -43,6 +44,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "date",
         text: "Date de naissance : 14 avril 1967",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: pickPassage(content, "14 avril 1967", "jour de ma naissance"),
       });
     }
     if (content.includes("1832") && (content.includes("Bourg") || content.includes("fondation"))) {
@@ -50,6 +53,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "place",
         text: "Bourg-sur-Mer fondée en 1832",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: "1832",
       });
     }
     if (content.includes("Maire") || content.includes("maire")) {
@@ -57,6 +62,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "identity",
         text: "Vous êtes le Maire de Bourg-sur-Mer",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: pickPassage(content, "Maire", "maire"),
       });
     }
     if (content.includes("fondation ville") && content.includes("date naissance")) {
@@ -64,6 +71,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "password",
         text: "Format du mot de passe : [fondation ville] + [date naissance]",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: "fondation ville",
       });
     }
     if (content.includes("Bourg1832")) {
@@ -71,6 +80,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "password",
         text: "L'ancien mot de passe était 'Bourg1832' - trop simple",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: "Bourg1832",
       });
     }
     if (content.includes("Bernard Dupuis")) {
@@ -78,6 +89,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "identity",
         text: "Votre nom est Bernard Dupuis",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: "Bernard Dupuis",
       });
     }
 
@@ -86,6 +99,8 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         category: "place",
         text: "BSM = initiales de Bourg-sur-Mer",
         source: item.name,
+        ref: { kind: "file", id: item.id },
+        highlight: "BSM",
       });
     }
 

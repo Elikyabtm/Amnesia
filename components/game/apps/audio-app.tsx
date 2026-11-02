@@ -3,20 +3,39 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Mic, User, Clock, Rewind, FastForward } from "lucide-react";
 import { voiceMessages, type VoiceMessage } from "@/lib/game-data";
-import { useGame } from "@/lib/game-context";
+import { useGame, type WindowState } from "@/lib/game-context";
+import { useTextHighlight } from "@/lib/use-text-highlight";
+import { pickPassage } from "@/lib/clue-sources";
 import { useSound } from "@/hooks/use-sound";
 
-export function AudioApp() {
-  const [selectedMessage, setSelectedMessage] = useState<VoiceMessage | null>(null);
+interface AudioAppProps {
+  window: WindowState;
+}
+
+export function AudioApp({ window: win }: AudioAppProps) {
+  // Ouvert depuis le carnet d'indices : on sélectionne directement le mémo source
+  const [selectedMessage, setSelectedMessage] = useState<VoiceMessage | null>(
+    () => (win.target ? voiceMessages.find((v) => v.id === win.target?.id) ?? null : null)
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
-  const [showTranscript, setShowTranscript] = useState(false);
-  const [hasListened, setHasListened] = useState<Set<string>>(new Set());
+  const { addClue, listenedVoiceIds, markVoiceListened } = useGame();
+  // Un mémo déjà écouté garde sa transcription visible (même après rechargement)
+  const hasListened = new Set(listenedVoiceIds);
+  const [showTranscript, setShowTranscript] = useState(
+    () => !!win.target && listenedVoiceIds.includes(win.target.id)
+  );
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { addClue } = useGame();
+  const transcriptRef = useRef<HTMLDivElement>(null);
+  useTextHighlight(
+    transcriptRef,
+    showTranscript && selectedMessage?.id === win.target?.id ? win.target?.highlight : undefined,
+    win.id,
+    [showTranscript, selectedMessage?.id]
+  );
   const { playSound } = useSound();
 
   const formatTime = (seconds: number): string => {
@@ -32,6 +51,8 @@ export function AudioApp() {
         category: "date",
         text: "Une référence à l'année 1967 dans un message vocal",
         source: `Message de ${message.from}`,
+        ref: { kind: "voice", id: message.id },
+        highlight: "1967",
       });
     }
     if (message.transcript.includes("58 ans")) {
@@ -39,6 +60,8 @@ export function AudioApp() {
         category: "date",
         text: "Bernard aura 58 ans - né en 1967",
         source: `Message de ${message.from}`,
+        ref: { kind: "voice", id: message.id },
+        highlight: "58 ans",
       });
     }
     if (message.transcript.includes("fondation") && message.transcript.includes("naissance")) {
@@ -46,6 +69,8 @@ export function AudioApp() {
         category: "password",
         text: "Le mot de passe combine la fondation de la ville et la date de naissance",
         source: "Mémo vocal personnel",
+        ref: { kind: "voice", id: message.id },
+        highlight: "fondation",
       });
     }
     if (message.transcript.includes("14 avril") || message.transcript.includes("15 avril")) {
@@ -53,6 +78,8 @@ export function AudioApp() {
         category: "date",
         text: "Date importante : mi-avril (anniversaire/mariage)",
         source: `Message de ${message.from}`,
+        ref: { kind: "voice", id: message.id },
+        highlight: pickPassage(message.transcript, "14 avril", "15 avril"),
       });
     }
     if (message.transcript.includes("32 ans")) {
@@ -60,6 +87,8 @@ export function AudioApp() {
         category: "date",
         text: "32 ans de mariage en 2025 (marié en 1993)",
         source: `Message de ${message.from}`,
+        ref: { kind: "voice", id: message.id },
+        highlight: "32 ans",
       });
     }
   }, [addClue]);
@@ -75,7 +104,7 @@ export function AudioApp() {
     setSelectedMessage(message);
     setIsPlaying(false);
     setCurrentTime(0);
-    setShowTranscript(false);
+    setShowTranscript(listenedVoiceIds.includes(message.id));
   };
 
   const togglePlayPause = () => {
@@ -107,7 +136,7 @@ export function AudioApp() {
     setShowTranscript(true);
     if (selectedMessage && !hasListened.has(selectedMessage.id)) {
       detectClues(selectedMessage);
-      setHasListened((prev) => new Set([...prev, selectedMessage.id]));
+      markVoiceListened(selectedMessage.id);
     }
   };
 
@@ -353,7 +382,7 @@ export function AudioApp() {
             </div>
 
             {/* Transcript */}
-            <div className={`flex-1 overflow-auto border-t border-white/10 transition-all ${showTranscript ? "opacity-100" : "opacity-30"}`}>
+            <div ref={transcriptRef} className={`flex-1 overflow-auto border-t border-white/10 transition-all ${showTranscript ? "opacity-100" : "opacity-30"}`}>
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-sm font-semibold text-white">Transcription</span>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { photos, type FileItem } from "@/lib/game-data";
 import { type WindowState } from "@/lib/game-context";
+import { useTextHighlight } from "@/lib/use-text-highlight";
 import { useSound } from "@/hooks/use-sound";
 
 interface PhotosAppProps {
@@ -23,7 +24,15 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<FileItem | null>(
     initialPhoto || null
   );
-  const [showInfo, setShowInfo] = useState(false);
+  // Ouverte depuis le carnet d'indices : on affiche directement la description
+  const [showInfo, setShowInfo] = useState(!!win.target?.highlight);
+  const infoRef = useRef<HTMLDivElement>(null);
+  useTextHighlight(
+    infoRef,
+    showInfo && selectedPhoto?.id === win.target?.id ? win.target?.highlight : undefined,
+    win.id,
+    [showInfo, selectedPhoto?.id]
+  );
   const { playSound } = useSound();
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
 
@@ -121,7 +130,7 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
 
             {/* Info panel */}
             {showInfo && (
-              <div className="absolute right-0 top-0 bottom-0 w-72 bg-[#1a1a1a] border-l border-white/10 p-4 overflow-auto">
+              <div ref={infoRef} className="absolute right-0 top-0 bottom-0 w-72 bg-[#1a1a1a] border-l border-white/10 p-4 overflow-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-white">Informations</h3>
                   <button 

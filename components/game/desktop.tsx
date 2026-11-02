@@ -39,12 +39,12 @@ export function Desktop() {
             {win.app === "mail" && <MailApp window={win} />}
             {win.app === "photos" && <PhotosApp window={win} />}
             {win.app === "notepad" && <NotepadApp window={win} />}
-            {win.app === "calendar" && <CalendarApp />}
+            {win.app === "calendar" && <CalendarApp window={win} />}
             {win.app === "trash" && <TrashApp window={win} />}
             {win.app === "password" && <PasswordApp />}
-            {win.app === "browser" && <BrowserApp />}
+            {win.app === "browser" && <BrowserApp window={win} />}
             {win.app === "clues" && <CluesApp />}
-            {win.app === "audio" && <AudioApp />}
+            {win.app === "audio" && <AudioApp window={win} />}
           </Window>
         ))}
 

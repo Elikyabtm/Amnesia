@@ -20,6 +20,19 @@ export interface WindowState {
   prevPosition?: { x: number; y: number };
   prevSize?: { width: number; height: number };
   content?: FileItem | string;
+  /** Élément à afficher à l'ouverture (email, page, mémo...) et passage à surligner */
+  target?: WindowTarget;
+}
+
+export interface WindowTarget {
+  id: string;
+  highlight?: string | string[];
+}
+
+/** D'où vient un indice : permet de rouvrir le document source depuis le carnet. */
+export interface ClueRef {
+  kind: "file" | "mail" | "voice" | "page" | "event";
+  id: string;
 }
 
 export interface ClueItem {
@@ -28,6 +41,9 @@ export interface ClueItem {
   text: string;
   source: string;
   discoveredAt: Date;
+  ref?: ClueRef;
+  /** Passage du document source à surligner (plusieurs formulations possibles, essayées dans l'ordre) */
+  highlight?: string | string[];
 }
 
 export interface Notification {
@@ -72,7 +88,7 @@ interface GameContextType {
   finishBooting: () => void;
   tryPassword: (password: string) => Promise<PasswordVerdict>;
   revealedPassword: { password: string; parts: PasswordPart[] } | null;
-  openWindow: (app: AppType, title?: string, content?: FileItem | string) => void;
+  openWindow: (app: AppType, title?: string, content?: FileItem | string, target?: WindowTarget) => void;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
   maximizeWindow: (id: string) => void;
@@ -89,6 +105,8 @@ interface GameContextType {
   discoverSecret: (secretId: string) => void;
   readMailIds: string[];
   markMailRead: (mailId: string) => void;
+  listenedVoiceIds: string[];
+  markVoiceListened: (voiceId: string) => void;
   startTime: number | null;
   endTime: number | null;
   isRestored: boolean;
@@ -143,6 +161,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const clueCounterRef = useRef(0);
   const [readMailIds, setReadMailIds] = useState<string[]>([]);
+  const [listenedVoiceIds, setListenedVoiceIds] = useState<string[]>([]);
   const [revealedPassword, setRevealedPassword] = useState<{ password: string; parts: PasswordPart[] } | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -240,6 +259,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       );
       setSecretsDiscovered(save.secretsDiscovered);
       setReadMailIds(save.readMailIds);
+      setListenedVoiceIds(save.listenedVoiceIds ?? []);
       setRevealedPassword(save.revealedPassword);
       setStartTime(now - save.elapsedMs);
       setEndTime(save.gamePhase === "won" ? now : null);
@@ -273,9 +293,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       unlockedItemIds: lockedItems.filter((i) => i.unlocked).map((i) => i.id),
       secretsDiscovered,
       readMailIds,
+      listenedVoiceIds,
       revealedPassword,
     };
-  }, [gamePhase, startTime, endTime, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, revealedPassword]);
+  }, [gamePhase, startTime, endTime, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -452,6 +473,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setReadMailIds((current) => (current.includes(mailId) ? current : [...current, mailId]));
   }, []);
 
+  const markVoiceListened = useCallback((voiceId: string) => {
+    setListenedVoiceIds((current) => (current.includes(voiceId) ? current : [...current, voiceId]));
+  }, []);
+
   const discoverSecret = useCallback((secretId: string) => {
     setSecretsDiscovered((current) => {
       if (current.includes(secretId)) return current;
@@ -459,7 +484,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string) => {
+  const openWindow = useCallback((app: AppType, title?: string, content?: FileItem | string, target?: WindowTarget) => {
     const id = `window-${windowCounter}`;
     setWindowCounter((c) => c + 1);
 
@@ -488,6 +513,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       position,
       size,
       content,
+      target,
     };
 
     setMaxZIndex((z) => z + 1);
@@ -602,6 +628,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         discoverSecret,
         readMailIds,
         markMailRead,
+        listenedVoiceIds,
+        markVoiceListened,
         startTime,
         endTime,
         isRestored,

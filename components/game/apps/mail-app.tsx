@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useTextHighlight } from "@/lib/use-text-highlight";
+import { findMail, findMailFolder, pickPassage } from "@/lib/clue-sources";
 import { 
   Mail, 
   Inbox, 
@@ -27,11 +29,29 @@ interface MailAppProps {
 type MailFolder = "inbox" | "sent" | "favorites" | "trash";
 
 export function MailApp({ window: win }: MailAppProps) {
-  const [selectedMail, setSelectedMail] = useState<FileItem | null>(null);
-  const [currentFolder, setCurrentFolder] = useState<MailFolder>("inbox");
+  // Ouvert depuis le carnet d'indices : on affiche directement l'email source
+  const [selectedMail, setSelectedMail] = useState<FileItem | null>(
+    () => (win.target ? findMail(win.target.id) ?? null : null)
+  );
+  const [currentFolder, setCurrentFolder] = useState<MailFolder>(
+    () => (win.target ? findMailFolder(win.target.id) ?? "inbox" : "inbox")
+  );
+  const bodyRef = useRef<HTMLDivElement>(null);
   const [localFavorites, setLocalFavorites] = useState<string[]>(favoriteMails.map(m => m.id));
   const { playSound } = useSound();
   const { addClue, accountLevel, addSuspicion, discoverSecret, readMailIds, markMailRead } = useGame();
+
+  useEffect(() => {
+    if (win.target) markMailRead(win.target.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useTextHighlight(
+    bodyRef,
+    selectedMail && selectedMail.id === win.target?.id ? win.target?.highlight : undefined,
+    win.id,
+    [selectedMail?.id]
+  );
   
   // Secret mails sync once the player has logged in (guest or admin)
   const inboxMails = accountLevel === "locked" ? mails : [...secretMails, ...mails];
@@ -63,6 +83,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "date",
         text: "Une date importante en avril (anniversaire ou mariage)",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: pickPassage(content, "14 avril", "15 avril"),
       });
     }
     if (content.includes("58 ans")) {
@@ -70,6 +92,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "date", 
         text: "Bernard aura 58 ans",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: "58 ans",
       });
     }
     if (content.includes("32 ans ensemble") || content.includes("30 ans déjà")) {
@@ -77,6 +101,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "date",
         text: "Marié depuis longtemps (mariage en 1993)",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: pickPassage(content, "32 ans ensemble", "30 ans déjà"),
       });
     }
     if (content.includes("15 avril 1993")) {
@@ -84,6 +110,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "date",
         text: "Date de mariage : 15 avril 1993",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: "15 avril 1993",
       });
     }
     if (content.includes("Marie") && (content.includes("épouse") || content.includes("chérie"))) {
@@ -91,6 +119,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "identity",
         text: "Vous êtes marié à Marie",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: pickPassage(content, "épouse", "chérie"),
       });
     }
     if (content.includes("Bourg-sur-Mer") || content.includes("BSM")) {
@@ -98,6 +128,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "place",
         text: "Vous vivez à Bourg-sur-Mer (BSM)",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: pickPassage(content, "Bourg-sur-Mer", "BSM"),
       });
     }
     if (content.includes("fondée en 1832") || content.includes("1832")) {
@@ -105,6 +137,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "place",
         text: "Bourg-sur-Mer fondée en 1832",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: pickPassage(content, "fondée en 1832", "1832"),
       });
     }
     if (content.includes("initiales + année + symbole") || content.includes("initiales + année importante")) {
@@ -112,6 +146,8 @@ export function MailApp({ window: win }: MailAppProps) {
         category: "password",
         text: "Format MDP : initiales + année + symbole + date + ponctuation",
         source: `Email: ${mail.name}`,
+        ref: { kind: "mail", id: mail.id },
+        highlight: pickPassage(content, "initiales + année + symbole", "initiales + année importante"),
       });
     }
 
@@ -378,7 +414,7 @@ export function MailApp({ window: win }: MailAppProps) {
               </div>
             </div>
             {/* Mail body */}
-            <div className="flex-1 p-6 overflow-auto">
+            <div ref={bodyRef} className="flex-1 p-6 overflow-auto">
               <pre className="text-sm text-white/80 whitespace-pre-wrap font-sans leading-relaxed">
                 {selectedMail.content}
               </pre>

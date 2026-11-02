@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useTextHighlight } from "@/lib/use-text-highlight";
 import { FileText, Save, Printer, Search, Undo, Redo, Copy, Scissors, ClipboardPaste } from "lucide-react";
 import { type WindowState } from "@/lib/game-context";
 import { type FileItem, notes } from "@/lib/game-data";
@@ -19,6 +20,8 @@ export function NotepadApp({ window: win }: NotepadAppProps) {
   const [content, setContent] = useState(initialContent);
   const [isNewFile, setIsNewFile] = useState(!fileContent);
   const { playSound } = useSound();
+  const contentRef = useRef<HTMLDivElement>(null);
+  useTextHighlight(contentRef, win.target?.highlight, win.id);
 
   // If opened without content, show a default notepad
   const isViewMode = !!fileContent;
@@ -121,7 +124,7 @@ export function NotepadApp({ window: win }: NotepadAppProps) {
       </div>
 
       {/* Content area */}
-      <div className="flex-1 overflow-auto">
+      <div ref={contentRef} className="flex-1 overflow-auto">
         {isViewMode ? (
           <pre className="p-4 text-sm text-white/90 whitespace-pre-wrap font-mono leading-relaxed min-h-full">
             {content}

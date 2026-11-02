@@ -33,6 +33,8 @@ export function TrashApp({ window: win }: TrashAppProps) {
           category: "password",
           text: "L'ancien mot de passe était trop simple",
           source: item.name,
+          ref: { kind: "file", id: item.id },
+          highlight: item.content?.includes("ancien") ? "ancien" : "MDP",
         });
       }
       
