@@ -8,17 +8,15 @@ import {
   browserHistory,
   calendarEvents,
   corbeille,
-  deletedMails,
   documents,
   favoriteMails,
-  mails,
   notes,
   photos,
   secretDocuments,
   secretMails,
   sentMails,
-  voiceMessages,
-} from "./game-data";
+  } from "./game-data";
+import { allDeletedMails as deletedMails, allInboxMails as mails, allVoiceMessages as voiceMessages } from "./data/messages";
 import { downloads } from "./data/downloads";
 
 export type SearchCategory = "app" | "file" | "mail" | "voice" | "page" | "event";

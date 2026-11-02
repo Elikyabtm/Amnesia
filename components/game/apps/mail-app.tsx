@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import { useTextHighlight } from "@/lib/use-text-highlight";
 import { baseMailFolder, findMail, pickPassage } from "@/lib/clue-sources";
-import { mails, secretMails, sentMails, favoriteMails, deletedMails, type FileItem } from "@/lib/game-data";
+import { secretMails, sentMails, favoriteMails, type FileItem } from "@/lib/game-data";
+import { allInboxMails as mails, allDeletedMails as deletedMails } from "@/lib/data/messages";
 import { type WindowState, type MailFolderId, useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 

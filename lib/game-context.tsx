@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
-import { SUSPICION_THRESHOLDS, mails, secretMails, favoriteMails, type FileItem } from "./game-data";
+import { SUSPICION_THRESHOLDS, secretMails, favoriteMails, type FileItem } from "./game-data";
+import { allInboxMails } from "./data/messages";
 import { gameNow, birthdayCountdownText } from "./game-clock";
 import { isCatalogClue, UNREACHABLE_CLUES } from "./clue-catalog";
 import { DEFAULT_WALLPAPER } from "./data/wallpapers";
@@ -576,7 +577,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         {
           id: "notif-1",
           title: "Nouveaux messages",
-          message: `Vous avez ${mails.length} emails non lus`,
+          message: `Vous avez ${allInboxMails.length} emails non lus`,
           icon: "mail",
           timestamp: gameNow(),
         },

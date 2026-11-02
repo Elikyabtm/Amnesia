@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Mic, User, Clock, Rewind, FastForward } from "lucide-react";
-import { voiceMessages, type VoiceMessage } from "@/lib/game-data";
+import { type VoiceMessage } from "@/lib/game-data";
+import { allVoiceMessages as voiceMessages } from "@/lib/data/messages";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useTextHighlight } from "@/lib/use-text-highlight";
 import { pickPassage } from "@/lib/clue-sources";

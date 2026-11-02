@@ -22,12 +22,16 @@ export const CLUE_CATALOG: readonly string[] = [
   "Date de mariage : 15 avril 1993",
   "Vous êtes marié à Marie",
   "Vous vivez à Bourg-sur-Mer (BSM)",
+  "Bernard aura 58 ans",
+  "Format MDP : initiales + année + symbole + date + ponctuation",
   // Navigateur
   "Bourg-sur-Mer a été fondée en 1832",
   "Bernard Dupuis est né le 14 avril 1967",
   "Vous êtes Bernard Dupuis, Maire de Bourg-sur-Mer",
   "Le jour du changement de mot de passe, Bernard a cherché comment taper un dièse (#)",
   // Mémos vocaux
+  "Une référence à l'année 1967 dans un message vocal",
+  "Le mot de passe combine la fondation de la ville et la date de naissance",
   "Bernard aura 58 ans - né en 1967",
   "Date importante : mi-avril (anniversaire/mariage)",
   "32 ans de mariage en 2025 (marié en 1993)",
@@ -50,14 +54,9 @@ export const CLUE_CATALOG: readonly string[] = [
   "Le dossier confidentiel contient des secrets compromettants",
 ];
 
-// Détecteurs présents dans le code mais qu'aucun contenu ne déclenche
-// (le texte recherché n'existe dans aucun document). Exclus du total.
-export const UNREACHABLE_CLUES: readonly string[] = [
-  "Bernard aura 58 ans", // Courrier : aucun email ne contient "58 ans"
-  "Format MDP : initiales + année + symbole + date + ponctuation", // Courrier
-  "Une référence à l'année 1967 dans un message vocal", // Mémos vocaux
-  "Le mot de passe combine la fondation de la ville et la date de naissance", // Mémos vocaux
-];
+// Détecteurs qu'aucun contenu ne déclenchait avant la phase 3 : rendus
+// trouvables par les nouveaux contenus (Téléchargements, lib/data/messages.ts).
+export const UNREACHABLE_CLUES: readonly string[] = [];
 
 export const CLUE_TOTAL = CLUE_CATALOG.length;
 

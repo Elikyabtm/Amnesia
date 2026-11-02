@@ -5,18 +5,16 @@ import {
   audioMemos,
   browserHistory,
   corbeille,
-  deletedMails,
   documents,
   favoriteMails,
-  mails,
   notes,
   photos,
   secretDocuments,
   secretMails,
   sentMails,
-  voiceMessages,
   type FileItem,
 } from "./game-data";
+import { allDeletedMails as deletedMails, allInboxMails as mails, allVoiceMessages as voiceMessages } from "./data/messages";
 import { downloads } from "./data/downloads";
 
 export const ALL_FILES: FileItem[] = [...documents, ...photos, ...notes, ...audioMemos, ...corbeille, ...secretDocuments, ...downloads];
