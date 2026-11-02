@@ -26,6 +26,7 @@ import { secretMails, sentMails, favoriteMails, type FileItem } from "@/lib/game
 import { allInboxMails as mails, allDeletedMails as deletedMails } from "@/lib/data/messages";
 import { type WindowState, type MailFolderId, useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
+import { OfflineOverlay } from "../offline-banner";
 
 interface MailAppProps {
   window: WindowState;
@@ -327,6 +328,7 @@ export function MailApp({ window: win }: MailAppProps) {
 
   return (
     <div className="relative flex h-full">
+      <OfflineOverlay app="Le Courrier" />
       {/* Sidebar */}
       <div className="w-52 bg-[#1f1f1f] border-r border-white/10 flex flex-col">
         <div className="p-3">

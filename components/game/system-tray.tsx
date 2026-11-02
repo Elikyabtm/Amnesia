@@ -61,11 +61,16 @@ export function SystemTray() {
     batteryLevel,
     batteryCharging,
     openWindow,
+    networkOnline,
+    setNetworkOnline,
   } = useGame();
   const { playSound, volume, setVolume, isMuted, toggleMute } = useSound();
 
   // Wi-Fi
-  const [connected, setConnected] = useState(WIFI_NETWORKS.find((n) => n.connected)?.ssid ?? null);
+  // Réseau connecté : suit l'état du jeu (coupure Wi-Fi, déconnexion manuelle)
+  const defaultSsid = WIFI_NETWORKS.find((n) => n.connected)?.ssid ?? null;
+  const connected = networkOnline ? defaultSsid : null;
+  const setConnected = (ssid: string | null) => setNetworkOnline(ssid !== null);
   const [wifiMessage, setWifiMessage] = useState<{ ssid: string; text: string } | null>(null);
 
   // Mini-calendrier

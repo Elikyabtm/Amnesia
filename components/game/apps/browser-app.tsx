@@ -7,6 +7,7 @@ import { browserHistory, type BrowserPage } from "@/lib/game-data";
 import { SEARCH_HISTORY, CLUE_SEARCH } from "@/lib/data/browser";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
+import { OfflineOverlay } from "../offline-banner";
 
 // Une entrée d'historique d'onglet : page d'accueil, site, recherche ou page interne
 type BrowserEntry =
@@ -243,7 +244,8 @@ export function BrowserApp({ window: win }: BrowserAppProps) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#1f1f1f]">
+    <div className="relative h-full flex flex-col bg-[#1f1f1f]">
+      <OfflineOverlay app="Le Navigateur" />
       {/* Onglets */}
       <div className="flex items-end gap-1 px-2 pt-1.5 bg-[#252525] overflow-x-auto">
         {tabs.map((tab) => {
