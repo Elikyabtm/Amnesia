@@ -4,6 +4,7 @@
 
 import { audioMemos, corbeille, documents, fileMetadata, notes, photos, secretDocuments, type FileItem } from "./game-data";
 import { downloads } from "./data/downloads";
+import { PLAYLIST } from "./data/music";
 import type { DesktopFolder } from "./game-context";
 
 export const HOME_PATH = "C:\\Users\\BDupuis";
@@ -65,6 +66,12 @@ export function buildFileSystem(state: FileSystemState): VNode {
       },
       { id: "images", name: "Images", kind: "folder", children: photos.map(fileNode) },
       { id: "downloads", name: "Téléchargements", kind: "folder", children: downloads.map(fileNode) },
+      {
+        id: "music",
+        name: "Musique",
+        kind: "folder",
+        children: PLAYLIST.map((t) => fileNode({ id: t.id, name: `${t.artist} - ${t.title}.mp3`, type: "audio" })),
+      },
     ],
   };
 }

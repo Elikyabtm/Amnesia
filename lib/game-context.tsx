@@ -9,7 +9,7 @@ import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator" | "music";
 
 export interface WindowState {
   id: string;
@@ -779,6 +779,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       contacts: "Contacts",
       terminal: "Invite de commandes",
       calculator: "Calculatrice",
+      music: "Musique",
     };
 
     const { position, size } = computeNewWindowRect(windows.length, app);

@@ -38,6 +38,8 @@ export const CLUE_CATALOG: readonly string[] = [
   "Bernard est né la veille de son anniversaire de mariage (15 avril), soit le 14 avril",
   // Calculatrice
   "La Calculatrice associe 1832 à « BSM » : l'année de fondation et les initiales de la ville",
+  // Musique
+  "Bernard aime « toujours finir sur un point d'exclamation ! », même ses mots de passe",
   // Paramètres
   "Le nouveau mot de passe compte 17 caractères, dont 2 symboles",
   // Dossier confidentiel

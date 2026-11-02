@@ -127,6 +127,11 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
         return;
       }
       const file = node.file!;
+      // Morceaux du dossier Musique : ouverts dans le lecteur
+      if (file.type === "audio" && file.id.startsWith("track")) {
+        openWindow("music", undefined, undefined, { id: file.id });
+        return;
+      }
       if (file.type === "image") openWindow("photos", file.name, file);
       else openWindow("notepad", file.name, file);
       detectClues(file);

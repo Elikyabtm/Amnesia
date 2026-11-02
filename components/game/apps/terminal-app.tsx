@@ -155,7 +155,7 @@ export function TerminalApp({ window: win }: TerminalAppProps) {
     const parent = resolved[resolved.length - 2];
     if (node.kind === "folder") return [{ text: "Accès refusé.", kind: "error" }];
     if (parent?.lockId && isItemLocked(parent.lockId)) return [{ text: "Accès refusé.", kind: "error" }];
-    if (node.file?.type === "image") return [{ text: `${node.name} : fichier binaire. Utilisez « start ${node.name} » pour l'ouvrir.`, kind: "muted" }];
+    if (node.file?.type === "image" || (node.file?.type === "audio" && !node.file.content)) return [{ text: `${node.name} : fichier binaire. Utilisez « start ${node.name} » pour l'ouvrir.`, kind: "muted" }];
     if (node.file) detectClues(node.file);
     if (node.id === TERMINAL_SECRETS.hiddenFile.id) {
       addSuspicion({ type: "sensitive_file", amount: 15, message: "Lecture d'un fichier caché" });
@@ -177,6 +177,10 @@ export function TerminalApp({ window: win }: TerminalAppProps) {
     const node = resolved[resolved.length - 1];
     if (node.kind === "folder") {
       openWindow("explorer", node.name, undefined, node.id.startsWith("folder-") ? { id: `desktop-folder:${node.id}` } : undefined);
+      return [];
+    }
+    if (node.file?.type === "audio" && node.file.id.startsWith("track")) {
+      openWindow("music", undefined, undefined, { id: node.file.id });
       return [];
     }
     if (node.file) {

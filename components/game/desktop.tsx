@@ -20,6 +20,7 @@ import { SettingsApp } from "./apps/settings-app";
 import { ContactsApp } from "./apps/contacts-app";
 import { TerminalApp } from "./apps/terminal-app";
 import { CalculatorApp } from "./apps/calculator-app";
+import { MusicApp } from "./apps/music-app";
 import { RandomEvents } from "./random-events";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
@@ -53,6 +54,7 @@ export function Desktop() {
             {win.app === "contacts" && <ContactsApp window={win} />}
             {win.app === "terminal" && <TerminalApp window={win} />}
             {win.app === "calculator" && <CalculatorApp />}
+            {win.app === "music" && <MusicApp window={win} />}
           </Window>
         ))}
 
