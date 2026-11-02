@@ -48,6 +48,8 @@ export const CLUE_CATALOG: readonly string[] = [
   "Pense-bête dans Paint : sur le clavier, le dièse (#) se tape avec AltGr + 3",
   // Démineur
   "Les records du Démineur sont signés « BSM », les initiales de Bourg-sur-Mer",
+  // Appel de Marie (événement, réponse « fatigué »)
+  "Marie se souvient : dans son mot de passe, Bernard a mis « sa ville avant sa naissance »",
   // Paramètres
   "Le nouveau mot de passe compte 17 caractères, dont 2 symboles",
   // Dossier confidentiel

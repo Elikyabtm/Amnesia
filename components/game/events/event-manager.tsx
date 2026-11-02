@@ -181,9 +181,14 @@ export function EventManager() {
   const def = active ? EVENT_REGISTRY[active.id] : undefined;
 
   const onSuccess = useCallback(() => {
+    // Un événement sans échec possible (appel de Marie) se termine directement
+    if (def && !def.canFail) {
+      finish("success");
+      return;
+    }
     playSound("success");
     setActive((a) => (a ? { ...a, stage: "success" } : a));
-  }, [playSound, setActive]);
+  }, [playSound, setActive, def, finish]);
 
   const onFail = useCallback(
     (reason: string) => {
