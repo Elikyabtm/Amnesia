@@ -20,6 +20,7 @@ import {
   SKIP_PENALTY,
 } from "@/lib/events/config";
 import { EVENT_REGISTRY, type EventOutcome } from "./event-registry";
+import { availableSecurityQuestions } from "@/lib/data/security-questions";
 import "./events"; // enregistre tous les événements
 
 type Stage = "intro" | "playing" | "failed" | "success";
@@ -150,7 +151,10 @@ export function useEventScheduler() {
       if (!canStart) return;
       const candidates: GameEventId[] = [];
       if (level <= 0) candidates.push("battery");
-      if (clues.length >= SECURITY_QUESTIONS_AFTER_CLUES) candidates.push("security");
+      // Questions de sécurité : seulement si les indices trouvés permettent d'en poser 3
+      if (clues.length >= SECURITY_QUESTIONS_AFTER_CLUES && availableSecurityQuestions(clues.map((c) => c.text)).length >= 3) {
+        candidates.push("security");
+      }
       if (elapsed >= MARIE_CALL_AT_MS) candidates.push("marie");
       for (const p of s.plan) if (elapsed >= p.at) candidates.push(p.id);
       const next = candidates.find((id) => EVENT_REGISTRY[id] && !isDone(id));
@@ -159,7 +163,7 @@ export function useEventScheduler() {
     tick();
     const t = setInterval(tick, 1000);
     return () => clearInterval(t);
-  }, [gamePhase, eventsState, active, getElapsedMs, passwordBusy, clues.length, batteryLevel, setBatteryLevel, addNotification, setEventsState, start, debugBattery]);
+  }, [gamePhase, eventsState, active, getElapsedMs, passwordBusy, clues, batteryLevel, setBatteryLevel, addNotification, setEventsState, start, debugBattery]);
 
   return { active, setActive, start, finish, setDebugBattery, debugBattery };
 }
