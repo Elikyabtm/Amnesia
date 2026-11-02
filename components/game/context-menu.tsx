@@ -88,12 +88,12 @@ export function ContextMenuProvider({ children }: ContextMenuProps) {
       divider: true
     },
     { 
-      label: "Parametres d'affichage", 
+      label: "Paramètres d'affichage", 
       icon: Settings, 
       action: () => {} 
     },
     { 
-      label: "Proprietes", 
+      label: "Propriétés", 
       icon: Info, 
       action: () => {} 
     },
@@ -123,7 +123,7 @@ export function ContextMenuProvider({ children }: ContextMenuProps) {
       divider: true
     },
     { 
-      label: "Proprietes", 
+      label: "Propriétés", 
       icon: Info, 
       action: () => {} 
     },

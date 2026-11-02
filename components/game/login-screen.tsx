@@ -86,13 +86,13 @@ export function LoginScreen() {
             onClick={handleEnter}
             className="flex items-center gap-3 px-8 py-3 bg-white/10 backdrop-blur-md rounded-sm border border-white/20 text-white hover:bg-white/20 transition-all group"
           >
-            <span>Acceder au bureau</span>
+            <span>Accéder au bureau</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
 
           {/* Hint text */}
           <p className="text-white/50 text-sm mt-6 max-w-md text-center">
-            Explorez les fichiers pour decouvrir qui vous etes et retrouver votre mot de passe...
+            Explorez les fichiers pour découvrir qui vous êtes et retrouver votre mot de passe...
           </p>
         </div>
       </div>
@@ -100,7 +100,7 @@ export function LoginScreen() {
       {/* Bottom hint */}
       <div className="relative z-10 p-6 text-center">
         <p className="text-white/60 text-sm">
-          Cliquez pour commencer votre enquete
+          Cliquez pour commencer votre enquête
         </p>
       </div>
     </div>

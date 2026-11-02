@@ -9,35 +9,35 @@ import { gameNow } from "@/lib/game-clock";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MONTHS = [
-  "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre"
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
 
 // Extended event data for detail view
 const eventDetails: Record<string, { time?: string; location?: string; description?: string }> = {
   "Anniversaire Bernard - 58 ans": {
-    time: "Toute la journee",
-    description: "Joyeux anniversaire ! Vous feterez vos 58 ans. Ne en 1967, vous avez parcouru un long chemin...",
+    time: "Toute la journée",
+    description: "Joyeux anniversaire ! Vous fêterez vos 58 ans. Né en 1967, vous avez parcouru un long chemin...",
   },
   "Anniversaire de mariage - 32 ans": {
     time: "19h00",
     location: "Restaurant Le Phare",
-    description: "32 ans de mariage avec Marie. Reservation faite au restaurant.",
+    description: "32 ans de mariage avec Marie. Réservation faite au restaurant.",
   },
-  "Inauguration Square Leon Blum": {
+  "Inauguration Square Léon Blum": {
     time: "15h00",
-    location: "Square Leon Blum, Centre-ville",
-    description: "Ceremonie officielle en presence du Prefet. Ne pas oublier l'echarpe tricolore.",
+    location: "Square Léon Blum, Centre-ville",
+    description: "Cérémonie officielle en présence du Préfet. Ne pas oublier l'écharpe tricolore.",
   },
-  "Exposition Musee Maritime": {
+  "Exposition Musée Maritime": {
     time: "18h00",
-    location: "Musee Maritime de Bourg-sur-Mer",
-    description: "Inauguration de l'exposition 'Memoires de la Mer - 1832-2025'. Discours prevu.",
+    location: "Musée Maritime de Bourg-sur-Mer",
+    description: "Inauguration de l'exposition 'Mémoires de la Mer - 1832-2025'. Discours prévu.",
   },
   "RDV Cardiologue 14h": {
     time: "14h00",
-    location: "Cabinet Dr. Martin, 15 rue de la Sante",
-    description: "Visite de controle annuelle. Penser a apporter les derniers resultats d'analyse.",
+    location: "Cabinet Dr. Martin, 15 rue de la Santé",
+    description: "Visite de contrôle annuelle. Penser à apporter les derniers résultats d'analyse.",
   },
 };
 
@@ -102,7 +102,7 @@ export function CalendarApp() {
     if (event.event.includes("58 ans")) {
       addClue({
         category: "date",
-        text: "L'anniversaire de Bernard est le 14 avril, il aura 58 ans (ne en 1967)",
+        text: "L'anniversaire de Bernard est le 14 avril, il aura 58 ans (né en 1967)",
         source: "Calendrier",
       });
     }
@@ -208,7 +208,7 @@ export function CalendarApp() {
         {/* Events list */}
         <div className="flex-1 overflow-auto">
           <div className="p-3">
-            <h3 className="text-xs text-white/50 font-medium mb-3 uppercase tracking-wider">Tous les evenements</h3>
+            <h3 className="text-xs text-white/50 font-medium mb-3 uppercase tracking-wider">Tous les événements</h3>
             <div className="space-y-2">
               {calendarEvents.map((event, index) => (
                 <button 

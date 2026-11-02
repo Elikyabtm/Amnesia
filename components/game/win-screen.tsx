@@ -69,7 +69,7 @@ export function WinScreen() {
       borderColor: "border-amber-500/30",
     },
     detective: {
-      title: "Fin : Le Detective",
+      title: "Fin : Le Détective",
       subtitle: "Vous avez tout découvert.",
       description: "Corruption, menaces, comptes offshore... Vous connaissez maintenant la vérité sur Bernard Dupuis. La question est : qu'allez-vous faire de ces informations ?",
       icon: FileWarning,

@@ -31,7 +31,7 @@ export function NotepadApp({ window: win }: NotepadAppProps) {
           Fichier
         </button>
         <button className="px-3 py-1 text-white/70 hover:bg-white/10 rounded transition-colors">
-          Edition
+          Édition
         </button>
         <button className="px-3 py-1 text-white/70 hover:bg-white/10 rounded transition-colors">
           Format

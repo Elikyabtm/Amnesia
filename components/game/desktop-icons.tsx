@@ -22,7 +22,7 @@ const defaultIcons: DesktopIconData[] = [
   { id: "calendar", icon: Calendar, label: "Calendrier", color: "#dc2626" },
   { id: "clues", icon: BookOpen, label: "Indices", color: "#f97316" },
   { id: "trash", icon: Trash2, label: "Corbeille", color: "#6b7280" },
-  { id: "password", icon: Lock, label: "Deverrouiller", color: "#22c55e" },
+  { id: "password", icon: Lock, label: "Déverrouiller", color: "#22c55e" },
 ];
 
 interface IconPosition {

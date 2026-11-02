@@ -347,7 +347,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       notepad: "Bloc-notes",
       calendar: "Calendrier",
       trash: "Corbeille",
-      password: "Deverrouiller",
+      password: "Déverrouiller",
       browser: "Navigateur",
       clues: "Carnet d'indices",
       audio: "Lecteur audio",

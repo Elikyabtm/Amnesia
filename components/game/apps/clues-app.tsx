@@ -19,7 +19,7 @@ const ADMIN_HINTS = [
 ];
 
 const categoryConfig = {
-  identity: { label: "Identite", icon: User, color: "#0078d4" },
+  identity: { label: "Identité", icon: User, color: "#0078d4" },
   date: { label: "Dates", icon: Calendar, color: "#dc2626" },
   place: { label: "Lieux", icon: MapPin, color: "#00a86b" },
   password: { label: "Mot de passe", icon: Key, color: "#f59e0b" },
@@ -62,7 +62,7 @@ export function CluesApp() {
           </div>
           <div>
             <h2 className="text-lg font-medium text-white">Carnet d'indices</h2>
-            <p className="text-sm text-white/50">{clues.length} indice{clues.length > 1 ? "s" : ""} decouvert{clues.length > 1 ? "s" : ""}</p>
+            <p className="text-sm text-white/50">{clues.length} indice{clues.length > 1 ? "s" : ""} découvert{clues.length > 1 ? "s" : ""}</p>
           </div>
         </div>
 
@@ -122,16 +122,16 @@ export function CluesApp() {
         {clues.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white/40">
             <Lightbulb className="w-12 h-12 mb-4 opacity-50" />
-            <p className="text-center">Aucun indice decouvert</p>
+            <p className="text-center">Aucun indice découvert</p>
             <p className="text-sm text-center mt-2">
               Explorez les fichiers, emails et photos<br />
-              pour decouvrir des indices sur votre identite
+              pour découvrir des indices sur votre identité
             </p>
           </div>
         ) : filteredClues.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white/40">
             <Search className="w-12 h-12 mb-4 opacity-50" />
-            <p>Aucun resultat trouve</p>
+            <p>Aucun résultat trouvé</p>
           </div>
         ) : (
           <div className="space-y-6">

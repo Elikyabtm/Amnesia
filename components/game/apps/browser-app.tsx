@@ -30,24 +30,24 @@ export function BrowserApp() {
   };
 
   const detectClues = (page: BrowserPage) => {
-    if (page.content.includes("1832") && page.content.includes("Fondee")) {
+    if (page.content.includes("1832") && page.content.includes("Fondée")) {
       addClue({
         category: "place",
-        text: "Bourg-sur-Mer a ete fondee en 1832",
+        text: "Bourg-sur-Mer a été fondée en 1832",
         source: page.title,
       });
     }
     if (page.content.includes("14 avril 1967") || page.content.includes("14/04/1967")) {
       addClue({
         category: "date",
-        text: "Bernard Dupuis est ne le 14 avril 1967",
+        text: "Bernard Dupuis est né le 14 avril 1967",
         source: page.title,
       });
     }
     if (page.content.includes("Bernard Dupuis") && page.content.includes("Maire")) {
       addClue({
         category: "identity",
-        text: "Vous etes Bernard Dupuis, Maire de Bourg-sur-Mer",
+        text: "Vous êtes Bernard Dupuis, Maire de Bourg-sur-Mer",
         source: page.title,
       });
     }
@@ -218,7 +218,7 @@ function BrowserHomePage({ onNavigate }: { onNavigate: (page: BrowserPage) => vo
         <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
           <div className="flex items-center gap-2 p-4 border-b border-white/10">
             <Clock className="w-4 h-4 text-white/50" />
-            <span className="text-sm text-white/70 font-medium">Historique recent</span>
+            <span className="text-sm text-white/70 font-medium">Historique récent</span>
           </div>
           <div className="divide-y divide-white/5">
             {browserHistory.map((page) => (
@@ -281,18 +281,18 @@ function MairieSiteHistoire({ page, onNavigate }: { page: BrowserPage; onNavigat
             
             <div className="prose prose-sm">
               <p className="text-gray-600 leading-relaxed mb-4">
-                Fondee en <strong className="text-[#003366]">1832</strong>, Bourg-sur-Mer est une commune cotiere du littoral francais 
+                Fondée en <strong className="text-[#003366]">1832</strong>, Bourg-sur-Mer est une commune côtière du littoral français 
                 reconnue pour son riche patrimoine maritime et son histoire unique.
               </p>
 
-              <h3 className="text-lg font-semibold text-[#003366] mt-6 mb-3">Dates Cles</h3>
+              <h3 className="text-lg font-semibold text-[#003366] mt-6 mb-3">Dates Clés</h3>
               <div className="space-y-3">
                 {[
                   { year: "1832", event: "Fondation officielle de la commune" },
                   { year: "1856", event: "Construction du premier phare" },
-                  { year: "1902", event: "Inauguration du port de peche" },
-                  { year: "1967", event: "Ouverture du Musee Maritime" },
-                  { year: "2015", event: "Election de Bernard Dupuis comme maire" },
+                  { year: "1902", event: "Inauguration du port de pêche" },
+                  { year: "1967", event: "Ouverture du Musée Maritime" },
+                  { year: "2015", event: "Élection de Bernard Dupuis comme maire" },
                 ].map((item) => (
                   <div key={item.year} className="flex gap-4 items-start">
                     <span className="px-3 py-1 bg-[#003366] text-white text-sm rounded font-medium">{item.year}</span>
@@ -313,7 +313,7 @@ function MairieSiteHistoire({ page, onNavigate }: { page: BrowserPage; onNavigat
                 </div>
                 <div className="flex items-center gap-2 text-gray-600">
                   <MapPin className="w-4 h-4 text-[#003366]" />
-                  <span>Littoral francais</span>
+                  <span>Littoral français</span>
                 </div>
                 <div className="flex items-start gap-2 text-gray-600">
                   <Building className="w-4 h-4 text-[#003366] mt-0.5" />
@@ -358,7 +358,7 @@ function MairieSiteEquipe({ page, onNavigate }: { page: BrowserPage; onNavigate:
 
       {/* Content */}
       <div className="max-w-5xl mx-auto px-6 py-8">
-        <h2 className="text-2xl font-bold text-[#003366] mb-6">L'Equipe Municipale</h2>
+        <h2 className="text-2xl font-bold text-[#003366] mb-6">L'Équipe Municipale</h2>
         
         {/* Mayor card */}
         <div className="bg-gradient-to-r from-[#003366] to-[#004488] rounded-xl p-6 text-white mb-8">
@@ -370,11 +370,11 @@ function MairieSiteEquipe({ page, onNavigate }: { page: BrowserPage; onNavigate:
               <span className="text-xs uppercase tracking-wider text-white/60">Maire</span>
               <h3 className="text-2xl font-bold mb-2">Bernard Dupuis</h3>
               <p className="text-white/80 text-sm mb-4">
-                Ne le <strong>14 avril 1967</strong> a Bourg-sur-Mer<br />
-                Elu maire en 2015, reelu en 2020
+                Né le <strong>14 avril 1967</strong> à Bourg-sur-Mer<br />
+                Élu maire en 2015, réélu en 2020
               </p>
               <blockquote className="italic text-white/70 border-l-2 border-[#f4c542] pl-4 text-sm">
-                "Je suis ne dans cette ville, j'y ai grandi, et j'ai l'honneur de la servir aujourd'hui."
+                "Je suis né dans cette ville, j'y ai grandi, et j'ai l'honneur de la servir aujourd'hui."
               </blockquote>
             </div>
           </div>
@@ -386,10 +386,10 @@ function MairieSiteEquipe({ page, onNavigate }: { page: BrowserPage; onNavigate:
             <h4 className="font-semibold text-[#003366] mb-4">Parcours</h4>
             <div className="space-y-3 text-sm">
               {[
-                { year: "1989", text: "Diplome de Sciences Politiques" },
+                { year: "1989", text: "Diplômé de Sciences Politiques" },
                 { year: "1993", text: "Conseiller municipal" },
                 { year: "2008", text: "Premier adjoint" },
-                { year: "2015", text: "Elu maire" },
+                { year: "2015", text: "Élu maire" },
               ].map((item) => (
                 <div key={item.year} className="flex gap-3">
                   <span className="font-medium text-[#003366]">{item.year}</span>
@@ -400,15 +400,15 @@ function MairieSiteEquipe({ page, onNavigate }: { page: BrowserPage; onNavigate:
           </div>
 
           <div className="bg-[#f5f5f5] rounded-lg p-6">
-            <h4 className="font-semibold text-[#003366] mb-4">Priorites du Mandat</h4>
+            <h4 className="font-semibold text-[#003366] mb-4">Priorités du Mandat</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#003366]" />
-                Preservation du patrimoine maritime
+                Préservation du patrimoine maritime
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#003366]" />
-                Developpement du tourisme culturel
+                Développement du tourisme culturel
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#003366]" />
@@ -429,7 +429,7 @@ function MuseeSite({ page }: { page: BrowserPage }) {
       {/* Hero */}
       <div className="bg-gradient-to-b from-[#0a3d62] to-[#1a1a1a] text-white py-12">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl font-light mb-2">Musee Maritime</h1>
+          <h1 className="text-4xl font-light mb-2">Musée Maritime</h1>
           <p className="text-white/60">de Bourg-sur-Mer</p>
         </div>
       </div>
@@ -439,7 +439,7 @@ function MuseeSite({ page }: { page: BrowserPage }) {
         {/* Current exhibition */}
         <div className="bg-gradient-to-r from-[#0a3d62] to-[#0d4d76] rounded-xl p-8 text-white mb-8">
           <span className="text-xs uppercase tracking-wider text-white/60">Exposition actuelle</span>
-          <h2 className="text-2xl font-light mt-2 mb-4">"Memoires de la Mer - 1832-2025"</h2>
+          <h2 className="text-2xl font-light mt-2 mb-4">"Mémoires de la Mer - 1832-2025"</h2>
           <p className="text-white/80 mb-4">
             Cette exposition retrace l'histoire maritime de notre ville depuis sa fondation en <strong>1832</strong>.
           </p>
@@ -474,7 +474,7 @@ function MuseeSite({ page }: { page: BrowserPage }) {
                 <span>8 euros</span>
               </div>
               <div className="flex justify-between text-white/80">
-                <span>Etudiants</span>
+                <span>Étudiants</span>
                 <span>5 euros</span>
               </div>
               <div className="flex justify-between text-white/50">
@@ -488,7 +488,7 @@ function MuseeSite({ page }: { page: BrowserPage }) {
         {/* Inauguration notice */}
         <div className="mt-6 bg-[#f4c542]/10 border border-[#f4c542]/30 rounded-xl p-4 text-center">
           <p className="text-[#f4c542] text-sm">
-            <strong>Inauguration officielle :</strong> Le 3 mars 2025 a 18h en presence de M. le Maire Bernard Dupuis
+            <strong>Inauguration officielle :</strong> Le 3 mars 2025 à 18h en présence de M. le Maire Bernard Dupuis
           </p>
         </div>
       </div>
@@ -525,13 +525,13 @@ function PagesJaunesSite({ page }: { page: BrowserPage }) {
 
           {/* Details */}
           <div className="p-6">
-            <h3 className="font-semibold text-gray-800 mb-4">Coordonnees</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">Coordonnées</h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-[#003366] mt-0.5" />
                 <div>
                   <p className="text-gray-800">Mairie de Bourg-sur-Mer</p>
-                  <p className="text-gray-600 text-sm">12 Place de la Republique</p>
+                  <p className="text-gray-600 text-sm">12 Place de la République</p>
                   <p className="text-gray-600 text-sm">33120 Bourg-sur-Mer</p>
                 </div>
               </div>
@@ -547,7 +547,7 @@ function PagesJaunesSite({ page }: { page: BrowserPage }) {
 
             <hr className="my-6" />
 
-            <h3 className="font-semibold text-gray-800 mb-4">Informations complementaires</h3>
+            <h3 className="font-semibold text-gray-800 mb-4">Informations complémentaires</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="bg-[#f5f5f5] rounded-lg p-4">
                 <span className="text-gray-500 block mb-1">Date de naissance</span>

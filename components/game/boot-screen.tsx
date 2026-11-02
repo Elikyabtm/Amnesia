@@ -66,7 +66,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
 
       {phase === "logo" && (
         <div className="text-white/80 text-lg animate-pulse">
-          Demarrage...
+          Démarrage...
         </div>
       )}
 
@@ -86,7 +86,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
             ))}
           </div>
           <div className="text-white/60 text-sm mt-4">
-            Preparation de votre session...
+            Préparation de votre session...
           </div>
           {/* Progress bar (subtle) */}
           <div className="w-48 h-0.5 bg-white/20 rounded-full overflow-hidden mt-2">
@@ -104,7 +104,7 @@ export function BootScreen({ onComplete }: BootScreenProps) {
             Bienvenue
           </div>
           <div className="text-white/60">
-            Preparation du bureau...
+            Préparation du bureau...
           </div>
         </div>
       )}
