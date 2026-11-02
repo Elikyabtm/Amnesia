@@ -41,7 +41,9 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
     setPan({ x: 0, y: 0 });
   };
   // Nouvelle photo affichée : zoom remis à 100 %
-  useEffect(() => resetZoom(), [selectedPhoto?.id]);
+  useEffect(() => {
+    resetZoom();
+  }, [selectedPhoto?.id]);
   const infoRef = useRef<HTMLDivElement>(null);
   useTextHighlight(
     infoRef,

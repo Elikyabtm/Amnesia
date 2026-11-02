@@ -21,10 +21,9 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
-import { secretDocuments, type FileItem } from "@/lib/game-data";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
-import { pickPassage } from "@/lib/clue-sources";
+import { useFileClueDetector } from "@/lib/use-file-clue-detector";
 import { buildFileSystem, fileDetails, fileSize, fileTypeLabel, findPath, pathToString, type VNode } from "@/lib/filesystem";
 import { FolderLockDialog } from "../folder-lock-dialog";
 import { ContextMenu, type ContextMenuItem } from "../context-menu";
@@ -43,7 +42,7 @@ const QUICK_ACCESS: { id: string; label: string; icon: typeof Folder }[] = [
 ];
 
 export function FileExplorer({ window: win }: FileExplorerProps) {
-  const { openWindow, addClue, addSuspicion, discoverSecret, accountLevel, isItemLocked, desktopFolders, trashRestoredIds, userFiles } = useGame();
+  const { openWindow, addSuspicion, accountLevel, isItemLocked, desktopFolders, trashRestoredIds, userFiles } = useGame();
   const { playSound } = useSound();
 
   const root = useMemo(
@@ -70,84 +69,7 @@ export function FileExplorer({ window: win }: FileExplorerProps) {
   const items = current.children ?? [];
   const selected = items.find((n) => n.id === selectedId) ?? null;
 
-  const detectClues = useCallback((item: FileItem) => {
-    const content = item.content || "";
-    
-    if (content.includes("14 avril 1967") || content.includes("jour de ma naissance")) {
-      addClue({
-        category: "date",
-        text: "Date de naissance : 14 avril 1967",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: pickPassage(content, "14 avril 1967", "jour de ma naissance"),
-      });
-    }
-    if (content.includes("1832") && (content.includes("Bourg") || content.includes("fondation"))) {
-      addClue({
-        category: "place",
-        text: "Bourg-sur-Mer fondée en 1832",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: "1832",
-      });
-    }
-    if (content.includes("Maire") || content.includes("maire")) {
-      addClue({
-        category: "identity",
-        text: "Vous êtes le Maire de Bourg-sur-Mer",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: pickPassage(content, "Maire", "maire"),
-      });
-    }
-    if (content.includes("fondation ville") && content.includes("date naissance")) {
-      addClue({
-        category: "password",
-        text: "Format du mot de passe : [fondation ville] + [date naissance]",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: "fondation ville",
-      });
-    }
-    if (content.includes("Bourg1832")) {
-      addClue({
-        category: "password",
-        text: "L'ancien mot de passe était 'Bourg1832' - trop simple",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: "Bourg1832",
-      });
-    }
-    if (content.includes("Bernard Dupuis")) {
-      addClue({
-        category: "identity",
-        text: "Votre nom est Bernard Dupuis",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: "Bernard Dupuis",
-      });
-    }
-
-    if (content.includes("BSM")) {
-      addClue({
-        category: "place",
-        text: "BSM = initiales de Bourg-sur-Mer",
-        source: item.name,
-        ref: { kind: "file", id: item.id },
-        highlight: "BSM",
-      });
-    }
-
-    // Secret files raise suspicion and count toward the ending
-    if (secretDocuments.some((d) => d.id === item.id)) {
-      addSuspicion({
-        type: "sensitive_file",
-        amount: 15,
-        message: `Accès au fichier sensible: ${item.name}`,
-      });
-      discoverSecret(item.id);
-    }
-  }, [addClue, addSuspicion, discoverSecret]);
+  const detectClues = useFileClueDetector();
 
   const navigate = useCallback(
     (id: string, opts: { fromHistory?: boolean } = {}) => {

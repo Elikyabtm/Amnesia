@@ -51,7 +51,9 @@ export function SearchPanel({ open, onClose, toggleRef }: SearchPanelProps) {
   }, [query, accountLevel, confidentialUnlocked, listenedVoiceIds, trashRestoredIds, trashEmptied]);
   const flat = groups.flatMap((g) => g.items);
 
-  useEffect(() => setSelected(0), [query]);
+  useEffect(() => {
+    setSelected(0);
+  }, [query]);
 
   useEffect(() => {
     if (!open) {

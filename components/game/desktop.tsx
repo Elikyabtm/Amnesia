@@ -18,6 +18,7 @@ import { CluesApp } from "./apps/clues-app";
 import { AudioApp } from "./apps/audio-app";
 import { SettingsApp } from "./apps/settings-app";
 import { ContactsApp } from "./apps/contacts-app";
+import { TerminalApp } from "./apps/terminal-app";
 import { RandomEvents } from "./random-events";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
@@ -49,6 +50,7 @@ export function Desktop() {
             {win.app === "audio" && <AudioApp window={win} />}
             {win.app === "settings" && <SettingsApp window={win} />}
             {win.app === "contacts" && <ContactsApp window={win} />}
+            {win.app === "terminal" && <TerminalApp window={win} />}
           </Window>
         ))}
 
