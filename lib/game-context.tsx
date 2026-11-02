@@ -93,6 +93,36 @@ interface GameContextType {
   lockoutRemaining: number;
 }
 
+const TASKBAR_HEIGHT = 48;
+const WINDOW_CASCADE_STEP = 28;
+const WINDOW_CASCADE_SLOTS = 6;
+
+/**
+ * Taille et position d'une nouvelle fenêtre : centrée, ~70 % de la largeur et
+ * ~75 % de la hauteur de l'écran, avec un léger décalage en cascade pour
+ * chaque fenêtre déjà ouverte.
+ */
+function computeNewWindowRect(openCount: number) {
+  const viewportW = typeof window !== "undefined" ? window.innerWidth : 1280;
+  const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
+  const availableH = viewportH - TASKBAR_HEIGHT;
+
+  const width = Math.min(viewportW, Math.max(480, Math.round(viewportW * 0.7)));
+  const height = Math.min(availableH, Math.max(360, Math.round(viewportH * 0.75)));
+
+  const offset = (openCount % WINDOW_CASCADE_SLOTS) * WINDOW_CASCADE_STEP;
+  const x = Math.round((viewportW - width) / 2) + offset;
+  const y = Math.round((availableH - height) / 2) + offset;
+
+  return {
+    size: { width, height },
+    position: {
+      x: Math.max(0, Math.min(x, viewportW - width)),
+      y: Math.max(0, Math.min(y, availableH - height)),
+    },
+  };
+}
+
 let notifSeq = 0;
 const notifId = () => `notif-${Date.now()}-${++notifSeq}`;
 
@@ -353,8 +383,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       audio: "Lecteur audio",
     };
 
-    const offset = (windows.length % 5) * 30;
-    
+    const { position, size } = computeNewWindowRect(windows.length);
+
     const newWindow: WindowState = {
       id,
       app,
@@ -362,8 +392,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       isMinimized: false,
       isMaximized: false,
       zIndex: maxZIndex + 1,
-      position: { x: 100 + offset, y: 50 + offset },
-      size: { width: 800, height: 550 },
+      position,
+      size,
       content,
     };
 
@@ -393,8 +423,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return {
             ...win,
             isMaximized: false,
-            position: win.prevPosition || { x: 100, y: 50 },
-            size: win.prevSize || { width: 800, height: 550 },
+            position: win.prevPosition || computeNewWindowRect(0).position,
+            size: win.prevSize || computeNewWindowRect(0).size,
           };
         } else {
           // Maximize
@@ -404,7 +434,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             prevPosition: win.position,
             prevSize: win.size,
             position: { x: 0, y: 0 },
-            size: { width: window.innerWidth, height: window.innerHeight - 48 },
+            size: { width: window.innerWidth, height: window.innerHeight - TASKBAR_HEIGHT },
           };
         }
       })
