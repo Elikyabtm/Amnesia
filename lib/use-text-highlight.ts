@@ -40,7 +40,7 @@ function syncRegistry() {
 const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, " ");
 
 /** Cherche `text` (insensible à la casse et aux espaces) dans `root`, même à cheval sur plusieurs nœuds. */
-function findRange(root: HTMLElement, text: string): Range | null {
+function findRange(root: HTMLElement, text: string, occurrence = 0): Range | null {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes: Text[] = [];
   let full = "";
@@ -64,7 +64,8 @@ function findRange(root: HTMLElement, text: string): Range | null {
     }
     map.push(i);
   }
-  const idx = norm.indexOf(normalize(text));
+  let idx = norm.indexOf(normalize(text));
+  for (let k = 0; k < occurrence && idx >= 0; k++) idx = norm.indexOf(normalize(text), idx + 1);
   if (idx < 0) return null;
   const startReal = map[idx];
   const endReal = map[idx + normalize(text).length - 1] + 1;
@@ -93,7 +94,9 @@ export function useTextHighlight(
   containerRef: RefObject<HTMLElement | null>,
   text: string | string[] | undefined,
   ownerId: string,
-  deps: unknown[] = []
+  deps: unknown[] = [],
+  /** Surligne la n-ième occurrence (0 = la première) */
+  occurrence = 0
 ) {
   useEffect(() => {
     if (!text) return;
@@ -107,7 +110,7 @@ export function useTextHighlight(
       const candidates = Array.isArray(text) ? text : [text];
       let range: Range | null = null;
       for (const candidate of candidates) {
-        range = findRange(root, candidate);
+        range = findRange(root, candidate, occurrence);
         if (range) break;
       }
       if (!range) return false;
@@ -138,5 +141,5 @@ export function useTextHighlight(
       syncRegistry();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [Array.isArray(text) ? text.join("\u0000") : text, ownerId, ...deps]);
+  }, [Array.isArray(text) ? text.join("\u0000") : text, ownerId, occurrence, ...deps]);
 }

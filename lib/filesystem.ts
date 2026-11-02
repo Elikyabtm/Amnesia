@@ -29,6 +29,8 @@ export const TRASH_ORIGIN: Record<string, "documents" | "notes"> = {
 export interface FileSystemState {
   desktopFolders: DesktopFolder[];
   trashRestoredIds: string[];
+  /** Documents créés par le joueur dans le Bloc-notes */
+  userFiles?: FileItem[];
 }
 
 const fileNode = (file: FileItem): VNode => ({ id: file.id, name: file.name, kind: "file", file });
@@ -58,6 +60,7 @@ export function buildFileSystem(state: FileSystemState): VNode {
           { id: "confidential", name: "Dossier Confidentiel", kind: "folder", lockId: "confidential", children: secretDocuments.map(fileNode) },
           ...documents.map(fileNode),
           ...restoredIn("documents"),
+          ...(state.userFiles ?? []).map(fileNode),
         ],
       },
       { id: "images", name: "Images", kind: "folder", children: photos.map(fileNode) },

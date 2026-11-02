@@ -27,6 +27,7 @@ export interface SaveData {
   seenNotificationIds?: string[];
   trash?: { restored: string[]; emptied: boolean };
   browserBookmarks?: string[];
+  userFiles?: FileItem[];
   mail?: {
     folderOverrides: Record<string, MailFolderId>;
     starred: string[];

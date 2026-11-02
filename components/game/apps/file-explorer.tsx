@@ -43,10 +43,13 @@ const QUICK_ACCESS: { id: string; label: string; icon: typeof Folder }[] = [
 ];
 
 export function FileExplorer({ window: win }: FileExplorerProps) {
-  const { openWindow, addClue, addSuspicion, discoverSecret, accountLevel, isItemLocked, desktopFolders, trashRestoredIds } = useGame();
+  const { openWindow, addClue, addSuspicion, discoverSecret, accountLevel, isItemLocked, desktopFolders, trashRestoredIds, userFiles } = useGame();
   const { playSound } = useSound();
 
-  const root = useMemo(() => buildFileSystem({ desktopFolders, trashRestoredIds }), [desktopFolders, trashRestoredIds]);
+  const root = useMemo(
+    () => buildFileSystem({ desktopFolders, trashRestoredIds, userFiles }),
+    [desktopFolders, trashRestoredIds, userFiles]
+  );
 
   // Ouvert depuis un dossier du bureau : on y va directement
   const initialFolder = win.target?.id.startsWith("desktop-folder:") ? win.target.id.slice("desktop-folder:".length) : "documents";

@@ -126,6 +126,9 @@ interface GameContextType {
   createDesktopFolder: () => string;
   renameDesktopFolder: (id: string, name: string) => void;
   deleteDesktopFolder: (id: string) => void;
+  /** Documents texte créés par le joueur dans le Bloc-notes (dossier Documents) */
+  userFiles: FileItem[];
+  saveUserFile: (file: { id?: string; name: string; content: string }) => FileItem;
   /** Favoris du navigateur (identifiants de pages) */
   browserBookmarks: string[];
   toggleBrowserBookmark: (pageId: string) => void;
@@ -258,6 +261,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
   const [iconPositions, setIconPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [desktopFolders, setDesktopFolders] = useState<DesktopFolder[]>([]);
+  const [userFiles, setUserFiles] = useState<FileItem[]>([]);
+  const saveUserFile = useCallback((file: { id?: string; name: string; content: string }) => {
+    const name = /\.[a-z0-9]+$/i.test(file.name.trim()) ? file.name.trim() : `${file.name.trim() || "Sans titre"}.txt`;
+    const saved: FileItem = { id: file.id ?? `user-${Date.now()}`, name, type: "file", content: file.content };
+    setUserFiles((files) => (files.some((f) => f.id === saved.id) ? files.map((f) => (f.id === saved.id ? saved : f)) : [...files, saved]));
+    return saved;
+  }, []);
   const [browserBookmarks, setBrowserBookmarks] = useState<string[]>(DEFAULT_BOOKMARKS);
   const toggleBrowserBookmark = useCallback((pageId: string) => {
     setBrowserBookmarks((b) => (b.includes(pageId) ? b.filter((id) => id !== pageId) : [...b, pageId]));
@@ -419,6 +429,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setNotificationHistory((save.notificationHistory ?? []).map((n) => ({ ...n, timestamp: new Date(n.timestamp) })));
       setSeenNotificationIds(save.seenNotificationIds ?? []);
       if (save.browserBookmarks) setBrowserBookmarks(save.browserBookmarks);
+      if (save.userFiles) setUserFiles(save.userFiles);
       if (save.trash) {
         setTrashRestoredIds(save.trash.restored);
         setTrashEmptied(save.trash.emptied);
@@ -483,8 +494,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       mail: { folderOverrides: mailFolderOverrides, starred: starredMailIds, composed: composedMails },
       trash: { restored: trashRestoredIds, emptied: trashEmptied },
       browserBookmarks,
+      userFiles,
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -906,6 +918,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         markNotificationsSeen,
         clearNotificationHistory,
         batteryLevel,
+        userFiles,
+        saveUserFile,
         browserBookmarks,
         toggleBrowserBookmark,
         trashRestoredIds,
