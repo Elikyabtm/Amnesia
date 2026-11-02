@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import { gameNow, birthdayCountdownText } from "./game-clock";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
@@ -173,7 +174,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         title: "Alerte Sécurité",
         message: "Activité suspecte détectée. Ralentissez vos recherches.",
         icon: "security",
-        timestamp: new Date(),
+        timestamp: gameNow(),
       }, ...n]);
     }
     if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
@@ -200,14 +201,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
           title: "Nouveaux messages",
           message: "Vous avez 4 emails non lus",
           icon: "mail",
-          timestamp: new Date(),
+          timestamp: gameNow(),
         },
         {
           id: "notif-2", 
           title: "Rappel",
-          message: "Anniversaire le 14 avril",
+          message: birthdayCountdownText(),
           icon: "calendar",
-          timestamp: new Date(),
+          timestamp: gameNow(),
         },
       ]);
     }, 2000);
@@ -244,14 +245,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
           title: "Courrier synchronisé",
           message: "2 nouveaux messages importants dans votre boîte de réception.",
           icon: "mail",
-          timestamp: new Date(),
+          timestamp: gameNow(),
         },
         {
           id: notifId(),
           title: "Compte Invité",
           message: "Accès limité. Certains fichiers restent verrouillés.",
           icon: "security",
-          timestamp: new Date(),
+          timestamp: gameNow(),
         },
         ...current,
       ]);
@@ -270,7 +271,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       clueCounterRef.current += 1;
       return [
         ...current,
-        { ...clue, id: `clue-${clueCounterRef.current}`, discoveredAt: new Date() },
+        { ...clue, id: `clue-${clueCounterRef.current}`, discoveredAt: gameNow() },
       ];
     });
   }, []);
@@ -279,7 +280,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const newNotif: Notification = {
       ...notification,
       id: notifId(),
-      timestamp: new Date(),
+      timestamp: gameNow(),
     };
     setNotifications((current) => [newNotif, ...current]);
   }, []);

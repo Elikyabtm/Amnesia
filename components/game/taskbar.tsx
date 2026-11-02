@@ -21,6 +21,7 @@ import {
   Lock,
   X
 } from "lucide-react";
+import { useGameClock, gameNow } from "@/lib/game-clock";
 import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { fileSystem, mails, notes, corbeille } from "@/lib/game-data";
@@ -45,7 +46,7 @@ const startMenuApps = [
 ];
 
 export function Taskbar() {
-  const [time, setTime] = useState(new Date());
+  const time = useGameClock() ?? gameNow();
   const [showStartMenu, setShowStartMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
@@ -55,11 +56,6 @@ export function Taskbar() {
   const startMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Close menus when clicking outside
   useEffect(() => {

@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, X, 
 import { calendarEvents } from "@/lib/game-data";
 import { useSound } from "@/hooks/use-sound";
 import { useGame } from "@/lib/game-context";
+import { gameNow } from "@/lib/game-clock";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MONTHS = [
@@ -40,9 +41,24 @@ const eventDetails: Record<string, { time?: string; location?: string; descripti
   },
 };
 
+const MONTH_INDEX: Record<string, number> = {
+  janvier: 0, février: 1, mars: 2, avril: 3, mai: 4, juin: 5,
+  juillet: 6, août: 7, septembre: 8, octobre: 9, novembre: 10, décembre: 11,
+};
+
+// "14 avril 2025" -> { day: 14, month: 3, year: 2025 }
+function parseEventDate(text: string) {
+  const match = text.toLowerCase().match(/^(\d{1,2})\s+(\S+)\s+(\d{4})$/);
+  if (!match) return null;
+  const month = MONTH_INDEX[match[2]];
+  if (month === undefined) return null;
+  return { day: Number(match[1]), month, year: Number(match[3]) };
+}
+
 export function CalendarApp() {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 3, 1)); // April 2025
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2025, 3, 14));
+  const [today] = useState(() => gameNow());
+  const [currentDate, setCurrentDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState<Date | null>(() => new Date(today.getFullYear(), today.getMonth(), today.getDate()));
   const [selectedEvent, setSelectedEvent] = useState<typeof calendarEvents[0] | null>(null);
   const [view, setView] = useState<"calendar" | "agenda">("calendar");
   const { playSound } = useSound();
@@ -70,11 +86,13 @@ export function CalendarApp() {
 
   const getEventsForDate = (day: number) => {
     return calendarEvents.filter((event) => {
-      const eventDateLower = event.date.toLowerCase();
-      return eventDateLower.includes(`${day} ${MONTHS[month].toLowerCase().substring(0, 4)}`) ||
-             eventDateLower.includes(`${day} ${MONTHS[month].toLowerCase()}`);
+      const d = parseEventDate(event.date);
+      return d !== null && d.day === day && d.month === month && d.year === year;
     });
   };
+
+  const isTodayCell = (day: number | null) =>
+    day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
 
   const handleEventClick = (event: typeof calendarEvents[0]) => {
     playSound("click");
@@ -155,7 +173,7 @@ export function CalendarApp() {
             {calendarDays.map((day, index) => {
               const hasEvent = day ? getEventsForDate(day).length > 0 : false;
               const isSelected = day && selectedDate?.getDate() === day && selectedDate?.getMonth() === month;
-              const isToday = day === 14 && month === 3;
+              const isToday = isTodayCell(day);
 
               return (
                 <button
@@ -236,8 +254,8 @@ export function CalendarApp() {
               <button 
                 onClick={() => {
                   playSound("click");
-                  setCurrentDate(new Date(2025, 3, 1));
-                  setSelectedDate(new Date(2025, 3, 14));
+                  setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+                  setSelectedDate(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
                 }}
                 className="px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
               >
@@ -257,7 +275,7 @@ export function CalendarApp() {
                 {calendarDays.map((day, index) => {
                   const events = day ? getEventsForDate(day) : [];
                   const isSelected = day && selectedDate?.getDate() === day && selectedDate?.getMonth() === month;
-                  const isToday = day === 14 && month === 3;
+                  const isToday = isTodayCell(day);
 
                   return (
                     <button

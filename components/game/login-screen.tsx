@@ -1,22 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { User, ArrowRight, Wifi, Battery, Volume2 } from "lucide-react";
+import { useGameClock } from "@/lib/game-clock";
 import { useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 
 export function LoginScreen() {
-  const [mounted, setMounted] = useState(false);
-  const [time, setTime] = useState<Date | null>(null);
+  const time = useGameClock();
+  const mounted = time !== null;
   const { enterDesktop } = useGame();
   const { playSound } = useSound();
-
-  useEffect(() => {
-    setMounted(true);
-    setTime(new Date());
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleEnter = () => {
     playSound("startup");
