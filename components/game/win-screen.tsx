@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useGame } from "@/lib/game-context";
 import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SECRET_TOTAL, secretName } from "@/lib/secret-catalog";
+import { ENDING_THRESHOLDS, SECRET_TOTAL, secretName } from "@/lib/secret-catalog";
 import { useSound } from "@/hooks/use-sound";
 import { CLUE_TOTAL, isCatalogClue } from "@/lib/clue-catalog";
 
@@ -47,9 +47,9 @@ export function WinScreen() {
     // Determine ending based on what was discovered
     const discoveredCount = secretsDiscovered.length;
     
-    if (discoveredCount >= TOTAL_SECRETS - 1) {
+    if (discoveredCount >= ENDING_THRESHOLDS.detective) {
       setEnding("detective");
-    } else if (discoveredCount >= 3) {
+    } else if (discoveredCount >= ENDING_THRESHOLDS.curious) {
       setEnding("curious");
     } else if (discoveredCount === 0) {
       setEnding("innocent");
@@ -215,7 +215,7 @@ export function WinScreen() {
         {/* Hint for other endings */}
         {showDetails && ending !== "detective" && (
           <p className="mt-6 text-xs text-white/30 animate-fade-in">
-            Indice : Il y a d&apos;autres fins à découvrir. Avant de vous connecter en admin, explorez le dossier confidentiel et votre boîte mail...
+            Indice : Il y a d&apos;autres fins à découvrir. Avant de vous connecter en admin, fouillez le dossier confidentiel, la boîte mail, les contacts... et les recoins du système.
           </p>
         )}
       </div>
