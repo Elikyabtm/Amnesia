@@ -26,6 +26,7 @@ export const CLUE_CATALOG: readonly string[] = [
   "Bourg-sur-Mer a été fondée en 1832",
   "Bernard Dupuis est né le 14 avril 1967",
   "Vous êtes Bernard Dupuis, Maire de Bourg-sur-Mer",
+  "Le jour du changement de mot de passe, Bernard a cherché comment taper un dièse (#)",
   // Mémos vocaux
   "Bernard aura 58 ans - né en 1967",
   "Date importante : mi-avril (anniversaire/mariage)",

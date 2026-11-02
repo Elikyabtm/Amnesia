@@ -1,49 +1,130 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTextHighlight } from "@/lib/use-text-highlight";
-import { Globe, ArrowLeft, ArrowRight, RotateCw, Home, Star, Clock, Search, X, ChevronRight, MapPin, Phone, Mail, Calendar, Users, Building, Newspaper, FileText, Shield, Facebook, ThumbsUp, MessageCircle, Hash, Music, BookOpen, AlertTriangle } from "lucide-react";
+import { Globe, ArrowLeft, ArrowRight, RotateCw, Home, Star, Clock, Search, X, ChevronRight, Plus, Bookmark, History, MapPin, Phone, Mail, Calendar, Users, Building, Newspaper, FileText, Shield, Facebook, ThumbsUp, MessageCircle, Hash, Music, BookOpen, AlertTriangle } from "lucide-react";
 import { browserHistory, type BrowserPage } from "@/lib/game-data";
+import { SEARCH_HISTORY, CLUE_SEARCH } from "@/lib/data/browser";
 import { useGame, type WindowState } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
+
+// Une entrée d'historique d'onglet : page d'accueil, site, recherche ou page interne
+type BrowserEntry =
+  | { kind: "home" }
+  | { kind: "page"; pageId: string }
+  | { kind: "search"; query: string }
+  | { kind: "history" }
+  | { kind: "favorites" };
+
+interface BrowserTab {
+  id: string;
+  entries: BrowserEntry[];
+  index: number;
+}
+
+let tabSeq = 0;
+const newTab = (entry: BrowserEntry = { kind: "home" }): BrowserTab => ({ id: `tab-${++tabSeq}`, entries: [entry], index: 0 });
+
+const normalizeQuery = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+
+function entryFromTarget(targetId: string | undefined): BrowserEntry {
+  if (!targetId) return { kind: "home" };
+  if (targetId === "about:history") return { kind: "history" };
+  if (targetId === "about:favorites") return { kind: "favorites" };
+  return browserHistory.some((p) => p.id === targetId) ? { kind: "page", pageId: targetId } : { kind: "home" };
+}
+
+function entryUrl(entry: BrowserEntry): string {
+  switch (entry.kind) {
+    case "home": return "";
+    case "page": return browserHistory.find((p) => p.id === entry.pageId)?.url ?? "";
+    case "search": return `www.cherchici.fr/?q=${encodeURIComponent(entry.query)}`;
+    case "history": return "navigateur://historique";
+    case "favorites": return "navigateur://favoris";
+  }
+}
+
+function entryTitle(entry: BrowserEntry): string {
+  switch (entry.kind) {
+    case "home": return "Nouvel onglet";
+    case "page": return browserHistory.find((p) => p.id === entry.pageId)?.title ?? "Page";
+    case "search": return `${entry.query} - Cherch'Ici`;
+    case "history": return "Historique";
+    case "favorites": return "Favoris";
+  }
+}
+
+/** Pages de l'historique qui correspondent à une recherche (titre, URL ou contenu) */
+function searchPages(query: string): BrowserPage[] {
+  const words = normalizeQuery(query).split(/\s+/).filter((w) => w.length > 2);
+  if (!words.length) return [];
+  return browserHistory
+    .map((p) => {
+      const hay = normalizeQuery(`${p.title} ${p.url} ${p.content}`);
+      return { p, score: words.filter((w) => hay.includes(w)).length };
+    })
+    .filter((r) => r.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((r) => r.p);
+}
 
 interface BrowserAppProps {
   window: WindowState;
 }
 
 export function BrowserApp({ window: win }: BrowserAppProps) {
-  // Ouvert depuis le carnet d'indices : on affiche directement la page source
-  const [targetPage] = useState<BrowserPage | null>(
-    () => (win.target ? browserHistory.find((p) => p.id === win.target?.id) ?? null : null)
-  );
-  const [currentPage, setCurrentPage] = useState<BrowserPage | null>(targetPage);
-  const [urlInput, setUrlInput] = useState(targetPage?.url ?? "");
-  const [showHistory, setShowHistory] = useState(!targetPage);
-  const [history, setHistory] = useState<BrowserPage[]>(targetPage ? [targetPage] : []);
-  const [historyIndex, setHistoryIndex] = useState(targetPage ? 0 : -1);
-  const contentRef = useRef<HTMLDivElement>(null);
-  useTextHighlight(
-    contentRef,
-    !showHistory && currentPage && currentPage.id === win.target?.id ? win.target?.highlight : undefined,
-    win.id,
-    [showHistory, currentPage?.id]
-  );
-  const { addClue } = useGame();
+  const { addClue, browserBookmarks, toggleBrowserBookmark } = useGame();
   const { playSound } = useSound();
+  const [tabs, setTabs] = useState<BrowserTab[]>(() => [newTab(entryFromTarget(win.target?.id))]);
+  const [activeTabId, setActiveTabId] = useState(() => tabs[0].id);
+  const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+  const entry = activeTab.entries[activeTab.index];
+  const currentPage = entry.kind === "page" ? browserHistory.find((p) => p.id === entry.pageId) ?? null : null;
+  const [urlInput, setUrlInput] = useState(entryUrl(entry));
+  const [editingUrl, setEditingUrl] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  const navigateTo = (page: BrowserPage) => {
+  const targetEntry = entryFromTarget(win.target?.id);
+  const isTargetShown =
+    !!win.target &&
+    ((targetEntry.kind === "page" && entry.kind === "page" && entry.pageId === targetEntry.pageId) ||
+      (targetEntry.kind === "history" && entry.kind === "history"));
+  useTextHighlight(contentRef, isTargetShown ? win.target?.highlight : undefined, win.id, [isTargetShown, activeTabId]);
+
+  // L'URL affichée suit la page, sauf pendant la saisie
+  useEffect(() => {
+    if (!editingUrl) setUrlInput(entryUrl(entry));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTabId, activeTab.index, activeTab.entries.length]);
+
+  // Indices : pages visitées et historique de recherche
+  useEffect(() => {
+    if (currentPage) detectClues(currentPage);
+    if (entry.kind === "history") {
+      addClue({
+        category: "password",
+        text: "Le jour du changement de mot de passe, Bernard a cherché comment taper un dièse (#)",
+        source: "Historique du navigateur",
+        ref: { kind: "page", id: "about:history" },
+        highlight: CLUE_SEARCH,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry]);
+
+  const updateTab = (tabId: string, fn: (t: BrowserTab) => BrowserTab) =>
+    setTabs((list) => list.map((t) => (t.id === tabId ? fn(t) : t)));
+
+  const go = (next: BrowserEntry) => {
     playSound("click");
-    setCurrentPage(page);
-    setUrlInput(page.url);
-    setShowHistory(false);
-    
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(page);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-
-    detectClues(page);
+    setEditingUrl(false);
+    updateTab(activeTab.id, (t) => {
+      const entries = [...t.entries.slice(0, t.index + 1), next];
+      return { ...t, entries, index: entries.length - 1 };
+    });
   };
+  const navigateTo = (page: BrowserPage) => go({ kind: "page", pageId: page.id });
 
   const detectClues = (page: BrowserPage) => {
     if (page.content.includes("1832") && page.content.includes("Fondée")) {
@@ -77,41 +158,50 @@ export function BrowserApp({ window: win }: BrowserAppProps) {
   };
 
   const goBack = () => {
-    if (historyIndex > 0) {
-      playSound("click");
-      const newIndex = historyIndex - 1;
-      setHistoryIndex(newIndex);
-      setCurrentPage(history[newIndex]);
-      setUrlInput(history[newIndex].url);
-    }
+    if (activeTab.index === 0) return;
+    playSound("click");
+    updateTab(activeTab.id, (t) => ({ ...t, index: t.index - 1 }));
   };
 
   const goForward = () => {
-    if (historyIndex < history.length - 1) {
-      playSound("click");
-      const newIndex = historyIndex + 1;
-      setHistoryIndex(newIndex);
-      setCurrentPage(history[newIndex]);
-      setUrlInput(history[newIndex].url);
-    }
-  };
-
-  const goHome = () => {
+    if (activeTab.index >= activeTab.entries.length - 1) return;
     playSound("click");
-    setCurrentPage(null);
-    setShowHistory(true);
-    setUrlInput("");
+    updateTab(activeTab.id, (t) => ({ ...t, index: t.index + 1 }));
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const found = browserHistory.find(
-      (p) => p.url.includes(urlInput) || p.title.toLowerCase().includes(urlInput.toLowerCase())
+    const raw = urlInput.trim();
+    if (!raw) return go({ kind: "home" });
+    const q = normalizeQuery(raw);
+    if (q.includes("historique") && q.startsWith("navigateur://")) return go({ kind: "history" });
+    if (q.includes("favoris") && q.startsWith("navigateur://")) return go({ kind: "favorites" });
+    const exact = browserHistory.find(
+      (p) => normalizeQuery(p.url) === q.replace(/^https?:\/\//, "") || normalizeQuery(p.url).startsWith(q.replace(/^https?:\/\//, "")) && q.includes(".")
     );
-    if (found) {
-      navigateTo(found);
-    }
+    if (exact) return navigateTo(exact);
+    go({ kind: "search", query: raw });
   };
+
+  const addTab = () => {
+    playSound("click");
+    const tab = newTab();
+    setTabs((list) => [...list, tab]);
+    setActiveTabId(tab.id);
+  };
+
+  const closeTab = (tabId: string) => {
+    playSound("click");
+    setTabs((list) => {
+      if (list.length === 1) return [newTab()];
+      const i = list.findIndex((t) => t.id === tabId);
+      const next = list.filter((t) => t.id !== tabId);
+      if (tabId === activeTabId) setActiveTabId(next[Math.max(0, i - 1)].id);
+      return next;
+    });
+  };
+
+  const isBookmarked = currentPage ? browserBookmarks.includes(currentPage.id) : false;
 
   // Render different page styles based on page ID
   const renderPageContent = (page: BrowserPage) => {
@@ -137,111 +227,209 @@ export function BrowserApp({ window: win }: BrowserAppProps) {
     }
   };
 
+  const renderEntry = () => {
+    switch (entry.kind) {
+      case "home":
+        return <BrowserHomePage onNavigate={navigateTo} onSearch={(q) => go({ kind: "search", query: q })} onOpen={go} bookmarks={browserBookmarks} />;
+      case "page":
+        return currentPage ? renderPageContent(currentPage) : null;
+      case "search":
+        return <SearchResultsPage query={entry.query} onNavigate={navigateTo} />;
+      case "history":
+        return <HistoryPage onNavigate={navigateTo} onSearch={(q) => go({ kind: "search", query: q })} />;
+      case "favorites":
+        return <FavoritesPage bookmarks={browserBookmarks} onNavigate={navigateTo} onRemove={toggleBrowserBookmark} />;
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-[#1f1f1f]">
-      {/* Browser toolbar */}
-      <div className="flex items-center gap-2 p-2 bg-[#2d2d2d] border-b border-white/10">
-        <button
-          onClick={goBack}
-          disabled={historyIndex <= 0}
-          className="p-2 rounded hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white/70"
-        >
+      {/* Onglets */}
+      <div className="flex items-end gap-1 px-2 pt-1.5 bg-[#252525] overflow-x-auto">
+        {tabs.map((tab) => {
+          const tabEntry = tab.entries[tab.index];
+          const active = tab.id === activeTabId;
+          return (
+            <div
+              key={tab.id}
+              onMouseDown={(e) => e.button === 1 && closeTab(tab.id)}
+              className={`group flex items-center gap-2 pl-3 pr-1.5 py-1.5 rounded-t-lg text-xs max-w-[200px] min-w-[120px] cursor-default ${
+                active ? "bg-[#2d2d2d] text-white" : "text-white/60 hover:bg-white/5"
+              }`}
+              onClick={() => setActiveTabId(tab.id)}
+              title={entryTitle(tabEntry)}
+            >
+              <Globe className="w-3.5 h-3.5 flex-shrink-0 text-white/50" />
+              <span className="truncate flex-1">{entryTitle(tabEntry)}</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeTab(tab.id);
+                }}
+                className="p-0.5 rounded hover:bg-white/15 opacity-60 group-hover:opacity-100"
+                aria-label="Fermer l'onglet"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          );
+        })}
+        <button onClick={addTab} className="mb-1 p-1.5 rounded hover:bg-white/10 text-white/60" title="Nouvel onglet" aria-label="Nouvel onglet">
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Barre d'outils */}
+      <div className="flex items-center gap-1 p-2 bg-[#2d2d2d] border-b border-white/10">
+        <button onClick={goBack} disabled={activeTab.index === 0} className="p-2 rounded hover:bg-white/10 disabled:opacity-30 text-white/70" title="Précédent" aria-label="Précédent">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <button
           onClick={goForward}
-          disabled={historyIndex >= history.length - 1}
-          className="p-2 rounded hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed text-white/70"
+          disabled={activeTab.index >= activeTab.entries.length - 1}
+          className="p-2 rounded hover:bg-white/10 disabled:opacity-30 text-white/70"
+          title="Suivant"
+          aria-label="Suivant"
         >
           <ArrowRight className="w-4 h-4" />
         </button>
-        <button 
-          onClick={() => currentPage && navigateTo(currentPage)}
+        <button
+          onClick={() => {
+            playSound("click");
+            setReloadKey((k) => k + 1);
+          }}
           className="p-2 rounded hover:bg-white/10 text-white/70"
+          title="Actualiser"
+          aria-label="Actualiser"
         >
           <RotateCw className="w-4 h-4" />
         </button>
-        <button onClick={goHome} className="p-2 rounded hover:bg-white/10 text-white/70">
+        <button onClick={() => go({ kind: "home" })} className="p-2 rounded hover:bg-white/10 text-white/70" title="Accueil" aria-label="Accueil">
           <Home className="w-4 h-4" />
         </button>
 
-        {/* URL bar */}
-        <form onSubmit={handleSearch} className="flex-1 flex items-center">
+        <form onSubmit={handleAddressSubmit} className="flex-1 flex items-center">
           <div className="flex-1 flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] rounded-full border border-white/10 focus-within:border-[#0078d4]">
-            {currentPage ? (
-              <Globe className="w-4 h-4 text-green-500" />
-            ) : (
-              <Search className="w-4 h-4 text-white/40" />
-            )}
+            {currentPage ? <Globe className="w-4 h-4 text-green-500" /> : <Search className="w-4 h-4 text-white/40" />}
             <input
               type="text"
               value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
+              onChange={(e) => {
+                setEditingUrl(true);
+                setUrlInput(e.target.value);
+              }}
+              onFocus={(e) => e.target.select()}
+              onBlur={() => setEditingUrl(false)}
               placeholder="Rechercher ou entrer une URL"
               className="flex-1 bg-transparent text-white text-sm outline-none placeholder-white/40"
+              aria-label="Barre d'adresse"
             />
             {urlInput && (
-              <button type="button" onClick={() => setUrlInput("")} className="text-white/40 hover:text-white">
+              <button type="button" onClick={() => setUrlInput("")} className="text-white/40 hover:text-white" aria-label="Effacer">
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
         </form>
 
-        <button className="p-2 rounded hover:bg-white/10 text-white/70">
-          <Star className="w-4 h-4" />
+        <button
+          onClick={() => {
+            if (!currentPage) return;
+            playSound("click");
+            toggleBrowserBookmark(currentPage.id);
+          }}
+          disabled={!currentPage}
+          className="p-2 rounded hover:bg-white/10 text-white/70 disabled:opacity-30"
+          title={isBookmarked ? "Retirer des favoris" : "Ajouter aux favoris"}
+          aria-label={isBookmarked ? "Retirer des favoris" : "Ajouter aux favoris"}
+        >
+          <Star className={`w-4 h-4 ${isBookmarked ? "text-yellow-400 fill-yellow-400" : ""}`} />
+        </button>
+        <button onClick={() => go({ kind: "favorites" })} className="p-2 rounded hover:bg-white/10 text-white/70" title="Favoris" aria-label="Favoris">
+          <Bookmark className="w-4 h-4" />
+        </button>
+        <button onClick={() => go({ kind: "history" })} className="p-2 rounded hover:bg-white/10 text-white/70" title="Historique" aria-label="Historique">
+          <History className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Content */}
-      <div ref={contentRef} className="flex-1 overflow-auto">
-        {showHistory || !currentPage ? (
-          <BrowserHomePage onNavigate={navigateTo} />
-        ) : (
-          renderPageContent(currentPage)
-        )}
+      <div ref={contentRef} key={`${activeTabId}-${reloadKey}`} className="flex-1 overflow-auto">
+        {renderEntry()}
       </div>
     </div>
   );
 }
 
-// Browser home page
-function BrowserHomePage({ onNavigate }: { onNavigate: (page: BrowserPage) => void }) {
+// Page d'accueil (nouvel onglet)
+function BrowserHomePage({
+  onNavigate,
+  onSearch,
+  onOpen,
+  bookmarks,
+}: {
+  onNavigate: (page: BrowserPage) => void;
+  onSearch: (query: string) => void;
+  onOpen: (entry: BrowserEntry) => void;
+  bookmarks: string[];
+}) {
+  const [q, setQ] = useState("");
+  const favorites = browserHistory.filter((p) => bookmarks.includes(p.id));
   return (
     <div className="min-h-full bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] p-8">
       <div className="max-w-3xl mx-auto">
-        {/* Search box */}
-        <div className="text-center mb-12 pt-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0078d4] to-[#00bcf2] mb-6 shadow-lg shadow-blue-500/20">
-            <Globe className="w-10 h-10 text-white" />
+        <div className="text-center mb-8 pt-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#0078d4] to-[#00bcf2] mb-4 shadow-lg shadow-blue-500/20">
+            <Search className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-light text-white mb-2">Navigateur</h1>
-          <p className="text-white/50">Explorez l'historique de navigation</p>
+          <h1 className="text-3xl font-light text-white mb-4">Cherch&apos;Ici</h1>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (q.trim()) onSearch(q.trim());
+            }}
+            className="flex items-center gap-2 max-w-xl mx-auto px-4 py-2.5 rounded-full bg-white/10 border border-white/15 focus-within:border-[#4ea8ff]"
+          >
+            <Search className="w-4 h-4 text-white/50" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Rechercher sur le web"
+              className="flex-1 bg-transparent text-white text-sm outline-none placeholder-white/40"
+              aria-label="Rechercher sur le web"
+            />
+          </form>
         </div>
 
-        {/* Quick links */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {browserHistory.map((page) => (
-            <button
-              key={page.id}
-              onClick={() => onNavigate(page)}
-              className="flex flex-col items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0078d4] to-[#00bcf2] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Globe className="w-6 h-6 text-white" />
-              </div>
-              <span className="text-xs text-white/70 text-center truncate w-full">
-                {page.url.split("/")[0].replace("www.", "")}
-              </span>
-            </button>
-          ))}
-        </div>
+        {favorites.length > 0 && (
+          <div className="mb-8">
+            <p className="text-xs text-white/50 mb-3 flex items-center gap-2">
+              <Star className="w-3.5 h-3.5" /> Favoris
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {favorites.map((page) => (
+                <button
+                  key={page.id}
+                  onClick={() => onNavigate(page)}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0078d4] to-[#00bcf2] flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-xs text-white/70 text-center truncate w-full">{page.url.split("/")[0].replace("www.", "")}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* History list */}
         <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-          <div className="flex items-center gap-2 p-4 border-b border-white/10">
-            <Clock className="w-4 h-4 text-white/50" />
-            <span className="text-sm text-white/70 font-medium">Historique récent</span>
+          <div className="flex items-center justify-between p-4 border-b border-white/10">
+            <span className="flex items-center gap-2 text-sm text-white/70 font-medium">
+              <Clock className="w-4 h-4 text-white/50" /> Historique récent
+            </span>
+            <button onClick={() => onOpen({ kind: "history" })} className="text-xs text-[#4ea8ff] hover:underline">
+              Tout l&apos;historique
+            </button>
           </div>
           <div className="divide-y divide-white/5">
             {browserHistory.map((page) => (
@@ -263,6 +451,133 @@ function BrowserHomePage({ onNavigate }: { onNavigate: (page: BrowserPage) => vo
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Résultats de recherche (moteur fictif Cherch'Ici)
+function SearchResultsPage({ query, onNavigate }: { query: string; onNavigate: (page: BrowserPage) => void }) {
+  const fromHistory = SEARCH_HISTORY.find((s) => normalizeQuery(s.query) === normalizeQuery(query));
+  const pages = [
+    ...(fromHistory?.results ?? []).map((id) => browserHistory.find((p) => p.id === id)!).filter(Boolean),
+    ...searchPages(query),
+  ].filter((p, i, list) => list.findIndex((x) => x.id === p.id) === i);
+
+  return (
+    <div className="min-h-full bg-white p-6">
+      <div className="max-w-2xl">
+        <p className="text-sm text-gray-500 mb-4">
+          Résultats pour <strong className="text-gray-800">« {query} »</strong> · {pages.length} résultat{pages.length > 1 ? "s" : ""}
+        </p>
+        {pages.length === 0 ? (
+          <div className="py-8 text-gray-600">
+            <p className="mb-2">Aucune page ne correspond à votre recherche.</p>
+            <p className="text-sm text-gray-500">La connexion de la mairie filtre la plupart des sites. Essayez d&apos;autres mots-clés.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {pages.map((page) => (
+              <div key={page.id}>
+                <p className="text-xs text-gray-500">{page.url}</p>
+                <button onClick={() => onNavigate(page)} className="text-lg text-[#1a0dab] hover:underline text-left">
+                  {page.title}
+                </button>
+                <p className="text-sm text-gray-600 line-clamp-2">{page.content.replace(/\s+/g, " ").slice(0, 180)}…</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Historique complet : recherches et sites visités
+function HistoryPage({ onNavigate, onSearch }: { onNavigate: (page: BrowserPage) => void; onSearch: (query: string) => void }) {
+  return (
+    <div className="min-h-full bg-[#1a1a1a] p-6">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <h1 className="text-2xl text-white font-light flex items-center gap-3">
+          <History className="w-6 h-6" /> Historique
+        </h1>
+        <section className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+          <h2 className="px-4 py-3 text-sm text-white/70 border-b border-white/10 flex items-center gap-2">
+            <Search className="w-4 h-4" /> Recherches récentes
+          </h2>
+          <ul className="divide-y divide-white/5">
+            {SEARCH_HISTORY.map((s) => (
+              <li key={s.query}>
+                <button onClick={() => onSearch(s.query)} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 text-left">
+                  <Search className="w-4 h-4 text-white/40 flex-shrink-0" />
+                  <span className="flex-1 text-sm text-white/85">{s.query}</span>
+                  <span className="text-xs text-white/40 whitespace-nowrap">{s.date}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
+          <h2 className="px-4 py-3 text-sm text-white/70 border-b border-white/10 flex items-center gap-2">
+            <Globe className="w-4 h-4" /> Sites visités
+          </h2>
+          <ul className="divide-y divide-white/5">
+            {browserHistory.map((page) => (
+              <li key={page.id}>
+                <button onClick={() => onNavigate(page)} className="w-full flex items-center gap-4 px-4 py-3 hover:bg-white/5 text-left">
+                  <Globe className="w-4 h-4 text-[#4ea8ff] flex-shrink-0" />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm text-white/85 truncate">{page.title}</span>
+                    <span className="block text-xs text-white/40 truncate">{page.url}</span>
+                  </span>
+                  <span className="text-xs text-white/40 whitespace-nowrap">{page.visitedAt}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+// Favoris
+function FavoritesPage({
+  bookmarks,
+  onNavigate,
+  onRemove,
+}: {
+  bookmarks: string[];
+  onNavigate: (page: BrowserPage) => void;
+  onRemove: (pageId: string) => void;
+}) {
+  const pages = browserHistory.filter((p) => bookmarks.includes(p.id));
+  return (
+    <div className="min-h-full bg-[#1a1a1a] p-6">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-2xl text-white font-light flex items-center gap-3 mb-6">
+          <Bookmark className="w-6 h-6" /> Favoris
+        </h1>
+        {pages.length === 0 ? (
+          <p className="text-white/50 text-sm">Aucun favori. Cliquez sur l&apos;étoile d&apos;une page pour l&apos;ajouter.</p>
+        ) : (
+          <ul className="bg-white/5 rounded-xl border border-white/10 divide-y divide-white/5 overflow-hidden">
+            {pages.map((page) => (
+              <li key={page.id} className="flex items-center gap-2 pr-2">
+                <button onClick={() => onNavigate(page)} className="flex-1 flex items-center gap-4 px-4 py-3 hover:bg-white/5 text-left min-w-0">
+                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+                  <span className="min-w-0">
+                    <span className="block text-sm text-white/85 truncate">{page.title}</span>
+                    <span className="block text-xs text-white/40 truncate">{page.url}</span>
+                  </span>
+                </button>
+                <button onClick={() => onRemove(page.id)} className="p-1.5 rounded hover:bg-white/10 text-white/50" title="Retirer des favoris" aria-label={`Retirer ${page.title} des favoris`}>
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

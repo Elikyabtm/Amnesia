@@ -26,6 +26,7 @@ export interface SaveData {
   notificationHistory?: (Omit<Notification, "timestamp"> & { timestamp: string })[];
   seenNotificationIds?: string[];
   trash?: { restored: string[]; emptied: boolean };
+  browserBookmarks?: string[];
   mail?: {
     folderOverrides: Record<string, MailFolderId>;
     starred: string[];

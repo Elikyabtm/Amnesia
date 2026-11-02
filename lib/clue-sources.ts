@@ -55,7 +55,8 @@ export function resolveClueSource(ref: ClueRef, highlight?: string | string[]): 
     case "voice":
       return voiceMessages.some((v) => v.id === ref.id) ? { app: "audio", target } : null;
     case "page":
-      return browserHistory.some((p) => p.id === ref.id) ? { app: "browser", target } : null;
+      // Pages internes du navigateur (historique, favoris) : identifiants "about:..."
+      return ref.id.startsWith("about:") || browserHistory.some((p) => p.id === ref.id) ? { app: "browser", target } : null;
     case "event":
       return { app: "calendar", target };
   }
