@@ -40,6 +40,8 @@ export const CLUE_CATALOG: readonly string[] = [
   "La Calculatrice associe 1832 à « BSM » : l'année de fondation et les initiales de la ville",
   // Musique
   "Bernard aime « toujours finir sur un point d'exclamation ! », même ses mots de passe",
+  // Paint
+  "Pense-bête dans Paint : sur le clavier, le dièse (#) se tape avec AltGr + 3",
   // Paramètres
   "Le nouveau mot de passe compte 17 caractères, dont 2 symboles",
   // Dossier confidentiel

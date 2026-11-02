@@ -18,6 +18,7 @@ import {
   Terminal,
   Calculator,
   Music,
+  Palette,
   type LucideIcon,
 } from "lucide-react";
 import type { AppType } from "@/lib/game-context";
@@ -49,6 +50,7 @@ export const APPS: Record<AppType, AppInfo> = {
   terminal: { id: "terminal", label: "Invite de commandes", icon: Terminal, color: "#a3a3a3", keywords: ["terminal", "cmd", "console", "commandes"] },
   calculator: { id: "calculator", label: "Calculatrice", icon: Calculator, color: "#f59e0b", keywords: ["calcul", "nombres"] },
   music: { id: "music", label: "Musique", icon: Music, color: "#a78bfa", keywords: ["jazz", "lecteur", "playlist", "festival", "morceaux"] },
+  paint: { id: "paint", label: "Paint", icon: Palette, color: "#f472b6", keywords: ["dessin", "image", "pense-bête"] },
   settings: { id: "settings", label: "Paramètres", icon: Settings, color: "#9ca3af", keywords: ["réglages", "compte", "système", "réseau", "fond d'écran", "mises à jour"] },
 };
 
@@ -59,4 +61,4 @@ export const PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", 
 export const DESKTOP_APPS: AppType[] = ["explorer", "mail", "photos", "browser", "audio", "notepad", "calendar", "clues", "trash", "password"];
 
 /** Applications épinglées dans le menu Démarrer */
-export const START_PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", "audio", "notepad", "calendar", "clues", "trash", "password", "contacts", "terminal", "calculator", "music", "settings"];
+export const START_PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", "audio", "notepad", "calendar", "clues", "trash", "password", "contacts", "terminal", "calculator", "music", "paint", "settings"];

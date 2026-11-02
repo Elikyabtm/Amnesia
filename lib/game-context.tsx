@@ -9,7 +9,7 @@ import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator" | "music";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts" | "terminal" | "calculator" | "music" | "paint";
 
 export interface WindowState {
   id: string;
@@ -129,7 +129,7 @@ interface GameContextType {
   deleteDesktopFolder: (id: string) => void;
   /** Documents texte créés par le joueur dans le Bloc-notes (dossier Documents) */
   userFiles: FileItem[];
-  saveUserFile: (file: { id?: string; name: string; content: string }) => FileItem;
+  saveUserFile: (file: { id?: string; name: string; content: string; imageSrc?: string }) => FileItem;
   /** Favoris du navigateur (identifiants de pages) */
   browserBookmarks: string[];
   toggleBrowserBookmark: (pageId: string) => void;
@@ -269,9 +269,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [iconPositions, setIconPositions] = useState<Record<string, { x: number; y: number }>>({});
   const [desktopFolders, setDesktopFolders] = useState<DesktopFolder[]>([]);
   const [userFiles, setUserFiles] = useState<FileItem[]>([]);
-  const saveUserFile = useCallback((file: { id?: string; name: string; content: string }) => {
-    const name = /\.[a-z0-9]+$/i.test(file.name.trim()) ? file.name.trim() : `${file.name.trim() || "Sans titre"}.txt`;
-    const saved: FileItem = { id: file.id ?? `user-${Date.now()}`, name, type: "file", content: file.content };
+  const saveUserFile = useCallback((file: { id?: string; name: string; content: string; imageSrc?: string }) => {
+    const ext = file.imageSrc ? ".png" : ".txt";
+    const name = /\.[a-z0-9]+$/i.test(file.name.trim()) ? file.name.trim() : `${file.name.trim() || "Sans titre"}${ext}`;
+    const saved: FileItem = file.imageSrc
+      ? { id: file.id ?? `user-${Date.now()}`, name, type: "image", content: "Dessin créé dans Paint.", imageSrc: file.imageSrc }
+      : { id: file.id ?? `user-${Date.now()}`, name, type: "file", content: file.content };
     setUserFiles((files) => (files.some((f) => f.id === saved.id) ? files.map((f) => (f.id === saved.id ? saved : f)) : [...files, saved]));
     return saved;
   }, []);
@@ -780,6 +783,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       terminal: "Invite de commandes",
       calculator: "Calculatrice",
       music: "Musique",
+      paint: "Paint",
     };
 
     const { position, size } = computeNewWindowRect(windows.length, app);

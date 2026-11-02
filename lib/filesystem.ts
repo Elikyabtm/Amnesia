@@ -61,10 +61,15 @@ export function buildFileSystem(state: FileSystemState): VNode {
           { id: "confidential", name: "Dossier Confidentiel", kind: "folder", lockId: "confidential", children: secretDocuments.map(fileNode) },
           ...documents.map(fileNode),
           ...restoredIn("documents"),
-          ...(state.userFiles ?? []).map(fileNode),
+          ...(state.userFiles ?? []).filter((f) => f.type !== "image").map(fileNode),
         ],
       },
-      { id: "images", name: "Images", kind: "folder", children: photos.map(fileNode) },
+      {
+        id: "images",
+        name: "Images",
+        kind: "folder",
+        children: [...photos.map(fileNode), ...(state.userFiles ?? []).filter((f) => f.type === "image").map(fileNode)],
+      },
       { id: "downloads", name: "Téléchargements", kind: "folder", children: downloads.map(fileNode) },
       {
         id: "music",
