@@ -88,7 +88,9 @@ export function MailApp({ window: win }: MailAppProps) {
   const [filter, setFilter] = useState<ListFilter>("all");
   const [showFilter, setShowFilter] = useState(false);
   const [showMore, setShowMore] = useState(false);
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft] = useState<Draft | null>(() =>
+    win.target?.id.startsWith("compose:") ? { mode: "new", to: win.target.id.slice("compose:".length), subject: "", body: "" } : null
+  );
   const [banner, setBanner] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);

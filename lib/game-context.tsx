@@ -9,7 +9,7 @@ import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
-export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings";
+export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio" | "settings" | "contacts";
 
 export interface WindowState {
   id: string;
@@ -770,6 +770,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       clues: "Carnet d'indices",
       audio: "Messages vocaux",
       settings: "Paramètres",
+      contacts: "Contacts",
     };
 
     const { position, size } = computeNewWindowRect(windows.length);

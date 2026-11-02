@@ -34,6 +34,8 @@ export const CLUE_CATALOG: readonly string[] = [
   // Calendrier
   "L'anniversaire de Bernard est le 14 avril, il aura 58 ans (né en 1967)",
   "Mariage en 1993, soit 32 ans en 2025",
+  // Contacts
+  "Bernard est né la veille de son anniversaire de mariage (15 avril), soit le 14 avril",
   // Paramètres
   "Le nouveau mot de passe compte 17 caractères, dont 2 symboles",
   // Dossier confidentiel

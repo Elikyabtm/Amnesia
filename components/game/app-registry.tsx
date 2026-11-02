@@ -14,6 +14,7 @@ import {
   BookOpen,
   Mic,
   Settings,
+  Contact,
   type LucideIcon,
 } from "lucide-react";
 import type { AppType } from "@/lib/game-context";
@@ -41,6 +42,7 @@ export const APPS: Record<AppType, AppInfo> = {
   clues: { id: "clues", label: "Carnet d'indices", desktopLabel: "Indices", icon: BookOpen, color: "#f97316", keywords: ["indices", "enquête"] },
   trash: { id: "trash", label: "Corbeille", icon: Trash2, color: "#6b7280", keywords: ["supprimés"] },
   password: { id: "password", label: "Déverrouiller", icon: Lock, color: "#22c55e", keywords: ["mot de passe", "connexion", "compte"] },
+  contacts: { id: "contacts", label: "Contacts", icon: Contact, color: "#38bdf8", keywords: ["carnet d'adresses", "téléphone", "famille", "personnes"] },
   settings: { id: "settings", label: "Paramètres", icon: Settings, color: "#9ca3af", keywords: ["réglages", "compte", "système", "réseau", "fond d'écran", "mises à jour"] },
 };
 
@@ -51,4 +53,4 @@ export const PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", 
 export const DESKTOP_APPS: AppType[] = ["explorer", "mail", "photos", "browser", "audio", "notepad", "calendar", "clues", "trash", "password"];
 
 /** Applications épinglées dans le menu Démarrer */
-export const START_PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", "audio", "notepad", "calendar", "clues", "trash", "password", "settings"];
+export const START_PINNED_APPS: AppType[] = ["explorer", "mail", "browser", "photos", "audio", "notepad", "calendar", "clues", "trash", "password", "contacts", "settings"];

@@ -4,12 +4,11 @@ import { useState, useEffect } from "react";
 import { useGame } from "@/lib/game-context";
 import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { secretDocuments, secretMails } from "@/lib/game-data";
+import { SECRET_TOTAL, secretName } from "@/lib/secret-catalog";
 import { useSound } from "@/hooks/use-sound";
 import { CLUE_TOTAL, isCatalogClue } from "@/lib/clue-catalog";
 
-const ALL_SECRETS = [...secretDocuments, ...secretMails];
-const TOTAL_SECRETS = ALL_SECRETS.length;
+const TOTAL_SECRETS = SECRET_TOTAL;
 
 function formatDuration(ms: number) {
   const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -195,7 +194,7 @@ export function WinScreen() {
                   key={secret}
                   className="px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-xs text-red-400"
                 >
-                  {ALL_SECRETS.find((s) => s.id === secret)?.name ?? secret}
+                  {secretName(secret)}
                 </span>
               ))}
             </div>
