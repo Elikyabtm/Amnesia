@@ -20,7 +20,7 @@ function formatDuration(ms: number) {
 type Ending = "innocent" | "curious" | "detective" | "accomplice";
 
 export function WinScreen() {
-  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword } = useGame();
+  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame } = useGame();
   const { playSound } = useSound();
   const duration = startTime && endTime ? formatDuration(endTime - startTime) : "--:--";
   const [ending, setEnding] = useState<Ending>("innocent");
@@ -92,7 +92,7 @@ export function WinScreen() {
   const Icon = currentEnding.icon;
 
   const handleRestart = () => {
-    window.location.reload();
+    resetGame();
   };
 
   return (

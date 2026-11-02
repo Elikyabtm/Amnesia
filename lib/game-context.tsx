@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
 import { SUSPICION_THRESHOLDS, mails, secretMails, type FileItem } from "./game-data";
 import { gameNow, birthdayCountdownText } from "./game-clock";
+import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
@@ -90,6 +91,8 @@ interface GameContextType {
   markMailRead: (mailId: string) => void;
   startTime: number | null;
   endTime: number | null;
+  isRestored: boolean;
+  resetGame: () => void;
   lockoutRemaining: number;
 }
 
@@ -213,6 +216,96 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (newLevel >= SUSPICION_THRESHOLDS.LOCKOUT) {
       setIsLockedOut(true);
     }
+  }, []);
+
+  // ---------- Sauvegarde / reprise ----------
+  const [isRestored, setIsRestored] = useState(false);
+
+  // Reprise automatique au chargement (côté client uniquement)
+  useEffect(() => {
+    const save = loadSave();
+    if (save) {
+      const now = Date.now();
+      setAccountLevel(save.accountLevel);
+      setPasswordAttempts(save.passwordAttempts);
+      setSuspicionLevel(
+        save.suspicionLevel >= SUSPICION_THRESHOLDS.LOCKOUT
+          ? SUSPICION_THRESHOLDS.DANGER - 10
+          : save.suspicionLevel
+      );
+      setClues(save.clues.map((c) => ({ ...c, discoveredAt: new Date(c.discoveredAt) })));
+      clueCounterRef.current = save.clues.length;
+      setLockedItems((items) =>
+        items.map((i) => ({ ...i, unlocked: save.unlockedItemIds.includes(i.id) }))
+      );
+      setSecretsDiscovered(save.secretsDiscovered);
+      setReadMailIds(save.readMailIds);
+      setRevealedPassword(save.revealedPassword);
+      setStartTime(now - save.elapsedMs);
+      setEndTime(save.gamePhase === "won" ? now : null);
+      setGamePhase(save.gamePhase);
+      if (save.gamePhase === "exploring") {
+        setNotifications([
+          {
+            id: notifId(),
+            title: "Session restaurée",
+            message: `Reprise de votre enquête : ${save.clues.length} indice${save.clues.length > 1 ? "s" : ""} retrouvé${save.clues.length > 1 ? "s" : ""}.`,
+            icon: "system",
+            timestamp: gameNow(),
+          },
+        ]);
+      }
+    }
+    setIsRestored(true);
+  }, []);
+
+  const buildSave = useCallback((): SaveData | null => {
+    if ((gamePhase !== "exploring" && gamePhase !== "won") || startTime === null) return null;
+    return {
+      version: 1,
+      savedAt: new Date().toISOString(),
+      gamePhase,
+      accountLevel,
+      elapsedMs: (endTime ?? Date.now()) - startTime,
+      passwordAttempts,
+      suspicionLevel,
+      clues: clues.map((c) => ({ ...c, discoveredAt: c.discoveredAt.toISOString() })),
+      unlockedItemIds: lockedItems.filter((i) => i.unlocked).map((i) => i.id),
+      secretsDiscovered,
+      readMailIds,
+      revealedPassword,
+    };
+  }, [gamePhase, startTime, endTime, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, revealedPassword]);
+
+  // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
+  const buildSaveRef = useRef(buildSave);
+  const resettingRef = useRef(false);
+  useEffect(() => {
+    buildSaveRef.current = buildSave;
+    if (!isRestored || resettingRef.current) return;
+    const data = buildSave();
+    if (data) writeSave(data);
+  }, [buildSave, isRestored]);
+
+  useEffect(() => {
+    if (!isRestored) return;
+    const persist = () => {
+      if (resettingRef.current) return;
+      const data = buildSaveRef.current();
+      if (data) writeSave(data);
+    };
+    const interval = setInterval(persist, 5000);
+    window.addEventListener("pagehide", persist);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("pagehide", persist);
+    };
+  }, [isRestored]);
+
+  const resetGame = useCallback(() => {
+    resettingRef.current = true;
+    clearSave();
+    window.location.reload();
   }, []);
 
   const startGame = useCallback(() => {
@@ -511,6 +604,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         markMailRead,
         startTime,
         endTime,
+        isRestored,
+        resetGame,
         lockoutRemaining,
       }}
     >

@@ -16,11 +16,13 @@ import {
   ChevronUp,
   Settings,
   Power,
+  RotateCcw,
   User,
   Globe,
   Lock,
   X
 } from "lucide-react";
+import { ConfirmDialog } from "./confirm-dialog";
 import { useGameClock, gameNow } from "@/lib/game-clock";
 import { useGame, type AppType } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
@@ -48,10 +50,11 @@ const startMenuApps = [
 export function Taskbar() {
   const time = useGameClock() ?? gameNow();
   const [showStartMenu, setShowStartMenu] = useState(false);
+  const [confirmNewGame, setConfirmNewGame] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { openWindow, windows, focusWindow, restoreWindow, accountLevel } = useGame();
+  const { openWindow, windows, focusWindow, restoreWindow, accountLevel, resetGame } = useGame();
   const { playSound, volume, setVolume, isMuted, toggleMute } = useSound();
   const startMenuRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -140,6 +143,16 @@ export function Taskbar() {
 
   return (
     <>
+      {confirmNewGame && (
+        <ConfirmDialog
+          title="Nouvelle partie"
+          message="Commencer une nouvelle partie ? Votre progression actuelle (indices, dossiers déverrouillés, temps de jeu) sera définitivement effacée."
+          confirmLabel="Effacer et recommencer"
+          danger
+          onConfirm={resetGame}
+          onCancel={() => setConfirmNewGame(false)}
+        />
+      )}
       {/* Start Menu */}
       {showStartMenu && (
         <div 
@@ -183,6 +196,17 @@ export function Taskbar() {
             <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm">
               <Settings className="w-4 h-4" />
               Paramètres
+            </button>
+            <button
+              onClick={() => {
+                playSound("click");
+                setShowStartMenu(false);
+                setConfirmNewGame(true);
+              }}
+              className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Nouvelle partie
             </button>
             <button className="flex items-center gap-2 px-3 py-2 rounded hover:bg-white/10 transition-colors text-white/70 text-sm">
               <Power className="w-4 h-4" />
