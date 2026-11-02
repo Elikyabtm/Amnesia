@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
-import { GUEST_PASSWORD, ADMIN_PASSWORD, CONFIDENTIAL_PIN, SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import { SUSPICION_THRESHOLDS, type FileItem } from "./game-data";
+import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
 export type AppType = "explorer" | "mail" | "photos" | "notepad" | "calendar" | "trash" | "password" | "browser" | "clues" | "audio";
 
@@ -38,7 +39,6 @@ export interface Notification {
 export interface LockedItem {
   id: string;
   name: string;
-  pin: string;
   hint: string;
   unlocked: boolean;
 }
@@ -68,7 +68,8 @@ interface GameContextType {
   startGame: () => void;
   enterDesktop: () => void;
   finishBooting: () => void;
-  tryPassword: (password: string) => "wrong" | "guest" | "admin";
+  tryPassword: (password: string) => Promise<PasswordVerdict>;
+  revealedPassword: { password: string; parts: PasswordPart[] } | null;
   openWindow: (app: AppType, title?: string, content?: FileItem | string) => void;
   closeWindow: (id: string) => void;
   minimizeWindow: (id: string) => void;
@@ -80,7 +81,7 @@ interface GameContextType {
   addClue: (clue: Omit<ClueItem, "id" | "discoveredAt">) => void;
   addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void;
   dismissNotification: (id: string) => void;
-  tryUnlockItem: (itemId: string, pin: string) => boolean;
+  tryUnlockItem: (itemId: string, pin: string) => Promise<boolean>;
   isItemLocked: (itemId: string) => boolean;
   addSuspicion: (event: SuspicionEvent) => void;
   discoverSecret: (secretId: string) => void;
@@ -105,6 +106,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
   const clueCounterRef = useRef(0);
+  const [revealedPassword, setRevealedPassword] = useState<{ password: string; parts: PasswordPart[] } | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
@@ -112,7 +114,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     {
       id: "confidential",
       name: "Dossier Confidentiel",
-      pin: CONFIDENTIAL_PIN,
       hint: "L'année où j'ai été élu maire",
       unlocked: false,
     },
@@ -212,19 +213,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }, 2000);
   }, []);
 
-  const tryPassword = useCallback((rawPassword: string): "wrong" | "guest" | "admin" => {
-    const password = rawPassword.trim();
+  const tryPassword = useCallback(async (rawPassword: string): Promise<PasswordVerdict> => {
     setPasswordAttempts((a) => a + 1);
     lastActionTimeRef.current = Date.now();
 
-    if (password === ADMIN_PASSWORD) {
-      setAccountLevel("admin");
-      setEndTime(Date.now());
-      setGamePhase("won");
-      return "admin";
+    let verdict: PasswordVerdict;
+    try {
+      verdict = await verifyPassword(rawPassword);
+    } catch {
+      // Network/server error: don't penalise the player
+      return { result: "wrong" };
     }
 
-    if (password === GUEST_PASSWORD && accountLevel === "locked") {
+    if (verdict.result === "admin") {
+      setAccountLevel("admin");
+      if (verdict.password && verdict.parts) {
+        setRevealedPassword({ password: verdict.password, parts: verdict.parts });
+      }
+      setEndTime(Date.now());
+      setGamePhase("won");
+      return verdict;
+    }
+
+    if (verdict.result === "guest") {
+      if (accountLevel !== "locked") return verdict;
       setAccountLevel("guest");
       setNotifications((current) => [
         {
@@ -243,13 +255,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
         ...current,
       ]);
-      return "guest";
+      return verdict;
     }
 
     raiseSuspicion(10);
     setLoginError(true);
     setTimeout(() => setLoginError(false), 500);
-    return "wrong";
+    return verdict;
   }, [accountLevel, raiseSuspicion]);
 
   const addClue = useCallback((clue: Omit<ClueItem, "id" | "discoveredAt">) => {
@@ -276,11 +288,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setNotifications((current) => current.filter((n) => n.id !== id));
   }, []);
 
-  const tryUnlockItem = useCallback((itemId: string, pin: string): boolean => {
-    const item = lockedItems.find((i) => i.id === itemId);
-    if (!item) return false;
-    
-    if (pin === item.pin) {
+  const tryUnlockItem = useCallback(async (itemId: string, pin: string): Promise<boolean> => {
+    if (!lockedItems.some((i) => i.id === itemId)) return false;
+
+    let ok = false;
+    try {
+      ok = await verifyPin(itemId, pin);
+    } catch {
+      return false;
+    }
+
+    if (ok) {
       setLockedItems((current) =>
         current.map((i) => (i.id === itemId ? { ...i, unlocked: true } : i))
       );
@@ -435,6 +453,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         enterDesktop,
         finishBooting,
         tryPassword,
+        revealedPassword,
         openWindow,
         closeWindow,
         minimizeWindow,

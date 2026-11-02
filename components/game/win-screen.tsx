@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useGame } from "@/lib/game-context";
 import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ADMIN_PASSWORD, secretDocuments, secretMails } from "@/lib/game-data";
+import { secretDocuments, secretMails } from "@/lib/game-data";
 import { useSound } from "@/hooks/use-sound";
 
 const ALL_SECRETS = [...secretDocuments, ...secretMails];
@@ -20,7 +20,7 @@ function formatDuration(ms: number) {
 type Ending = "innocent" | "curious" | "detective" | "accomplice";
 
 export function WinScreen() {
-  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime } = useGame();
+  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword } = useGame();
   const { playSound } = useSound();
   const duration = startTime && endTime ? formatDuration(endTime - startTime) : "--:--";
   const [ending, setEnding] = useState<Ending>("innocent");
@@ -141,13 +141,17 @@ export function WinScreen() {
             </div>
             <div className="text-sm text-white/60 leading-relaxed">
               Mot de passe :{" "}
-              <span className="font-mono text-[#4ea8ff]">{ADMIN_PASSWORD}</span>
-              <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
-                <span className="bg-black/30 rounded px-2 py-1"><b className="text-white">BSM</b> ville</span>
-                <span className="bg-black/30 rounded px-2 py-1"><b className="text-white">1832</b> fondation</span>
-                <span className="bg-black/30 rounded px-2 py-1"><b className="text-white">#</b> le jazz</span>
-                <span className="bg-black/30 rounded px-2 py-1"><b className="text-white">14041967!</b> naissance</span>
-              </div>
+              <span className="font-mono text-[#4ea8ff]">{revealedPassword?.password ?? "—"}</span>
+              {revealedPassword && (
+                <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                  {revealedPassword.parts.map((part) => (
+                    <span key={part.value} className="bg-black/30 rounded px-2 py-1">
+                      <b className="text-white font-mono text-sm">{part.value}</b>
+                      <span className="block text-white/50">{part.label}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

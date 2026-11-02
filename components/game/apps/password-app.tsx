@@ -13,9 +13,14 @@ export function PasswordApp() {
   const { tryPassword, loginError, accountLevel, closeWindow, windows } = useGame();
   const { playSound } = useSound();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [checking, setChecking] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = tryPassword(password);
+    if (checking || !password.trim()) return;
+    setChecking(true);
+    const { result } = await tryPassword(password);
+    setChecking(false);
     setLastResult(result);
     
     if (result === "admin") {
@@ -154,7 +159,9 @@ export function PasswordApp() {
 
               <button
                 type="submit"
+                disabled={checking}
                 className={cn(
+                  "disabled:opacity-60 disabled:cursor-wait",
                   "w-full py-3 text-white rounded-md transition-colors font-medium",
                   accountLevel === "guest"
                     ? "bg-amber-600 hover:bg-amber-700"

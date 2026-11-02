@@ -21,9 +21,15 @@ export function FolderLockDialog({ folderId, folderName, onUnlock, onClose }: Fo
 
   const lockInfo = lockedItems.find((i) => i.id === folderId);
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const [checking, setChecking] = useState(false);
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (tryUnlockItem(folderId, pinInput)) {
+    if (checking) return;
+    setChecking(true);
+    const ok = await tryUnlockItem(folderId, pinInput);
+    setChecking(false);
+    if (ok) {
       playSound("open");
       setPinInput("");
       setPinError(false);
@@ -89,7 +95,7 @@ export function FolderLockDialog({ folderId, folderName, onUnlock, onClose }: Fo
             
             <button
               type="submit"
-              disabled={pinInput.length !== 4}
+              disabled={pinInput.length !== 4 || checking}
               className="w-full py-2.5 bg-[#0078d4] text-white rounded-lg font-medium hover:bg-[#0066b8] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Déverrouiller
