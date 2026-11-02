@@ -2,7 +2,8 @@
 // Toutes les lectures/écritures sont protégées : en navigation privée ou si le
 // stockage est bloqué, le jeu fonctionne simplement sans sauvegarde.
 
-import type { AccountLevel, ClueItem, DesktopFolder, Notification } from "./game-context";
+import type { AccountLevel, ClueItem, DesktopFolder, MailFolderId, Notification } from "./game-context";
+import type { FileItem } from "./game-data";
 import type { PasswordPart } from "./verify-client";
 
 const SAVE_KEY = "amnesia-save-v1";
@@ -24,6 +25,11 @@ export interface SaveData {
   listenedVoiceIds?: string[];
   notificationHistory?: (Omit<Notification, "timestamp"> & { timestamp: string })[];
   seenNotificationIds?: string[];
+  mail?: {
+    folderOverrides: Record<string, MailFolderId>;
+    starred: string[];
+    composed: FileItem[];
+  };
   desktop?: {
     wallpaper: string;
     iconPositions: Record<string, { x: number; y: number }>;

@@ -1,6 +1,6 @@
 // Retrouve le document d'où vient un indice, pour le rouvrir depuis le carnet.
 
-import type { AppType, ClueRef, WindowTarget } from "./game-context";
+import type { AppType, ClueRef, MailFolderId, WindowTarget } from "./game-context";
 import {
   audioMemos,
   browserHistory,
@@ -20,13 +20,11 @@ import {
 
 export const ALL_FILES: FileItem[] = [...documents, ...photos, ...notes, ...audioMemos, ...corbeille, ...secretDocuments];
 
-export type MailFolder = "inbox" | "sent" | "favorites" | "trash";
-
-/** Dossier du Courrier qui contient un email donné. */
-export function findMailFolder(mailId: string): MailFolder | null {
+/** Dossier d'origine d'un email (avant tout déplacement par le joueur). */
+export function baseMailFolder(mailId: string): MailFolderId | null {
   if ([...mails, ...secretMails].some((m) => m.id === mailId)) return "inbox";
+  if (favoriteMails.some((m) => m.id === mailId)) return "archive";
   if (sentMails.some((m) => m.id === mailId)) return "sent";
-  if (favoriteMails.some((m) => m.id === mailId)) return "favorites";
   if (deletedMails.some((m) => m.id === mailId)) return "trash";
   return null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from "react";
-import { SUSPICION_THRESHOLDS, mails, secretMails, type FileItem } from "./game-data";
+import { SUSPICION_THRESHOLDS, mails, secretMails, favoriteMails, type FileItem } from "./game-data";
 import { gameNow, birthdayCountdownText } from "./game-clock";
 import { isCatalogClue, UNREACHABLE_CLUES } from "./clue-catalog";
 import { DEFAULT_WALLPAPER } from "./data/wallpapers";
@@ -27,6 +27,8 @@ export interface WindowState {
   /** Élément à afficher à l'ouverture (email, page, mémo...) et passage à surligner */
   target?: WindowTarget;
 }
+
+export type MailFolderId = "inbox" | "archive" | "sent" | "trash";
 
 export interface DesktopFolder {
   id: string;
@@ -153,6 +155,14 @@ interface GameContextType {
   discoverSecret: (secretId: string) => void;
   readMailIds: string[];
   markMailRead: (mailId: string) => void;
+  markMailUnread: (mailId: string) => void;
+  /** Courrier : déplacements faits par le joueur, favoris, messages écrits */
+  mailFolderOverrides: Record<string, MailFolderId>;
+  moveMail: (mailId: string, folder: MailFolderId) => void;
+  starredMailIds: string[];
+  toggleMailStar: (mailId: string) => void;
+  composedMails: FileItem[];
+  sendMail: (mail: { to: string; subject: string; body: string }) => void;
   listenedVoiceIds: string[];
   markVoiceListened: (voiceId: string) => void;
   startTime: number | null;
@@ -286,6 +296,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const clueCounterRef = useRef(0);
   const [readMailIds, setReadMailIds] = useState<string[]>([]);
   const [listenedVoiceIds, setListenedVoiceIds] = useState<string[]>([]);
+  const [mailFolderOverrides, setMailFolderOverrides] = useState<Record<string, MailFolderId>>({});
+  const [starredMailIds, setStarredMailIds] = useState<string[]>(() => favoriteMails.map((m) => m.id));
+  const [composedMails, setComposedMails] = useState<FileItem[]>([]);
   const [revealedPassword, setRevealedPassword] = useState<{ password: string; parts: PasswordPart[] } | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [endTime, setEndTime] = useState<number | null>(null);
@@ -386,6 +399,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setListenedVoiceIds(save.listenedVoiceIds ?? []);
       setNotificationHistory((save.notificationHistory ?? []).map((n) => ({ ...n, timestamp: new Date(n.timestamp) })));
       setSeenNotificationIds(save.seenNotificationIds ?? []);
+      if (save.mail) {
+        setMailFolderOverrides(save.mail.folderOverrides);
+        setStarredMailIds(save.mail.starred);
+        setComposedMails(save.mail.composed);
+      }
       if (save.desktop) {
         setWallpaper(save.desktop.wallpaper);
         setIconPositions(save.desktop.iconPositions);
@@ -438,8 +456,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       notificationHistory: notificationHistory.map((n) => ({ ...n, timestamp: n.timestamp.toISOString() })),
       seenNotificationIds,
       desktop: { wallpaper, iconPositions, folders: desktopFolders },
+      mail: { folderOverrides: mailFolderOverrides, starred: starredMailIds, composed: composedMails },
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -651,6 +670,38 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const markMailRead = useCallback((mailId: string) => {
     setReadMailIds((current) => (current.includes(mailId) ? current : [...current, mailId]));
+  }, []);
+
+  const markMailUnread = useCallback((mailId: string) => {
+    setReadMailIds((current) => current.filter((id) => id !== mailId));
+  }, []);
+
+  const moveMail = useCallback((mailId: string, folder: MailFolderId) => {
+    setMailFolderOverrides((current) => ({ ...current, [mailId]: folder }));
+  }, []);
+
+  const toggleMailStar = useCallback((mailId: string) => {
+    setStarredMailIds((current) => (current.includes(mailId) ? current.filter((id) => id !== mailId) : [...current, mailId]));
+  }, []);
+
+  const sendMail = useCallback((mail: { to: string; subject: string; body: string }) => {
+    const date = gameNow().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    const subject = mail.subject.trim() || "(sans objet)";
+    const id = `composed-${Date.now()}`;
+    setComposedMails((current) => [
+      {
+        id,
+        name: subject,
+        type: "mail",
+        content: `À : ${mail.to.trim()}\nObjet : ${subject}\nDate : ${date}\n\n${mail.body}`,
+      },
+      ...current,
+    ]);
+    setReadMailIds((current) => [...current, id]);
+    setNotifications((current) => [
+      { id: notifId(), title: "Message envoyé", message: `À : ${mail.to.trim()} — ${subject}`, icon: "mail", timestamp: gameNow() },
+      ...current,
+    ]);
   }, []);
 
   const markVoiceListened = useCallback((voiceId: string) => {
@@ -865,6 +916,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         discoverSecret,
         readMailIds,
         markMailRead,
+        markMailUnread,
+        mailFolderOverrides,
+        moveMail,
+        starredMailIds,
+        toggleMailStar,
+        composedMails,
+        sendMail,
         listenedVoiceIds,
         markVoiceListened,
         startTime,
