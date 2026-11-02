@@ -45,6 +45,8 @@ export interface SearchContext {
   accountLevel: AccountLevel;
   confidentialUnlocked: boolean;
   listenedVoiceIds: string[];
+  trashRestoredIds: string[];
+  trashEmptied: boolean;
   apps: { id: AppType; label: string; keywords?: string[] }[];
 }
 
@@ -103,7 +105,9 @@ export function searchEverything(rawQuery: string, ctx: SearchContext): SearchRe
     { items: notes, location: "Notes" },
     { items: audioMemos, location: "Mémos vocaux" },
     { items: downloads, location: "Téléchargements" },
-    { items: corbeille, location: "Corbeille" },
+    // Corbeille : ce qui y reste ; les fichiers restaurés retrouvent leur dossier
+    { items: ctx.trashEmptied ? [] : corbeille.filter((f) => !ctx.trashRestoredIds.includes(f.id)), location: "Corbeille" },
+    { items: corbeille.filter((f) => ctx.trashRestoredIds.includes(f.id)), location: "Documents" },
   ];
   if (ctx.confidentialUnlocked) fileGroups.push({ items: secretDocuments, location: "Dossier Confidentiel" });
   for (const group of fileGroups) {

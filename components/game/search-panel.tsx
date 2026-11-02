@@ -26,7 +26,7 @@ interface SearchPanelProps {
 }
 
 export function SearchPanel({ open, onClose, toggleRef }: SearchPanelProps) {
-  const { openWindow, accountLevel, lockedItems, listenedVoiceIds } = useGame();
+  const { openWindow, accountLevel, lockedItems, listenedVoiceIds, trashRestoredIds, trashEmptied } = useGame();
   const { playSound } = useSound();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
@@ -40,13 +40,15 @@ export function SearchPanel({ open, onClose, toggleRef }: SearchPanelProps) {
       accountLevel,
       confidentialUnlocked,
       listenedVoiceIds,
+      trashRestoredIds,
+      trashEmptied,
       apps: Object.values(APPS),
     });
     return CATEGORY_ORDER.map((cat) => ({
       category: cat,
       items: all.filter((r) => r.category === cat).slice(0, MAX_PER_CATEGORY),
     })).filter((g) => g.items.length > 0);
-  }, [query, accountLevel, confidentialUnlocked, listenedVoiceIds]);
+  }, [query, accountLevel, confidentialUnlocked, listenedVoiceIds, trashRestoredIds, trashEmptied]);
   const flat = groups.flatMap((g) => g.items);
 
   useEffect(() => setSelected(0), [query]);
