@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, useRef, useEffect, ty
 import { SUSPICION_THRESHOLDS, mails, secretMails, type FileItem } from "./game-data";
 import { gameNow, birthdayCountdownText } from "./game-clock";
 import { isCatalogClue, UNREACHABLE_CLUES } from "./clue-catalog";
+import { DEFAULT_WALLPAPER } from "./data/wallpapers";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
@@ -25,6 +26,12 @@ export interface WindowState {
   snapped?: "left" | "right";
   /** Élément à afficher à l'ouverture (email, page, mémo...) et passage à surligner */
   target?: WindowTarget;
+}
+
+export interface DesktopFolder {
+  id: string;
+  name: string;
+  createdAt: string;
 }
 
 export type GamePhase =
@@ -107,6 +114,15 @@ interface GameContextType {
   unseenNotificationCount: number;
   markNotificationsSeen: () => void;
   clearNotificationHistory: () => void;
+  // Bureau : fond d'écran, positions des icônes, dossiers créés par le joueur
+  wallpaper: string;
+  setWallpaper: (id: string) => void;
+  iconPositions: Record<string, { x: number; y: number }>;
+  setIconPositions: (positions: Record<string, { x: number; y: number }>) => void;
+  desktopFolders: DesktopFolder[];
+  createDesktopFolder: () => string;
+  renameDesktopFolder: (id: string, name: string) => void;
+  deleteDesktopFolder: (id: string) => void;
   /** Niveau de batterie en % (la phase "événements" le fera baisser) */
   batteryLevel: number;
   passwordAttempts: number;
@@ -218,6 +234,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [notificationHistory, setNotificationHistory] = useState<Notification[]>([]);
   const [seenNotificationIds, setSeenNotificationIds] = useState<string[]>([]);
   const [batteryLevel] = useState(100);
+
+  // ---------- Bureau ----------
+  const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
+  const [iconPositions, setIconPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [desktopFolders, setDesktopFolders] = useState<DesktopFolder[]>([]);
+
+  const createDesktopFolder = useCallback(() => {
+    const id = `folder-${Date.now()}`;
+    setDesktopFolders((folders) => {
+      // "Nouveau dossier", "Nouveau dossier (2)"... comme sous Windows
+      const names = new Set(folders.map((f) => f.name));
+      let name = "Nouveau dossier";
+      for (let n = 2; names.has(name); n++) name = `Nouveau dossier (${n})`;
+      return [...folders, { id, name, createdAt: gameNow().toISOString() }];
+    });
+    return id;
+  }, []);
+  const renameDesktopFolder = useCallback((id: string, name: string) => {
+    const clean = name.trim().replace(/[\\/:*?"<>|]/g, "");
+    if (!clean) return;
+    setDesktopFolders((folders) => folders.map((f) => (f.id === id ? { ...f, name: clean } : f)));
+  }, []);
+  const deleteDesktopFolder = useCallback((id: string) => {
+    setDesktopFolders((folders) => folders.filter((f) => f.id !== id));
+    setIconPositions((pos) => {
+      const next = { ...pos };
+      delete next[id];
+      return next;
+    });
+  }, []);
 
   // Toute notification affichée rejoint l'historique (une seule fois)
   useEffect(() => {
@@ -340,6 +386,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setListenedVoiceIds(save.listenedVoiceIds ?? []);
       setNotificationHistory((save.notificationHistory ?? []).map((n) => ({ ...n, timestamp: new Date(n.timestamp) })));
       setSeenNotificationIds(save.seenNotificationIds ?? []);
+      if (save.desktop) {
+        setWallpaper(save.desktop.wallpaper);
+        setIconPositions(save.desktop.iconPositions);
+        setDesktopFolders(save.desktop.folders);
+      }
       setRevealedPassword(save.revealedPassword);
       setStartTime(now - save.elapsedMs);
       setEndTime(save.gamePhase === "won" ? now : null);
@@ -386,8 +437,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       revealedPassword,
       notificationHistory: notificationHistory.map((n) => ({ ...n, timestamp: n.timestamp.toISOString() })),
       seenNotificationIds,
+      desktop: { wallpaper, iconPositions, folders: desktopFolders },
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -777,6 +829,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
         markNotificationsSeen,
         clearNotificationHistory,
         batteryLevel,
+        wallpaper,
+        setWallpaper,
+        iconPositions,
+        setIconPositions,
+        desktopFolders,
+        createDesktopFolder,
+        renameDesktopFolder,
+        deleteDesktopFolder,
         passwordAttempts,
         lockedItems,
         accountLevel,

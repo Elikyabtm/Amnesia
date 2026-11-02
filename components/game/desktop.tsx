@@ -5,7 +5,7 @@ import { Window } from "./window";
 import { Taskbar } from "./taskbar";
 import { DesktopIcons } from "./desktop-icons";
 import { NotificationCenter } from "./notifications";
-import { ContextMenuProvider } from "./context-menu";
+import { wallpaperBackground } from "@/lib/data/wallpapers";
 import { FileExplorer } from "./apps/file-explorer";
 import { MailApp } from "./apps/mail-app";
 import { PhotosApp } from "./apps/photos-app";
@@ -22,13 +22,12 @@ import { WinScreen } from "./win-screen";
 import { WindowSwitcher } from "./window-switcher";
 
 export function Desktop() {
-  const { windows, gamePhase } = useGame();
+  const { windows, gamePhase, wallpaper } = useGame();
 
   return (
-    <ContextMenuProvider>
       <div 
-        className="min-h-screen bg-cover bg-center relative overflow-hidden select-none"
-        style={{ backgroundImage: "url('/images/wallpaper.jpg')" }}
+        className="min-h-screen relative overflow-hidden select-none transition-[background] duration-500"
+        style={{ background: wallpaperBackground(wallpaper) }}
       >
         {/* Desktop icons */}
         <DesktopIcons />
@@ -67,6 +66,5 @@ export function Desktop() {
         {/* Taskbar */}
         <Taskbar />
       </div>
-    </ContextMenuProvider>
   );
 }
