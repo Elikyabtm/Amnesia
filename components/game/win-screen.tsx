@@ -2,13 +2,45 @@
 
 import { useState, useEffect } from "react";
 import { useGame } from "@/lib/game-context";
-import { Trophy, Eye, FileWarning, RotateCcw, Clock, AlertTriangle } from "lucide-react";
+import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User, Scale, Flame, KeyRound } from "lucide-react";
+import { ENDINGS, type FinalChoice } from "@/lib/data/final-choice";
 import { cn } from "@/lib/utils";
+import { ENDING_THRESHOLDS, SECRET_TOTAL, secretName } from "@/lib/secret-catalog";
+import { useSound } from "@/hooks/use-sound";
+import { CLUE_TOTAL, isCatalogClue } from "@/lib/clue-catalog";
+
+const TOTAL_SECRETS = SECRET_TOTAL;
+
+function formatDuration(ms: number) {
+  const totalSeconds = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const ss = s.toString().padStart(2, "0");
+  return h > 0 ? `${h}:${m.toString().padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+function StatCard({ value, label, progress }: { value: string; label: string; progress?: number }) {
+  return (
+    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 flex flex-col justify-between">
+      <div className="text-2xl font-bold text-white tabular-nums">{value}</div>
+      <div className="text-xs text-white/50 mt-1 leading-tight">{label}</div>
+      {progress !== undefined && (
+        <div className="mt-2 h-1 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-full bg-[#4ea8ff]" style={{ width: `${Math.round(Math.min(1, progress) * 100)}%` }} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 type Ending = "innocent" | "curious" | "detective" | "accomplice";
 
 export function WinScreen() {
-  const { secretsDiscovered, passwordAttempts, suspicionLevel } = useGame();
+  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame, eventsState, finalChoice } = useGame();
+  const { playSound } = useSound();
+  const duration = startTime && endTime ? formatDuration(endTime - startTime) : "--:--";
+  const cluesFound = clues.filter((c) => isCatalogClue(c.text)).length;
   const [ending, setEnding] = useState<Ending>("innocent");
   const [showDetails, setShowDetails] = useState(false);
 
@@ -16,9 +48,9 @@ export function WinScreen() {
     // Determine ending based on what was discovered
     const discoveredCount = secretsDiscovered.length;
     
-    if (discoveredCount >= 4) {
+    if (discoveredCount >= ENDING_THRESHOLDS.detective) {
       setEnding("detective");
-    } else if (discoveredCount >= 2) {
+    } else if (discoveredCount >= ENDING_THRESHOLDS.curious) {
       setEnding("curious");
     } else if (discoveredCount === 0) {
       setEnding("innocent");
@@ -27,8 +59,13 @@ export function WinScreen() {
     }
     
     // Show details after delay
-    setTimeout(() => setShowDetails(true), 2000);
+    const timer = setTimeout(() => setShowDetails(true), 2000);
+    return () => clearTimeout(timer);
   }, [secretsDiscovered]);
+
+  useEffect(() => {
+    playSound("success");
+  }, [playSound]);
 
   const endings = {
     innocent: {
@@ -50,7 +87,7 @@ export function WinScreen() {
       borderColor: "border-amber-500/30",
     },
     detective: {
-      title: "Fin : Le Detective",
+      title: "Fin : Le Détective",
       subtitle: "Vous avez tout découvert.",
       description: "Corruption, menaces, comptes offshore... Vous connaissez maintenant la vérité sur Bernard Dupuis. La question est : qu'allez-vous faire de ces informations ?",
       icon: FileWarning,
@@ -69,20 +106,43 @@ export function WinScreen() {
     },
   };
 
-  const currentEnding = endings[ending];
+  // Fin à choix (phase 5) : elle prime sur la fin liée au nombre de secrets,
+  // qui devient le "niveau d'enquête"
+  const CHOICE_STYLE: Record<FinalChoice, { icon: typeof Trophy; color: string; bgColor: string; borderColor: string }> = {
+    justice: { icon: Scale, color: "text-sky-400", bgColor: "bg-sky-500/10", borderColor: "border-sky-500/30" },
+    mayor: { icon: Flame, color: "text-red-400", bgColor: "bg-red-500/10", borderColor: "border-red-500/30" },
+    player: { icon: KeyRound, color: "text-amber-400", bgColor: "bg-amber-500/10", borderColor: "border-amber-500/30" },
+  };
+  const choiceText = finalChoice ? ENDINGS[finalChoice.choice] : null;
+  const story = choiceText
+    ? [
+        ...(!secretsDiscovered.includes("secret5") && choiceText.openingWithoutTestament ? choiceText.openingWithoutTestament : choiceText.opening),
+        ...choiceText.conditional.filter((c) => c.secretIds.some((id) => secretsDiscovered.includes(id))).map((c) => c.text),
+        choiceText.closing,
+      ]
+    : null;
+  const investigationLevel = endings[ending].title.replace("Fin : ", "");
+  const currentEnding = finalChoice && choiceText
+    ? {
+        ...CHOICE_STYLE[finalChoice.choice],
+        title: choiceText.title,
+        subtitle: finalChoice.timedOut && choiceText.timeoutSubtitle ? choiceText.timeoutSubtitle : choiceText.subtitle,
+        description: `Niveau d'enquête : ${investigationLevel} (${secretsDiscovered.length}/${TOTAL_SECRETS} secrets)`,
+      }
+    : endings[ending];
   const Icon = currentEnding.icon;
 
   const handleRestart = () => {
-    window.location.reload();
+    resetGame();
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-[10000] flex items-center justify-center">
+    <div className="fixed inset-0 bg-black z-[10000] flex overflow-y-auto py-10">
       {/* Background effect */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black" />
+      <div className="fixed inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black" />
       
       {/* Content */}
-      <div className="relative z-10 max-w-2xl mx-auto px-8 text-center">
+      <div className="relative z-10 max-w-2xl m-auto px-8 text-center">
         {/* Icon */}
         <div className={cn(
           "w-24 h-24 rounded-full mx-auto mb-8 flex items-center justify-center border-2 animate-fade-in",
@@ -108,21 +168,58 @@ export function WinScreen() {
           {currentEnding.description}
         </p>
 
+        {story && (
+          <div className="mb-8 text-left space-y-3 rounded-lg border border-white/10 bg-white/[0.03] p-5 animate-fade-in" style={{ animationDelay: "0.8s" }}>
+            {story.map((paragraph) => (
+              <p key={paragraph} className="text-white/75 leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {/* Identity card */}
+        {showDetails && (
+          <div className="mb-8 bg-slate-800/50 rounded-lg p-4 border border-slate-700/50 text-left animate-fade-in">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-full bg-[#0078d4] flex items-center justify-center flex-shrink-0">
+                <User className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Vous êtes Bernard Dupuis</h2>
+                <p className="text-white/60 text-sm">Maire de Bourg-sur-Mer depuis 2015</p>
+              </div>
+            </div>
+            <div className="text-sm text-white/60 leading-relaxed">
+              Mot de passe :{" "}
+              <span className="font-mono text-[#4ea8ff]">{revealedPassword?.password ?? "—"}</span>
+              {revealedPassword && (
+                <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                  {revealedPassword.parts.map((part) => (
+                    <span key={part.value} className="bg-black/30 rounded px-2 py-1">
+                      <b className="text-white font-mono text-sm">{part.value}</b>
+                      <span className="block text-white/50">{part.label}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Stats */}
         {showDetails && (
-          <div className="grid grid-cols-3 gap-4 mb-8 animate-fade-in">
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{passwordAttempts}</div>
-              <div className="text-xs text-white/50 mt-1">Tentatives MDP</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{secretsDiscovered.length}</div>
-              <div className="text-xs text-white/50 mt-1">Secrets trouvés</div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-              <div className="text-2xl font-bold text-white">{suspicionLevel}%</div>
-              <div className="text-xs text-white/50 mt-1">Suspicion finale</div>
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8 animate-fade-in">
+            <StatCard value={duration} label="Temps de partie" />
+            <StatCard value={String(passwordAttempts)} label={`Tentative${passwordAttempts > 1 ? "s" : ""} de mot de passe`} />
+            <StatCard value={`${cluesFound}/${CLUE_TOTAL}`} label="Indices trouvés" progress={cluesFound / CLUE_TOTAL} />
+            <StatCard value={`${secretsDiscovered.length}/${TOTAL_SECRETS}`} label="Secrets trouvés" progress={secretsDiscovered.length / TOTAL_SECRETS} />
+            <StatCard value={`${suspicionLevel}%`} label="Suspicion finale" />
+            <StatCard
+              value={eventsState.stats.played ? `${eventsState.stats.firstTry}/${eventsState.stats.played}` : "—"}
+              label="Mini-jeux réussis du 1er coup"
+              progress={eventsState.stats.played ? eventsState.stats.firstTry / eventsState.stats.played : undefined}
+            />
           </div>
         )}
 
@@ -136,7 +233,7 @@ export function WinScreen() {
                   key={secret}
                   className="px-3 py-1 bg-red-500/10 border border-red-500/30 rounded-full text-xs text-red-400"
                 >
-                  {secret}
+                  {secretName(secret)}
                 </span>
               ))}
             </div>
@@ -155,9 +252,15 @@ export function WinScreen() {
         )}
 
         {/* Hint for other endings */}
-        {showDetails && ending !== "detective" && (
+        {showDetails && finalChoice && (
           <p className="mt-6 text-xs text-white/30 animate-fade-in">
-            Indice : Il y a d&apos;autres fins à découvrir. Explorez le dossier confidentiel...
+            Trois fins possibles : la Justice, le Maire, le Joueur. Rejouez pour faire un autre choix.
+          </p>
+        )}
+
+        {showDetails && !finalChoice && ending !== "detective" && (
+          <p className="mt-6 text-xs text-white/30 animate-fade-in">
+            Indice : Il y a d&apos;autres fins à découvrir. Avant de vous connecter en admin, fouillez le dossier confidentiel, la boîte mail, les contacts... et les recoins du système.
           </p>
         )}
       </div>

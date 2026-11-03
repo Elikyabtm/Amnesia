@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { 
   Image, 
   ChevronLeft, 
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { photos, type FileItem } from "@/lib/game-data";
 import { type WindowState } from "@/lib/game-context";
+import { useTextHighlight } from "@/lib/use-text-highlight";
 import { useSound } from "@/hooks/use-sound";
 
 interface PhotosAppProps {
@@ -23,7 +24,33 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<FileItem | null>(
     initialPhoto || null
   );
-  const [showInfo, setShowInfo] = useState(false);
+  // Ouverte depuis le carnet d'indices : on affiche directement la description
+  const [showInfo, setShowInfo] = useState(!!win.target?.highlight);
+  // Zoom et déplacement de l'image agrandie
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
+  const zoomBy = (delta: number) =>
+    setZoom((z) => {
+      const next = Math.min(4, Math.max(1, Math.round((z + delta) * 4) / 4));
+      if (next === 1) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  const resetZoom = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+  // Nouvelle photo affichée : zoom remis à 100 %
+  useEffect(() => {
+    resetZoom();
+  }, [selectedPhoto?.id]);
+  const infoRef = useRef<HTMLDivElement>(null);
+  useTextHighlight(
+    infoRef,
+    showInfo && selectedPhoto?.id === win.target?.id ? win.target?.highlight : undefined,
+    win.id,
+    [showInfo, selectedPhoto?.id]
+  );
   const { playSound } = useSound();
   const lastClickRef = useRef<{ id: string; time: number } | null>(null);
 
@@ -52,6 +79,7 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
       ? (currentIndex - 1 + photos.length) % photos.length
       : (currentIndex + 1) % photos.length;
     setSelectedPhoto(photos[newIndex]);
+    resetZoom();
   };
 
   return (
@@ -75,10 +103,29 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
             <div className="text-sm text-white/60">{selectedPhoto.name}</div>
             
             <div className="flex items-center gap-1">
-              <button className="p-2 hover:bg-white/10 rounded transition-colors">
+              <button
+                onClick={() => zoomBy(-0.25)}
+                disabled={zoom <= 1}
+                className="p-2 hover:bg-white/10 rounded transition-colors disabled:opacity-30"
+                title="Zoom arrière"
+                aria-label="Zoom arrière"
+              >
                 <ZoomOut className="w-4 h-4 text-white/70" />
               </button>
-              <button className="p-2 hover:bg-white/10 rounded transition-colors">
+              <button
+                onClick={resetZoom}
+                className="px-2 py-1 text-xs text-white/70 hover:bg-white/10 rounded tabular-nums min-w-[48px]"
+                title="Taille d'origine"
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <button
+                onClick={() => zoomBy(0.25)}
+                disabled={zoom >= 4}
+                className="p-2 hover:bg-white/10 rounded transition-colors disabled:opacity-30"
+                title="Zoom avant"
+                aria-label="Zoom avant"
+              >
                 <ZoomIn className="w-4 h-4 text-white/70" />
               </button>
               <button 
@@ -96,12 +143,34 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
           </div>
 
           {/* Image display */}
-          <div className="flex-1 flex items-center justify-center relative">
+          <div
+            className={`flex-1 flex items-center justify-center relative overflow-hidden ${zoom > 1 ? "cursor-grab active:cursor-grabbing" : ""}`}
+            onWheel={(e) => zoomBy(e.deltaY < 0 ? 0.25 : -0.25)}
+            onDoubleClick={() => (zoom > 1 ? resetZoom() : zoomBy(1))}
+            onMouseDown={(e) => {
+              if (zoom <= 1) return;
+              e.preventDefault();
+              panRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
+              const move = (ev: MouseEvent) => {
+                const start = panRef.current;
+                if (start) setPan({ x: start.px + ev.clientX - start.x, y: start.py + ev.clientY - start.y });
+              };
+              const up = () => {
+                panRef.current = null;
+                document.removeEventListener("mousemove", move);
+                document.removeEventListener("mouseup", up);
+              };
+              document.addEventListener("mousemove", move);
+              document.addEventListener("mouseup", up);
+            }}
+          >
             {selectedPhoto.imageSrc && (
               <img 
                 src={selectedPhoto.imageSrc}
                 alt={selectedPhoto.name}
-                className="max-w-full max-h-full object-contain"
+                draggable={false}
+                className="max-w-full max-h-full object-contain transition-transform duration-150 select-none"
+                style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
               />
             )}
             
@@ -121,7 +190,7 @@ export function PhotosApp({ window: win }: PhotosAppProps) {
 
             {/* Info panel */}
             {showInfo && (
-              <div className="absolute right-0 top-0 bottom-0 w-72 bg-[#1a1a1a] border-l border-white/10 p-4 overflow-auto">
+              <div ref={infoRef} className="absolute right-0 top-0 bottom-0 w-72 bg-[#1a1a1a] border-l border-white/10 p-4 overflow-auto">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-medium text-white">Informations</h3>
                   <button 

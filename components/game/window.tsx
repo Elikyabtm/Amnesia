@@ -2,7 +2,7 @@
 
 import { useRef, useCallback, useState, type ReactNode, type MouseEvent } from "react";
 import { Minus, Square, X, Maximize2 } from "lucide-react";
-import { useGame, type WindowState } from "@/lib/game-context";
+import { useGame, type WindowState, type SnapZone } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 
 interface WindowProps {
@@ -11,7 +11,12 @@ interface WindowProps {
 }
 
 export function Window({ window: win, children }: WindowProps) {
-  const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, updateWindowPosition, updateWindowSize, activeWindowId } = useGame();
+  const { closeWindow, minimizeWindow, maximizeWindow, focusWindow, updateWindowPosition, updateWindowSize, activeWindowId, isLockedOut, snapWindow, detachWindow } = useGame();
+  const [snapPreview, setSnapPreview] = useState<SnapZone | null>(null);
+
+  // Pendant un blocage, la fenêtre Déverrouiller passe au-dessus du voile de
+  // blocage pour afficher son compte à rebours.
+  const raisedAboveLockout = isLockedOut && win.app === "password" && !win.isMinimized;
   const { playSound } = useSound();
   const windowRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ startX: number; startY: number; initialX: number; initialY: number } | null>(null);
@@ -21,9 +26,13 @@ export function Window({ window: win, children }: WindowProps) {
 
   const handleMouseDown = useCallback((e: MouseEvent) => {
     if ((e.target as HTMLElement).closest("button")) return;
-    if (win.isMaximized) return;
-    
+    if (e.button !== 0) return;
+
     focusWindow(win.id);
+    const docked = win.isMaximized || !!win.snapped;
+    // Une fenêtre agrandie/aimantée se "décroche" seulement après un vrai déplacement
+    let detached = !docked;
+    let zone: SnapZone | null = null;
     dragRef.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -32,26 +41,53 @@ export function Window({ window: win, children }: WindowProps) {
     };
 
     const handleMouseMove = (moveEvent: globalThis.MouseEvent) => {
-      if (!dragRef.current) return;
-      
-      const deltaX = moveEvent.clientX - dragRef.current.startX;
-      const deltaY = moveEvent.clientY - dragRef.current.startY;
-      
+      const drag = dragRef.current;
+      if (!drag) return;
+
+      if (!detached) {
+        if (Math.hypot(moveEvent.clientX - drag.startX, moveEvent.clientY - drag.startY) < 8) return;
+        // Garde le curseur à la même proportion de la barre de titre
+        const restoredWidth = win.prevSize?.width ?? win.size.width;
+        const ratio = (drag.startX - win.position.x) / win.size.width;
+        const x = Math.max(0, moveEvent.clientX - ratio * restoredWidth);
+        const y = Math.max(0, moveEvent.clientY - 16);
+        detachWindow(win.id, { x, y });
+        dragRef.current = { startX: moveEvent.clientX, startY: moveEvent.clientY, initialX: x, initialY: y };
+        detached = true;
+        return;
+      }
+
+      const deltaX = moveEvent.clientX - drag.startX;
+      const deltaY = moveEvent.clientY - drag.startY;
       updateWindowPosition(win.id, {
-        x: Math.max(0, dragRef.current.initialX + deltaX),
-        y: Math.max(0, dragRef.current.initialY + deltaY),
+        x: drag.initialX + deltaX,
+        y: Math.max(0, drag.initialY + deltaY),
       });
+
+      // Zones d'aimantation : bords gauche/droit, haut = agrandir
+      const edge = 4;
+      zone =
+        moveEvent.clientX <= edge ? "left"
+        : moveEvent.clientX >= globalThis.innerWidth - edge ? "right"
+        : moveEvent.clientY <= edge ? "max"
+        : null;
+      setSnapPreview(zone);
     };
 
     const handleMouseUp = () => {
       dragRef.current = null;
+      if (zone) {
+        playSound("click");
+        snapWindow(win.id, zone);
+      }
+      setSnapPreview(null);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
 
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseUp);
-  }, [win.id, win.position, win.isMaximized, focusWindow, updateWindowPosition]);
+  }, [win.id, win.position, win.size, win.prevSize, win.isMaximized, win.snapped, focusWindow, updateWindowPosition, detachWindow, snapWindow, playSound]);
 
   const handleResize = useCallback((e: MouseEvent, direction: string) => {
     e.preventDefault();
@@ -128,6 +164,18 @@ export function Window({ window: win, children }: WindowProps) {
   if (win.isMinimized) return null;
 
   return (
+    <>
+    {snapPreview && (
+      <div
+        className="fixed z-[8999] rounded-lg border-2 border-white/40 bg-white/10 backdrop-blur-sm pointer-events-none transition-all"
+        style={{
+          left: snapPreview === "right" ? "50%" : 0,
+          top: 0,
+          width: snapPreview === "max" ? "100%" : "50%",
+          height: "calc(100% - 48px)",
+        }}
+      />
+    )}
     <div
       ref={windowRef}
       className={`absolute animate-window-open ${isResizing ? "select-none" : ""}`}
@@ -136,7 +184,7 @@ export function Window({ window: win, children }: WindowProps) {
         top: win.position.y,
         width: win.size.width,
         height: win.size.height,
-        zIndex: win.zIndex,
+        zIndex: raisedAboveLockout ? 9999 : win.zIndex,
       }}
       onClick={() => focusWindow(win.id)}
     >
@@ -151,7 +199,7 @@ export function Window({ window: win, children }: WindowProps) {
         <div
           className={`flex items-center justify-between px-3 py-2 select-none transition-colors ${
             isActive ? "bg-[#1f1f1f]" : "bg-[#2d2d2d]"
-          } ${win.isMaximized ? "cursor-default" : "cursor-move"}`}
+          } cursor-default`}
           onMouseDown={handleMouseDown}
           onDoubleClick={handleDoubleClick}
         >
@@ -233,5 +281,6 @@ export function Window({ window: win, children }: WindowProps) {
         </>
       )}
     </div>
+    </>
   );
 }

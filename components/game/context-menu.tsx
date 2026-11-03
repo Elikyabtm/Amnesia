@@ -1,174 +1,106 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { 
-  Folder, 
-  FileText, 
-  Image, 
-  RefreshCw, 
-  Settings, 
-  Info, 
-  Copy, 
-  Trash2,
-  Eye,
-  ExternalLink
-} from "lucide-react";
-import { useGame, type AppType } from "@/lib/game-context";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ChevronRight, type LucideIcon } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
 
-interface ContextMenuProps {
-  children: React.ReactNode;
+export interface ContextMenuItem {
+  label: string;
+  icon?: LucideIcon;
+  action?: () => void;
+  disabled?: boolean;
+  /** Trait de séparation après l'élément */
+  divider?: boolean;
+  submenu?: ContextMenuItem[];
 }
 
-interface MenuPosition {
+interface ContextMenuProps {
   x: number;
   y: number;
+  items: ContextMenuItem[];
+  onClose: () => void;
 }
 
-interface MenuItem {
-  label: string;
-  icon: typeof Folder;
-  action: () => void;
-  divider?: boolean;
-}
-
-export function ContextMenuProvider({ children }: ContextMenuProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState<MenuPosition>({ x: 0, y: 0 });
-  const [menuType, setMenuType] = useState<"desktop" | "file">("desktop");
-  const { openWindow } = useGame();
+/** Menu contextuel façon Windows 11, avec sous-menus au survol. */
+export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x, y });
+  const [openSub, setOpenSub] = useState<number | null>(null);
   const { playSound } = useSound();
 
-  const handleContextMenu = useCallback((e: MouseEvent) => {
-    e.preventDefault();
-    playSound("click");
-    
-    const target = e.target as HTMLElement;
-    const isDesktopIcon = target.closest("[data-desktop-icon]");
-    
-    setMenuType(isDesktopIcon ? "file" : "desktop");
-    setPosition({ x: e.clientX, y: e.clientY });
-    setIsOpen(true);
-  }, [playSound]);
-
-  const handleClick = useCallback(() => {
-    setIsOpen(false);
-  }, []);
+  // Garde le menu entièrement à l'écran
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    setPos({
+      x: Math.min(x, window.innerWidth - width - 4),
+      y: Math.min(y, window.innerHeight - 48 - height - 4),
+    });
+  }, [x, y]);
 
   useEffect(() => {
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("click", handleClick);
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("click", handleClick);
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
-  }, [handleContextMenu, handleClick]);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("blur", onClose);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("blur", onClose);
+    };
+  }, [onClose]);
 
-  const desktopMenuItems: MenuItem[] = [
-    { 
-      label: "Affichage", 
-      icon: Eye, 
-      action: () => {} 
-    },
-    { 
-      label: "Actualiser", 
-      icon: RefreshCw, 
-      action: () => window.location.reload(),
-      divider: true
-    },
-    { 
-      label: "Nouveau dossier", 
-      icon: Folder, 
-      action: () => {} 
-    },
-    { 
-      label: "Nouveau document", 
-      icon: FileText, 
-      action: () => openWindow("notepad"),
-      divider: true
-    },
-    { 
-      label: "Parametres d'affichage", 
-      icon: Settings, 
-      action: () => {} 
-    },
-    { 
-      label: "Proprietes", 
-      icon: Info, 
-      action: () => {} 
-    },
-  ];
-
-  const fileMenuItems: MenuItem[] = [
-    { 
-      label: "Ouvrir", 
-      icon: ExternalLink, 
-      action: () => {} 
-    },
-    { 
-      label: "Ouvrir avec...", 
-      icon: Folder, 
-      action: () => {},
-      divider: true
-    },
-    { 
-      label: "Copier", 
-      icon: Copy, 
-      action: () => {} 
-    },
-    { 
-      label: "Supprimer", 
-      icon: Trash2, 
-      action: () => {},
-      divider: true
-    },
-    { 
-      label: "Proprietes", 
-      icon: Info, 
-      action: () => {} 
-    },
-  ];
-
-  const menuItems = menuType === "desktop" ? desktopMenuItems : fileMenuItems;
-
-  // Adjust position to keep menu in viewport
-  const adjustedPosition = {
-    x: Math.min(position.x, window.innerWidth - 200),
-    y: Math.min(position.y, window.innerHeight - (menuItems.length * 36 + 16)),
-  };
+  const renderItems = (list: ContextMenuItem[], isSub = false) =>
+    list.map((item, index) => {
+      const Icon = item.icon;
+      return (
+        <div
+          key={item.label}
+          className="relative"
+          onMouseEnter={() => !isSub && setOpenSub(item.submenu ? index : null)}
+        >
+          <button
+            disabled={item.disabled}
+            onClick={() => {
+              if (item.submenu) {
+                setOpenSub(openSub === index ? null : index);
+                return;
+              }
+              playSound("click");
+              item.action?.();
+              onClose();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-1.5 text-sm text-white/85 rounded hover:bg-white/10 hover:text-white disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-left"
+          >
+            <span className="w-4 h-4 flex items-center justify-center">
+              {Icon && <Icon className="w-4 h-4 text-white/60" />}
+            </span>
+            <span className="flex-1 whitespace-nowrap">{item.label}</span>
+            {item.submenu && <ChevronRight className="w-3.5 h-3.5 text-white/50" />}
+          </button>
+          {item.submenu && openSub === index && (
+            <div className="absolute left-full top-0 ml-1 min-w-[180px] bg-[#2b2b2b]/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl p-1">
+              {renderItems(item.submenu, true)}
+            </div>
+          )}
+          {item.divider && <div className="my-1 border-t border-white/10" />}
+        </div>
+      );
+    });
 
   return (
-    <>
-      {children}
-      
-      {isOpen && (
-        <div
-          className="fixed z-[5000] min-w-[180px] bg-[#2d2d2d]/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl py-1 animate-fade-in"
-          style={{ left: adjustedPosition.x, top: adjustedPosition.y }}
-        >
-          {menuItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <div key={index}>
-                <button
-                  onClick={() => {
-                    playSound("click");
-                    item.action();
-                    setIsOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-white/80 hover:bg-white/10 hover:text-white transition-colors"
-                >
-                  <Icon className="w-4 h-4 text-white/50" />
-                  {item.label}
-                </button>
-                {item.divider && (
-                  <div className="my-1 border-t border-white/10" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </>
+    <div
+      ref={ref}
+      role="menu"
+      className="fixed z-[5000] min-w-[220px] bg-[#2b2b2b]/95 backdrop-blur-md border border-white/10 rounded-lg shadow-2xl p-1 animate-fade-in"
+      style={{ left: pos.x, top: pos.y }}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {renderItems(items)}
+    </div>
   );
 }

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Play, Info, Settings, Volume2, VolumeX } from "lucide-react";
 import { useSound } from "@/hooks/use-sound";
+import { useGame } from "@/lib/game-context";
+import { ConfirmDialog } from "./confirm-dialog";
 
 interface TitleScreenProps {
   onStart: () => void;
@@ -10,6 +12,8 @@ interface TitleScreenProps {
 
 export function TitleScreen({ onStart }: TitleScreenProps) {
   const [showInfo, setShowInfo] = useState(false);
+  const [confirmNew, setConfirmNew] = useState(false);
+  const { canContinue, continueGame, resetGame } = useGame();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [glitchText, setGlitchText] = useState("AMNESIA");
   const { playSound } = useSound();
@@ -99,13 +103,34 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
 
         {/* Menu buttons */}
         <div className="flex flex-col items-center gap-3">
-          <button
-            onClick={handleStart}
-            className="group flex items-center gap-3 px-8 py-4 bg-[#0078d4] text-white rounded-sm hover:bg-[#1084d8] transition-all hover:scale-105"
-          >
-            <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            <span className="text-lg font-medium tracking-wide">COMMENCER</span>
-          </button>
+          {canContinue ? (
+            <>
+              <button
+                onClick={() => {
+                  if (soundEnabled) playSound("click");
+                  continueGame();
+                }}
+                className="group flex items-center gap-3 px-8 py-4 bg-[#0078d4] text-white rounded-sm hover:bg-[#1084d8] transition-all hover:scale-105"
+              >
+                <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <span className="text-lg font-medium tracking-wide">CONTINUER</span>
+              </button>
+              <button
+                onClick={() => setConfirmNew(true)}
+                className="flex items-center gap-3 px-6 py-3 text-white/70 hover:text-white hover:bg-white/10 rounded-sm transition-all"
+              >
+                <span>Nouvelle partie</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleStart}
+              className="group flex items-center gap-3 px-8 py-4 bg-[#0078d4] text-white rounded-sm hover:bg-[#1084d8] transition-all hover:scale-105"
+            >
+              <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <span className="text-lg font-medium tracking-wide">COMMENCER</span>
+            </button>
+          )}
 
           <button
             onClick={() => setShowInfo(true)}
@@ -124,6 +149,17 @@ export function TitleScreen({ onStart }: TitleScreenProps) {
           {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
         </button>
       </div>
+
+      {confirmNew && (
+        <ConfirmDialog
+          title="Nouvelle partie"
+          message="Une enquête est en cours. Commencer une nouvelle partie effacera définitivement votre progression."
+          confirmLabel="Effacer et recommencer"
+          danger
+          onConfirm={resetGame}
+          onCancel={() => setConfirmNew(false)}
+        />
+      )}
 
       {/* Info modal */}
       {showInfo && (

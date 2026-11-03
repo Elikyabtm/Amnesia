@@ -5,34 +5,31 @@ import { SoundProvider } from "@/lib/sound-context";
 import { TitleScreen } from "./title-screen";
 import { LoginScreen } from "./login-screen";
 import { Desktop } from "./desktop";
-import { VictoryScreen } from "./victory-screen";
 import { BootScreen } from "./boot-screen";
+import { PowerScreen } from "./power-screen";
 
 function GameContent() {
-  const { gamePhase, startGame, finishBooting } = useGame();
+  const { gamePhase, startGame, finishBooting, isRestored } = useGame();
 
-  const handleRestart = () => {
-    window.location.reload();
-  };
-
-  if (gamePhase === "won") {
-    return (
-      <>
-        <Desktop />
-        <VictoryScreen onRestart={handleRestart} />
-      </>
-    );
+  // Tant que la sauvegarde n'est pas lue, on n'affiche rien (évite un flash de l'écran titre)
+  if (!isRestored) {
+    return <div className="min-h-screen bg-black" />;
   }
 
-  if (gamePhase === "exploring") {
+  // Desktop renders the WinScreen itself once the game is won
+  if (gamePhase === "exploring" || gamePhase === "won") {
     return <Desktop />;
+  }
+
+  if (gamePhase === "restarting" || gamePhase === "shuttingdown") {
+    return <PowerScreen />;
   }
 
   if (gamePhase === "booting") {
     return <BootScreen onComplete={finishBooting} />;
   }
 
-  if (gamePhase === "intro") {
+  if (gamePhase === "intro" || gamePhase === "sleep") {
     return <LoginScreen />;
   }
 

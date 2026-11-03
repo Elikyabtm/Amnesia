@@ -6,10 +6,11 @@ import { Shield, AlertTriangle, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function SuspicionBar() {
-  const { suspicionLevel, isLockedOut, accountLevel } = useGame();
+  const { suspicionLevel, isLockedOut, lockoutRemaining, gamePhase, windows } = useGame();
+  // Si la fenêtre Déverrouiller est ouverte, c'est elle qui affiche le compte à rebours
+  const passwordWindowVisible = windows.some((w) => w.app === "password" && !w.isMinimized);
 
-  // Don't show if not exploring
-  if (accountLevel === "locked") return null;
+  if (gamePhase !== "exploring") return null;
 
   const getColor = () => {
     if (suspicionLevel >= SUSPICION_THRESHOLDS.DANGER) return "bg-red-500";
@@ -31,7 +32,8 @@ export function SuspicionBar() {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-[9999]">
+    <>
+    <div className="fixed top-4 right-4 z-[10000]">
       <div
         className={cn(
           "flex items-center gap-3 px-4 py-2 rounded-lg border backdrop-blur-md transition-all duration-300",
@@ -65,10 +67,12 @@ export function SuspicionBar() {
           </div>
         </div>
       </div>
+    </div>
 
-      {/* Lockout overlay */}
+      {/* Lockout overlay: sous la fenêtre Déverrouiller (z 9999), au-dessus du reste */}
       {isLockedOut && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9998] flex items-center justify-center">
+          {!passwordWindowVisible && (
           <div className="bg-slate-900 border border-red-500/30 rounded-lg p-8 max-w-md text-center animate-fade-in">
             <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">Système Bloqué</h2>
@@ -76,11 +80,12 @@ export function SuspicionBar() {
               Activité suspecte détectée. Le système est temporairement bloqué.
             </p>
             <p className="text-red-400 text-sm">
-              Veuillez patienter 10 secondes...
+              Veuillez patienter {lockoutRemaining} seconde{lockoutRemaining > 1 ? "s" : ""}...
             </p>
           </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }

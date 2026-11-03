@@ -1,24 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { User, ArrowRight, Wifi, Battery, Volume2 } from "lucide-react";
+import { useGameClock } from "@/lib/game-clock";
 import { useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 
 export function LoginScreen() {
-  const [mounted, setMounted] = useState(false);
-  const [time, setTime] = useState<Date | null>(null);
-  const { enterDesktop } = useGame();
+  const time = useGameClock();
+  const mounted = time !== null;
+  const { enterDesktop, gamePhase, wake, identityKnown } = useGame();
+  // En veille, la session est déjà ouverte : on retourne directement au bureau
+  const isSleep = gamePhase === "sleep";
   const { playSound } = useSound();
 
-  useEffect(() => {
-    setMounted(true);
-    setTime(new Date());
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   const handleEnter = () => {
+    if (isSleep) {
+      playSound("click");
+      wake();
+      return;
+    }
     playSound("startup");
     enterDesktop();
   };
@@ -85,29 +85,33 @@ export function LoginScreen() {
           </div>
 
           {/* Username */}
-          <div className="text-2xl font-medium text-white mb-2">???</div>
-          <p className="text-white/60 text-sm mb-6">Vous ne vous souvenez de rien...</p>
+          <div className="text-2xl font-medium text-white mb-2">{isSleep && identityKnown ? "Bernard Dupuis" : "???"}</div>
+          <p className="text-white/60 text-sm mb-6">
+            {isSleep ? "Session verrouillée (veille)" : "Vous ne vous souvenez de rien..."}
+          </p>
 
           {/* Enter button */}
           <button
             onClick={handleEnter}
             className="flex items-center gap-3 px-8 py-3 bg-white/10 backdrop-blur-md rounded-sm border border-white/20 text-white hover:bg-white/20 transition-all group"
           >
-            <span>Acceder au bureau</span>
+            <span>{isSleep ? "Reprendre la session" : "Accéder au bureau"}</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
 
           {/* Hint text */}
-          <p className="text-white/50 text-sm mt-6 max-w-md text-center">
-            Explorez les fichiers pour decouvrir qui vous etes et retrouver votre mot de passe...
-          </p>
+          {!isSleep && (
+            <p className="text-white/50 text-sm mt-6 max-w-md text-center">
+              Explorez les fichiers pour découvrir qui vous êtes et retrouver votre mot de passe...
+            </p>
+          )}
         </div>
       </div>
 
       {/* Bottom hint */}
       <div className="relative z-10 p-6 text-center">
         <p className="text-white/60 text-sm">
-          Cliquez pour commencer votre enquete
+          {isSleep ? "Votre enquête vous attend là où vous l'avez laissée" : "Cliquez pour commencer votre enquête"}
         </p>
       </div>
     </div>

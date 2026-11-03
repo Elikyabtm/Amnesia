@@ -5,18 +5,27 @@ import { Eye, EyeOff, Lock, KeyRound, User, Shield, Crown } from "lucide-react";
 import { useGame } from "@/lib/game-context";
 import { useSound } from "@/hooks/use-sound";
 import { cn } from "@/lib/utils";
+import { SuspicionMeter } from "../suspicion-meter";
 
 export function PasswordApp() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [lastResult, setLastResult] = useState<"wrong" | "guest" | "admin" | null>(null);
-  const { tryPassword, loginError, accountLevel, closeWindow, windows } = useGame();
+  const { tryPassword, loginError, accountLevel, closeWindow, windows, isLockedOut } = useGame();
   const { playSound } = useSound();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [checking, setChecking] = useState(false);
+  const [feedback, setFeedback] = useState<{ correct: number; total: number } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = tryPassword(password);
+    if (checking || isLockedOut || !password.trim()) return;
+    setChecking(true);
+    const verdict = await tryPassword(password);
+    const { result } = verdict;
+    setChecking(false);
     setLastResult(result);
+    setFeedback(result === "wrong" ? verdict.feedback ?? null : null);
     
     if (result === "admin") {
       playSound("success");
@@ -83,8 +92,10 @@ export function PasswordApp() {
       )}
 
       {/* Content */}
-      <div className="flex-1 p-6 flex flex-col items-center justify-center">
-        <div className="w-full max-w-md">
+      <div className="flex-1 p-6 flex flex-col overflow-auto">
+        <div className="w-full max-w-md m-auto">
+          <SuspicionMeter className="mb-4" />
+
           {/* Success message for guest */}
           {lastResult === "guest" && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg animate-fade-in">
@@ -136,6 +147,7 @@ export function PasswordApp() {
                     placeholder={accountLevel === "guest" ? "Mot de passe administrateur..." : "Entrez le mot de passe..."}
                     className="flex-1 px-4 py-3 outline-none bg-transparent text-gray-900 placeholder-gray-400"
                     autoFocus
+                    disabled={isLockedOut}
                   />
                   <button
                     type="button"
@@ -145,16 +157,40 @@ export function PasswordApp() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                {loginError && (
-                  <p className="text-red-500 text-sm mt-2 animate-fade-in">
-                    Mot de passe incorrect. Continuez à chercher des indices !
-                  </p>
+                {lastResult === "wrong" && (
+                  <div className="mt-2 animate-fade-in">
+                    <p className="text-red-500 text-sm">
+                      Mot de passe incorrect. Continuez à chercher des indices !
+                    </p>
+                    {feedback && (feedback.correct > 0 || accountLevel === "guest") && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {Array.from({ length: feedback.total }, (_, i) => (
+                            <span
+                              key={i}
+                              className={cn(
+                                "w-3 h-3 rounded-sm",
+                                i < feedback.correct ? "bg-emerald-500" : "bg-gray-300"
+                              )}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {feedback.correct === feedback.total
+                            ? "Tous les éléments sont là, mais pas dans le bon ordre ou le bon format."
+                            : `${feedback.correct} élément${feedback.correct > 1 ? "s" : ""} sur ${feedback.total} ${feedback.correct > 1 ? "sont corrects" : "est correct"}.`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
               <button
                 type="submit"
+                disabled={checking || isLockedOut}
                 className={cn(
+                  "disabled:opacity-60 disabled:cursor-wait",
                   "w-full py-3 text-white rounded-md transition-colors font-medium",
                   accountLevel === "guest"
                     ? "bg-amber-600 hover:bg-amber-700"
