@@ -9,6 +9,7 @@ import { DEFAULT_WALLPAPER } from "./data/wallpapers";
 import { DEFAULT_BOOKMARKS } from "./data/browser";
 import { DEFAULT_BEST_SCORES, type MinesweeperLevel, type MinesweeperScore } from "./data/minesweeper";
 import { INITIAL_EVENTS_STATE, type EventsState } from "./events/types";
+import type { FinalChoice } from "./data/final-choice";
 import { loadSave, writeSave, clearSave, type SaveData } from "./save-game";
 import { verifyPassword, verifyPin, type PasswordVerdict, type PasswordPart } from "./verify-client";
 
@@ -156,6 +157,9 @@ interface GameContextType {
   /** État des événements système et des mini-jeux */
   eventsState: EventsState;
   setEventsState: React.Dispatch<React.SetStateAction<EventsState>>;
+  /** Choix moral final (après le mot de passe admin, si le dossier confidentiel a été ouvert) */
+  finalChoice: { choice: FinalChoice; timedOut: boolean } | null;
+  setFinalChoice: (choice: { choice: FinalChoice; timedOut: boolean }) => void;
   /** Temps de jeu écoulé en ms (hors ordinateur éteint) */
   getElapsedMs: () => number;
   passwordAttempts: number;
@@ -285,6 +289,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [batteryCharging, setBatteryCharging] = useState(false);
   const [networkOnline, setNetworkOnline] = useState(true);
   const [eventsState, setEventsState] = useState<EventsState>(INITIAL_EVENTS_STATE);
+  const [finalChoice, setFinalChoice] = useState<{ choice: FinalChoice; timedOut: boolean } | null>(null);
 
   // ---------- Bureau ----------
   const [wallpaper, setWallpaper] = useState(DEFAULT_WALLPAPER);
@@ -467,6 +472,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (save.browserBookmarks) setBrowserBookmarks(save.browserBookmarks);
       if (save.userFiles) setUserFiles(save.userFiles);
       if (save.minesweeperScores) setMinesweeperScores(save.minesweeperScores);
+      if (save.finalChoice) setFinalChoice(save.finalChoice);
       if (save.events) {
         setEventsState(save.events);
         setBatteryCharging(save.events.batteryResolved);
@@ -538,8 +544,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       userFiles,
       minesweeperScores,
       events: eventsState,
+      finalChoice,
     };
-  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles, minesweeperScores, eventsState]);
+  }, [gamePhase, startTime, endTime, pausedAt, accountLevel, passwordAttempts, suspicionLevel, clues, lockedItems, secretsDiscovered, readMailIds, listenedVoiceIds, revealedPassword, notificationHistory, seenNotificationIds, wallpaper, iconPositions, desktopFolders, mailFolderOverrides, starredMailIds, composedMails, trashRestoredIds, trashEmptied, browserBookmarks, userFiles, minesweeperScores, eventsState, finalChoice]);
 
   // Sauvegarde à chaque changement, toutes les 5 s (chronomètre) et en quittant la page
   const buildSaveRef = useRef(buildSave);
@@ -980,6 +987,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setNetworkOnline,
         eventsState,
         setEventsState,
+        finalChoice,
+        setFinalChoice,
         getElapsedMs,
         userFiles,
         saveUserFile,

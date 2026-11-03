@@ -26,10 +26,12 @@ import { MinesweeperApp } from "./apps/minesweeper-app";
 import { EventManager } from "./events/event-manager";
 import { SuspicionBar } from "./suspicion-bar";
 import { WinScreen } from "./win-screen";
+import { FinalChoiceScreen } from "./final-choice-screen";
 import { WindowSwitcher } from "./window-switcher";
 
 export function Desktop() {
-  const { windows, gamePhase, wallpaper } = useGame();
+  const { windows, gamePhase, wallpaper, lockedItems, finalChoice } = useGame();
+  const needsFinalChoice = !finalChoice && lockedItems.some((i) => i.id === "confidential" && i.unlocked);
 
   return (
       <div 
@@ -72,7 +74,8 @@ export function Desktop() {
         <SuspicionBar />
 
         {/* Win Screen */}
-        {gamePhase === "won" && <WinScreen />}
+        {/* Fin : choix moral si le dossier confidentiel a été ouvert, puis écran de fin */}
+        {gamePhase === "won" && (needsFinalChoice ? <FinalChoiceScreen /> : <WinScreen />)}
 
         {/* Alt+Tab / Alt+Q */}
         <WindowSwitcher />
