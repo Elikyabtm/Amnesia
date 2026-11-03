@@ -64,6 +64,8 @@ export interface EndingText {
   /** Sous-titre si le joueur n'a pas choisi à temps */
   timeoutSubtitle?: string;
   opening: string[];
+  /** Ouverture si le testament (coffre, clé USB) n'a pas été lu */
+  openingWithoutTestament?: string[];
   /** Paragraphes ajoutés selon les secrets découverts */
   conditional: { secretIds: string[]; text: string }[];
   closing: string;
@@ -75,6 +77,10 @@ export const ENDINGS: Record<FinalChoice, EndingText> = {
     subtitle: "Vous avez choisi de tout dire.",
     opening: [
       "Le 21 février, au lieu d'inaugurer le square Léon Blum, Bernard Dupuis se présente au palais de justice avec un carton d'archives et la clé USB sortie du coffre 1832-1967.",
+      "Il raconte tout : les Jardins de la Mer, le compte suisse, Monaco. Il se dénonce en même temps que Philippe Maurin et Jean-Marc Vidal.",
+    ],
+    openingWithoutTestament: [
+      "Le 21 février, au lieu d'inaugurer le square Léon Blum, Bernard Dupuis se présente au palais de justice avec une copie du dossier confidentiel.",
       "Il raconte tout : les Jardins de la Mer, le compte suisse, Monaco. Il se dénonce en même temps que Philippe Maurin et Jean-Marc Vidal.",
     ],
     conditional: [
@@ -91,6 +97,10 @@ export const ENDINGS: Record<FinalChoice, EndingText> = {
     timeoutSubtitle: "Vous n'avez rien décidé. Maurin, si.",
     opening: [
       "Le dossier confidentiel part en fumée, la clé USB au fond du port. Le 21 février, Bernard coupe le ruban du square Léon Blum sous les applaudissements, l'écharpe tricolore bien en place.",
+      "Le 24 février, Antoine Garnier ne répond plus au téléphone. L'article du 25 ne paraîtra jamais.",
+    ],
+    openingWithoutTestament: [
+      "Le dossier confidentiel est effacé, fichier par fichier. Le 21 février, Bernard coupe le ruban du square Léon Blum sous les applaudissements, l'écharpe tricolore bien en place.",
       "Le 24 février, Antoine Garnier ne répond plus au téléphone. L'article du 25 ne paraîtra jamais.",
     ],
     conditional: [

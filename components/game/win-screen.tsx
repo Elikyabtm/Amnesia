@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useGame } from "@/lib/game-context";
-import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User } from "lucide-react";
+import { Trophy, Eye, FileWarning, RotateCcw, AlertTriangle, User, Scale, Flame, KeyRound } from "lucide-react";
+import { ENDINGS, type FinalChoice } from "@/lib/data/final-choice";
 import { cn } from "@/lib/utils";
 import { ENDING_THRESHOLDS, SECRET_TOTAL, secretName } from "@/lib/secret-catalog";
 import { useSound } from "@/hooks/use-sound";
@@ -36,7 +37,7 @@ function StatCard({ value, label, progress }: { value: string; label: string; pr
 type Ending = "innocent" | "curious" | "detective" | "accomplice";
 
 export function WinScreen() {
-  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame, eventsState } = useGame();
+  const { secretsDiscovered, passwordAttempts, suspicionLevel, clues, startTime, endTime, revealedPassword, resetGame, eventsState, finalChoice } = useGame();
   const { playSound } = useSound();
   const duration = startTime && endTime ? formatDuration(endTime - startTime) : "--:--";
   const cluesFound = clues.filter((c) => isCatalogClue(c.text)).length;
@@ -105,7 +106,30 @@ export function WinScreen() {
     },
   };
 
-  const currentEnding = endings[ending];
+  // Fin à choix (phase 5) : elle prime sur la fin liée au nombre de secrets,
+  // qui devient le "niveau d'enquête"
+  const CHOICE_STYLE: Record<FinalChoice, { icon: typeof Trophy; color: string; bgColor: string; borderColor: string }> = {
+    justice: { icon: Scale, color: "text-sky-400", bgColor: "bg-sky-500/10", borderColor: "border-sky-500/30" },
+    mayor: { icon: Flame, color: "text-red-400", bgColor: "bg-red-500/10", borderColor: "border-red-500/30" },
+    player: { icon: KeyRound, color: "text-amber-400", bgColor: "bg-amber-500/10", borderColor: "border-amber-500/30" },
+  };
+  const choiceText = finalChoice ? ENDINGS[finalChoice.choice] : null;
+  const story = choiceText
+    ? [
+        ...(!secretsDiscovered.includes("secret5") && choiceText.openingWithoutTestament ? choiceText.openingWithoutTestament : choiceText.opening),
+        ...choiceText.conditional.filter((c) => c.secretIds.some((id) => secretsDiscovered.includes(id))).map((c) => c.text),
+        choiceText.closing,
+      ]
+    : null;
+  const investigationLevel = endings[ending].title.replace("Fin : ", "");
+  const currentEnding = finalChoice && choiceText
+    ? {
+        ...CHOICE_STYLE[finalChoice.choice],
+        title: choiceText.title,
+        subtitle: finalChoice.timedOut && choiceText.timeoutSubtitle ? choiceText.timeoutSubtitle : choiceText.subtitle,
+        description: `Niveau d'enquête : ${investigationLevel} (${secretsDiscovered.length}/${TOTAL_SECRETS} secrets)`,
+      }
+    : endings[ending];
   const Icon = currentEnding.icon;
 
   const handleRestart = () => {
@@ -143,6 +167,16 @@ export function WinScreen() {
         <p className="text-white/50 mb-8 leading-relaxed animate-fade-in" style={{ animationDelay: "0.6s" }}>
           {currentEnding.description}
         </p>
+
+        {story && (
+          <div className="mb-8 text-left space-y-3 rounded-lg border border-white/10 bg-white/[0.03] p-5 animate-fade-in" style={{ animationDelay: "0.8s" }}>
+            {story.map((paragraph) => (
+              <p key={paragraph} className="text-white/75 leading-relaxed">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        )}
 
         {/* Identity card */}
         {showDetails && (
@@ -218,7 +252,13 @@ export function WinScreen() {
         )}
 
         {/* Hint for other endings */}
-        {showDetails && ending !== "detective" && (
+        {showDetails && finalChoice && (
+          <p className="mt-6 text-xs text-white/30 animate-fade-in">
+            Trois fins possibles : la Justice, le Maire, le Joueur. Rejouez pour faire un autre choix.
+          </p>
+        )}
+
+        {showDetails && !finalChoice && ending !== "detective" && (
           <p className="mt-6 text-xs text-white/30 animate-fade-in">
             Indice : Il y a d&apos;autres fins à découvrir. Avant de vous connecter en admin, fouillez le dossier confidentiel, la boîte mail, les contacts... et les recoins du système.
           </p>
